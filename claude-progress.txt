@@ -84,3 +84,19 @@ Additional implementation:
 - Committed changes: 01642bc
 
 Current Status: 99 passing, 163 remaining
+
+2026-04-04 Session (continued):
+- Implemented Temperature Control feature:
+  * Added Temperature slider in Settings modal (0.0-1.0 range)
+  * Added state management for temperature in App component
+  * Connected slider to API calls via temperature parameter
+  * Verified with browser automation - AI responds correctly
+- Implemented Top-p Control feature:
+  * Added Top-p slider in Settings modal (0.0-1.0 range)
+  * Added state management for topP in App component
+  * Connected slider to API calls via top_p parameter
+  * Verified UI displays correctly in settings modal
+- Updated feature_list.json: marked Top-p control test as passing
+- Committed changes: 1152e9e
+
+Current Status: 100 passing, 162 remaining
