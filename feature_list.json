@@ -613,7 +613,7 @@
       "Send same message again",
       "Verify responses have more diversity"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

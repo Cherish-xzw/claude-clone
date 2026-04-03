@@ -140,7 +140,7 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 // POST /api/messages/stream - Stream message response (SSE)
 app.post('/api/messages/stream', async (req, res) => {
   try {
-    const { conversation_id, content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '' } = req.body;
+    const { conversation_id, content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
 
     // Get conversation messages for context
     let conversationMessages = [];
@@ -177,6 +177,8 @@ app.post('/api/messages/stream', async (req, res) => {
       max_tokens: 4096,
       system: systemPrompt,
       messages: messages,
+      temperature: parseFloat(temperature),
+      top_p: parseFloat(top_p),
     }, {
       fetchOptions: {
         signal: req.signal

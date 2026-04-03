@@ -550,7 +550,7 @@ function ModelSelector({ selectedModel, onModelChange }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -610,16 +610,30 @@ function SettingsModal({ isOpen, onClose }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Temperature</label>
+                  <label className="block text-sm font-medium mb-2">Temperature: {temperature}</label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
-                    defaultValue="0.7"
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
                     className="w-full"
                   />
                   <p className="text-xs text-gray-500 mt-1">Lower values are more focused, higher values more creative</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Top P: {topP}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={topP}
+                    onChange={(e) => setTopP(parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Lower values limit response diversity</p>
                 </div>
               </div>
             )}
@@ -700,6 +714,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [selectedModel, setSelectedModel] = useState('claude-sonnet-4-5-20250929');
+  const [temperature, setTemperature] = useState(0.7);
+  const [topP, setTopP] = useState(1.0);
   const [showSettings, setShowSettings] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1171,6 +1187,8 @@ function App() {
           conversation_id: currentConversation?.id,
           content: userMessage.content,
           model: selectedModel,
+          temperature: temperature,
+          top_p: topP,
         }),
         signal: controller.signal,
       });
@@ -1940,7 +1958,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} />
 
         {/* Command Palette */}
         <CommandPalette
