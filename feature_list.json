@@ -874,7 +874,7 @@
       "Verify conversation is viewable (read-only)",
       "Verify no editing options are available"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

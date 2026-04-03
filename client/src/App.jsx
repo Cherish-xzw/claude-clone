@@ -192,6 +192,21 @@ const Icons = {
       <line x1="3" y1="18" x2="21" y2="18"></line>
     </svg>
   ),
+  Share: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"></circle>
+      <circle cx="6" cy="12" r="3"></circle>
+      <circle cx="18" cy="19" r="3"></circle>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+    </svg>
+  ),
+  Link: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+    </svg>
+  ),
 };
 
 // Code block component with copy functionality
@@ -342,7 +357,7 @@ function TypingIndicator() {
 }
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, folders }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, folders }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
 
   const formatDate = (dateStr) => {
@@ -408,6 +423,16 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           title="Duplicate"
         >
           <Icons.Copy />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onShare(conversation);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          title="Share"
+        >
+          <Icons.Share />
         </button>
         <button
           onClick={(e) => {
@@ -696,6 +721,12 @@ function App() {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareData, setShareData] = useState(null);
+  const [shareLink, setShareLink] = useState('');
+  const [sharedView, setSharedView] = useState(null); // For shared conversation view
+  const [sharedLoading, setSharedLoading] = useState(false);
+  const [sharedError, setSharedError] = useState(null);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -714,6 +745,33 @@ function App() {
   useEffect(() => {
     loadConversations();
     loadFolders();
+  }, []);
+
+  // Check for shared link in URL
+  useEffect(() => {
+    const path = window.location.pathname;
+    const sharedMatch = path.match(/^\/shared\/([a-zA-Z0-9]+)$/);
+    if (sharedMatch) {
+      const token = sharedMatch[1];
+      setSharedLoading(true);
+      fetch(`${API_BASE}/share/${token}`)
+        .then(res => {
+          if (!res.ok) {
+            if (res.status === 410) throw new Error('This share link has expired.');
+            if (res.status === 404) throw new Error('Share link not found.');
+            throw new Error('Failed to load shared conversation.');
+          }
+          return res.json();
+        })
+        .then(data => {
+          setSharedView(data);
+          setSharedLoading(false);
+        })
+        .catch(err => {
+          setSharedError(err.message);
+          setSharedLoading(false);
+        });
+    }
   }, []);
 
   // Scroll to bottom on new messages
@@ -841,6 +899,39 @@ function App() {
   const cancelEditMessage = () => {
     setEditingMessageId(null);
     setEditedMessageContent('');
+  };
+
+  // Share conversation via link
+  const shareConversation = async (conversation) => {
+    try {
+      const response = await fetch(`${API_BASE}/conversations/${conversation.id}/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_in_days: 30 }),
+      });
+      const data = await response.json();
+      if (data.share_token) {
+        const link = `${window.location.origin}/shared/${data.share_token}`;
+        setShareLink(link);
+        setShareData(data);
+        setShowShareModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to share conversation:', error);
+    }
+  };
+
+  // Revoke share link
+  const revokeShare = async () => {
+    if (!shareData?.share_token) return;
+    try {
+      await fetch(`${API_BASE}/share/${shareData.share_token}`, { method: 'DELETE' });
+      setShowShareModal(false);
+      setShareData(null);
+      setShareLink('');
+    } catch (error) {
+      console.error('Failed to revoke share:', error);
+    }
   };
 
   // Export conversation to JSON
@@ -1207,6 +1298,67 @@ function App() {
 
   const groupedConversations = groupConversationsByDate(filteredConversations);
 
+  // Shared conversation view
+  if (window.location.pathname.startsWith('/shared/')) {
+    if (sharedLoading) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading shared conversation...</p>
+          </div>
+        </div>
+      );
+    }
+    if (sharedError) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+          <div className="text-center max-w-md p-8">
+            <div className="text-6xl mb-4">🔗</div>
+            <h1 className="text-xl font-semibold mb-2">Unable to Load</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{sharedError}</p>
+            <a href="/" className="px-4 py-2 bg-primary-500 text-white rounded-lg inline-block hover:bg-primary-600 transition-colors">
+              Go to Homepage
+            </a>
+          </div>
+        </div>
+      );
+    }
+    if (sharedView) {
+      return (
+        <div className="h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <h1 className="text-lg font-semibold truncate">{sharedView.conversation?.title || 'Shared Conversation'}</h1>
+            <a href="/" className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm">
+              Start New Chat
+            </a>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="max-w-3xl mx-auto space-y-4">
+              {sharedView.messages?.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${
+                    msg.role === 'user'
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800'
+                  }`}>
+                    <div className="text-xs opacity-70 mb-1">{msg.role === 'user' ? 'You' : 'Assistant'}</div>
+                    <div className="prose dark:prose-invert prose-sm max-w-none">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500">
+            This is a shared conversation. <a href="/" className="text-primary-500 hover:underline">Create your own</a>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <div className="h-screen flex bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -1304,6 +1456,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1324,6 +1477,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1344,6 +1498,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1364,6 +1519,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1384,6 +1540,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1404,6 +1561,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onShare={shareConversation}
                       folders={folders}
                     />
                   ))}
@@ -1684,6 +1842,65 @@ function App() {
                   className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
                 >
                   Download {exportFormat === 'markdown' ? 'MD' : 'JSON'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowShareModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Share Conversation</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Anyone with this link can view this conversation (read-only).
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="text"
+                  value={shareLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                  onClick={e => e.target.select()}
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(shareLink);
+                      alert('Link copied to clipboard!');
+                    } catch (err) {
+                      alert('Failed to copy link');
+                    }
+                  }}
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  Copy
+                </button>
+              </div>
+              {shareData?.expires_at && (
+                <p className="text-xs text-gray-500 mb-4">
+                  Expires: {new Date(shareData.expires_at).toLocaleDateString()}
+                </p>
+              )}
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={revokeShare}
+                  className="px-4 py-2 text-red-500 hover:text-red-600 transition-colors text-sm"
+                >
+                  Revoke Link
+                </button>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </div>
