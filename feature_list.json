@@ -1,3341 +1,3427 @@
 [
   {
     "category": "functional",
-    "description": "Send message streaming test 1",
+    "description": "User can create a new chat conversation",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Navigate to the application home page",
+      "Verify landing on the main chat interface",
+      "Locate the 'New Chat' button in the sidebar",
+      "Click the 'New Chat' button",
+      "Verify a new conversation is created with empty message history",
+      "Verify conversation appears in the conversations list",
+      "Verify welcome screen or empty state is displayed"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "User can send a text message and receive a streaming response",
+    "steps": [
+      "Navigate to an existing or new conversation",
+      "Type a test message in the input field",
+      "Verify message appears in the chat immediately after sending",
+      "Click the send button or press Enter",
+      "Verify typing indicator appears while waiting for response",
+      "Verify response streams in word by word",
+      "Verify streaming stops when complete",
+      "Verify final response is fully rendered with markdown"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering in assistant messages",
+    "steps": [
+      "Navigate to a conversation",
+      "Send a message requesting formatted text",
+      "Receive response containing headers (H1-H6)",
+      "Verify H1 renders as large bold text",
+      "Verify H2-H6 render with decreasing sizes",
+      "Send message requesting bold, italic, and strikethrough text",
+      "Verify **bold** text renders correctly",
+      "Verify *italic* text renders correctly",
+      "Verify ~~strikethrough~~ renders correctly",
+      "Send message with bullet and numbered lists",
+      "Verify bullet points render with proper bullets",
+      "Verify numbered lists render with sequential numbers",
+      "Send message with blockquotes",
+      "Verify blockquotes render with left border"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Code blocks with syntax highlighting",
+    "steps": [
+      "Navigate to a conversation",
+      "Send message requesting code example",
+      "Verify code blocks render with background color",
+      "Verify syntax highlighting is applied correctly",
+      "Verify language label appears on code block",
+      "Locate copy button on code block",
+      "Click copy button",
+      "Verify copied confirmation or toast appears",
+      "Verify code was copied to clipboard"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Inline code rendering in messages",
+    "steps": [
+      "Navigate to a conversation",
+      "Send message with inline code like `console.log('hello')`",
+      "Verify inline code renders with monospace font",
+      "Verify inline code has background color",
+      "Verify inline code does not break line flow"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Stop generation button during streaming",
+    "steps": [
+      "Navigate to a conversation",
+      "Send message requesting long response",
+      "Verify streaming begins",
+      "Locate stop generation button",
+      "Click stop button during streaming",
+      "Verify streaming stops immediately",
+      "Verify partial response is preserved",
+      "Verify message is marked as stopped/partial"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Input field auto-resize functionality",
+    "steps": [
+      "Navigate to a conversation",
+      "Locate the message input field",
+      "Verify input starts at default height",
+      "Type a single short line of text",
+      "Verify input remains at single line",
+      "Type or paste a long paragraph",
+      "Verify input field expands vertically to fit content",
+      "Verify input does not expand beyond maximum height",
+      "Verify scrollbar appears if content exceeds max height"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Keyboard shortcuts - Enter to send, Shift+Enter for newline",
+    "steps": [
+      "Navigate to a conversation",
+      "Type a message in input field",
+      "Press Enter key",
+      "Verify message is sent",
+      "Clear input field",
+      "Type a message",
+      "Press Shift+Enter",
+      "Verify newline is inserted in message",
+      "Verify message is NOT sent yet",
+      "Press Enter to send the message with newline"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Conversation list displays in sidebar grouped by date",
+    "steps": [
+      "Navigate to main application",
+      "Verify sidebar is visible with conversation list",
+      "Verify conversations are grouped: Today section",
+      "Verify conversations are grouped: Yesterday section",
+      "Verify conversations are grouped: Previous 7 Days section",
+      "Verify conversations are grouped: Older section",
+      "Verify correct conversation count in each section",
+      "Verify timestamps display correctly"
+    ],
+    "passes": true,
+    "completed_at": "2026-04-03T16:28:25.113Z"
+  },
+  {
+    "category": "functional",
+    "description": "Switch between conversations",
+    "steps": [
+      "Navigate to main application",
+      "Locate sidebar with conversation list",
+      "Click on a conversation in the list",
+      "Verify chat area loads that conversation's messages",
+      "Verify conversation title is displayed",
+      "Click on a different conversation",
+      "Verify chat area switches to new conversation",
+      "Verify previous conversation state is preserved"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation with inline editing",
+    "steps": [
+      "Navigate to a conversation",
+      "Locate the conversation title",
+      "Double-click or click edit icon on title",
+      "Verify title becomes editable input field",
+      "Type new conversation name",
+      "Press Enter or click away to save",
+      "Verify title updates to new name",
+      "Verify conversation list also shows updated name"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Delete conversation with confirmation",
+    "steps": [
+      "Navigate to main application",
+      "Locate a conversation in the sidebar",
+      "Right-click or hover for context menu",
+      "Select delete option",
+      "Verify confirmation dialog appears",
+      "Click confirm or cancel",
+      "If confirmed, verify conversation is removed from list",
+      "If canceled, verify conversation remains"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Search conversations by title or content",
+    "steps": [
+      "Navigate to main application",
+      "Locate search input in sidebar",
+      "Type search query in search field",
+      "Verify conversations filter in real-time",
+      "Verify matching conversations are highlighted",
+      "Verify non-matching conversations are hidden",
+      "Clear search query",
+      "Verify all conversations are displayed again"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Pin important conversations",
+    "steps": [
+      "Navigate to main application",
+      "Locate a conversation in sidebar",
+      "Right-click or hover for context menu",
+      "Select pin option",
+      "Verify conversation shows pin indicator",
+      "Verify pinned conversation appears at top of list",
+      "Select unpin option",
+      "Verify pin indicator is removed",
+      "Verify conversation returns to normal position"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Archive conversations",
+    "steps": [
+      "Navigate to main application",
+      "Locate a conversation to archive",
+      "Right-click or access context menu",
+      "Select archive option",
+      "Verify conversation is moved to archived state",
+      "Verify archived section exists or appears",
+      "Navigate to archived conversations",
+      "Verify archived conversation is listed",
+      "Unarchive conversation",
+      "Verify conversation returns to active list"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Create conversation folders",
+    "steps": [
+      "Navigate to main application",
+      "Locate create folder option",
+      "Click create new folder",
+      "Enter folder name",
+      "Verify folder appears in sidebar",
+      "Verify folder is collapsible/expandable",
+      "Drag conversation into folder",
+      "Verify conversation is nested inside folder",
+      "Remove conversation from folder",
+      "Verify conversation returns to main list"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Duplicate conversation",
+    "steps": [
+      "Navigate to a conversation with messages",
+      "Right-click or access context menu",
+      "Select duplicate option",
+      "Verify new conversation is created",
+      "Verify new conversation has same messages",
+      "Verify new conversation has 'Copy of' prefix in name",
+      "Verify original conversation is unchanged"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Export conversation to JSON format",
+    "steps": [
+      "Navigate to a conversation with messages",
+      "Right-click or access conversation menu",
+      "Select export option",
+      "Choose JSON format",
+      "Verify download begins or modal shows JSON content",
+      "Download the file",
+      "Verify downloaded file contains valid JSON",
+      "Verify JSON contains all conversation messages",
+      "Verify JSON structure matches specification"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Export conversation to Markdown format",
+    "steps": [
+      "Navigate to a conversation with messages",
+      "Right-click or access conversation menu",
+      "Select export option",
+      "Choose Markdown format",
+      "Verify download begins or modal shows Markdown",
+      "Download the file",
+      "Verify file has .md extension",
+      "Verify markdown renders headers correctly",
+      "Verify markdown preserves code formatting",
+      "Verify all messages are included"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Create new project",
+    "steps": [
+      "Navigate to main application",
+      "Locate project selector or new project option",
+      "Click create new project",
+      "Enter project name",
+      "Verify project is created",
+      "Verify project appears in project selector",
+      "Verify project can be selected as active"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Assign conversation to project",
+    "steps": [
+      "Navigate to a conversation",
+      "Open conversation settings or context menu",
+      "Select project assignment option",
+      "Choose target project from list",
+      "Verify conversation is associated with project",
+      "Navigate to project view",
+      "Verify conversation appears in project"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Project custom instructions",
+    "steps": [
+      "Navigate to project settings",
+      "Locate custom instructions section",
+      "Enter custom instructions text",
+      "Save settings",
+      "Navigate to conversation within project",
+      "Send a test message",
+      "Verify response reflects custom instructions",
+      "Move conversation to different project",
+      "Verify custom instructions no longer apply"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Delete project",
+    "steps": [
+      "Navigate to project settings or management",
+      "Select a project to delete",
+      "Verify confirmation dialog appears",
+      "Confirm deletion",
+      "Verify project is removed from project list",
+      "Verify conversations in project are preserved",
+      "Verify conversations return to 'No Project' state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Model selection - Claude Sonnet 4.5",
+    "steps": [
+      "Navigate to main application",
+      "Locate model selector dropdown",
+      "Click to open dropdown",
+      "Select Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)",
+      "Verify model indicator shows Sonnet 4.5",
+      "Send a test message",
+      "Verify response comes from Sonnet 4.5"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Model selection - Claude Haiku 4.5",
+    "steps": [
+      "Navigate to main application",
+      "Locate model selector dropdown",
+      "Click to open dropdown",
+      "Select Claude Haiku 4.5 (claude-haiku-4-5-20251001)",
+      "Verify model indicator shows Haiku 4.5",
+      "Send a test message",
+      "Verify response comes from Haiku 4.5"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Model selection - Claude Opus 4.1",
+    "steps": [
+      "Navigate to main application",
+      "Locate model selector dropdown",
+      "Click to open dropdown",
+      "Select Claude Opus 4.1 (claude-opus-4-1-20250805)",
+      "Verify model indicator shows Opus 4.1",
+      "Send a test message",
+      "Verify response comes from Opus 4.1"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Switch models mid-conversation",
+    "steps": [
+      "Navigate to an existing conversation",
+      "Verify current model is displayed",
+      "Change model selection",
+      "Verify new model is active",
+      "Continue conversation with new model",
+      "Verify context is preserved",
+      "Verify new responses come from different model"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Model capabilities display",
+    "steps": [
+      "Open model selector dropdown",
+      "Hover over or select each model",
+      "Verify capabilities are displayed",
+      "Verify context window is shown",
+      "Verify model limitations are noted"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Context window indicator",
+    "steps": [
+      "Open model selector",
+      "Verify context window size is displayed for each model",
+      "Select a model",
+      "Verify current context window is visible in UI",
+      "Navigate to conversation with many messages",
+      "Verify context window usage indicator"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Global custom instructions",
+    "steps": [
+      "Navigate to settings",
+      "Locate custom instructions section",
+      "Enter global custom instructions",
+      "Save settings",
+      "Start new conversation",
+      "Send test message",
+      "Verify responses reflect custom instructions",
+      "Disable or clear custom instructions",
+      "Verify responses no longer reflect them"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Conversation-specific system prompts",
+    "steps": [
+      "Navigate to conversation settings",
+      "Locate system prompt section",
+      "Enter conversation-specific prompt",
+      "Save settings",
+      "Send message in this conversation",
+      "Verify response reflects specific system prompt",
+      "Navigate to different conversation",
+      "Verify different system prompt behavior"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 2",
+    "description": "Theme selection - Light mode",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Navigate to settings",
+      "Locate theme selection option",
+      "Select Light theme",
+      "Verify UI switches to light color scheme",
+      "Verify background is white",
+      "Verify text is dark",
+      "Verify all components use light theme",
+      "Refresh page",
+      "Verify light theme persists"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Theme selection - Dark mode",
+    "steps": [
+      "Navigate to settings",
+      "Locate theme selection option",
+      "Select Dark theme",
+      "Verify UI switches to dark color scheme",
+      "Verify background is dark gray (#1A1A1A)",
+      "Verify text is light colored",
+      "Verify all components use dark theme",
+      "Refresh page",
+      "Verify dark theme persists"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Theme selection - Auto/System mode",
+    "steps": [
+      "Navigate to settings",
+      "Locate theme selection option",
+      "Select Auto or System theme",
+      "Verify UI respects system preference",
+      "Change system light/dark setting",
+      "Verify app automatically switches theme",
+      "Verify all components update correctly"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Font size adjustment",
+    "steps": [
+      "Navigate to settings",
+      "Locate font size option",
+      "Increase font size",
+      "Verify message text size increases",
+      "Decrease font size",
+      "Verify message text size decreases",
+      "Verify UI remains readable at all sizes",
+      "Reset to default",
+      "Verify default size is restored"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Message density - Compact mode",
+    "steps": [
+      "Navigate to settings",
+      "Locate message density option",
+      "Select Compact mode",
+      "Verify messages have reduced spacing",
+      "Verify sidebar items are condensed",
+      "Verify more content is visible without scrolling"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Message density - Spacious mode",
+    "steps": [
+      "Navigate to settings",
+      "Locate message density option",
+      "Select Spacious mode",
+      "Verify messages have increased spacing",
+      "Verify UI feels more open",
+      "Verify better readability"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Code theme selection",
+    "steps": [
+      "Navigate to settings",
+      "Locate code theme option",
+      "Select different code theme (e.g., Monokai, Dracula)",
+      "Navigate to conversation with code blocks",
+      "Verify code blocks use new theme colors",
+      "Select another code theme",
+      "Verify theme changes again"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Temperature control slider",
+    "steps": [
+      "Navigate to conversation or settings",
+      "Locate temperature control",
+      "Adjust slider to low value (0.0)",
+      "Send test message multiple times",
+      "Verify responses are more focused/deterministic",
+      "Adjust slider to high value (1.0)",
+      "Send same message again",
+      "Verify responses are more creative/varied"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Max tokens adjustment",
+    "steps": [
+      "Navigate to conversation or settings",
+      "Locate max tokens setting",
+      "Set max tokens to low value (e.g., 100)",
+      "Send message requesting long response",
+      "Verify response is cut off at token limit",
+      "Set max tokens to high value",
+      "Send message again",
+      "Verify longer response is possible"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 3",
+    "description": "Top-p (nucleus sampling) control",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
+      "Navigate to settings or conversation",
+      "Locate top-p control",
+      "Set top-p to 0.1",
+      "Send test message multiple times",
+      "Verify responses are more predictable",
+      "Set top-p to 1.0",
+      "Send same message again",
+      "Verify responses have more diversity"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "System prompt override",
+    "steps": [
+      "Navigate to conversation settings",
+      "Locate system prompt override option",
+      "Enter custom system prompt",
+      "Save and send message",
+      "Verify response follows custom system prompt",
+      "Clear system prompt override",
+      "Verify default behavior returns"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Thinking/reasoning mode toggle",
+    "steps": [
+      "Navigate to settings or conversation",
+      "Locate thinking mode toggle",
+      "Enable thinking mode",
+      "Send a reasoning-heavy question",
+      "Verify thinking/reasoning steps are shown",
+      "Disable thinking mode",
+      "Send same question",
+      "Verify reasoning is hidden"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Image upload in messages",
+    "steps": [
+      "Navigate to a conversation",
+      "Locate attachment/image upload button",
+      "Click upload button",
+      "Select image file from computer",
+      "Verify image preview appears in input area",
+      "Type accompanying text",
+      "Send message",
+      "Verify image displays in message",
+      "Verify image is sent to API"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Display uploaded images in messages",
+    "steps": [
+      "Navigate to conversation with image messages",
+      "Verify images render correctly in messages",
+      "Click on image",
+      "Verify image opens in lightbox or modal",
+      "Close image viewer",
+      "Verify return to conversation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Regenerate last assistant response",
+    "steps": [
+      "Navigate to a conversation",
+      "Send a message and receive response",
+      "Locate regenerate button on last message",
+      "Click regenerate",
+      "Verify old response is removed or marked",
+      "Verify new response is generated",
+      "Verify conversation still makes sense"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Edit sent message",
+    "steps": [
+      "Navigate to a conversation",
+      "Locate sent message options",
+      "Select edit option",
+      "Modify message content",
+      "Save edit",
+      "Verify message is updated in chat",
+      "Verify new response is generated for edited message"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Artifact panel opens for code artifact",
+    "steps": [
+      "Navigate to a conversation",
+      "Send prompt that generates code artifact",
+      "Verify artifact panel slides in from right",
+      "Verify code is displayed in artifact panel",
+      "Verify syntax highlighting is applied",
+      "Verify artifact title/type is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code artifact viewer with syntax highlighting",
+    "steps": [
+      "Generate a code artifact",
+      "Verify code is displayed with highlighting",
+      "Verify language is detected correctly",
+      "Verify line numbers are shown",
+      "Verify proper indentation",
+      "Copy code from artifact panel",
+      "Verify code was copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "HTML/SVG preview with live rendering",
+    "steps": [
+      "Generate HTML artifact",
+      "Verify preview pane is visible",
+      "Verify HTML renders as live preview",
+      "Generate SVG artifact",
+      "Verify SVG renders correctly",
+      "Toggle between code and preview",
+      "Verify smooth transition"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "React component preview",
+    "steps": [
+      "Generate React component artifact",
+      "Verify component preview is available",
+      "Verify component renders correctly",
+      "Verify interactive elements work",
+      "Verify component styling is applied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mermaid diagram rendering",
+    "steps": [
+      "Generate mermaid artifact",
+      "Verify mermaid diagram renders",
+      "Verify diagram type is correct (flowchart, sequence, etc.)",
+      "Verify diagram is readable",
+      "Toggle to code view",
+      "Verify mermaid code is visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Text document artifacts",
+    "steps": [
+      "Generate text artifact",
+      "Verify text renders in artifact panel",
+      "Verify formatting is preserved",
+      "Copy text content",
+      "Verify text was copied correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Edit artifact content",
+    "steps": [
+      "Generate code artifact",
+      "Open artifact in panel",
+      "Locate edit option",
+      "Modify artifact code",
+      "Save changes",
+      "Verify changes are applied",
+      "Verify preview updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Re-prompt with artifact modifications",
+    "steps": [
+      "Generate artifact",
+      "Edit artifact content",
+      "Locate re-prompt or iterate button",
+      "Click to continue with modifications",
+      "Verify Claude receives modified artifact",
+      "Verify new response references changes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Full-screen artifact view",
+    "steps": [
+      "Open artifact panel",
+      "Locate full-screen toggle",
+      "Click full-screen",
+      "Verify artifact expands to full screen",
+      "Verify close button is visible",
+      "Click close or press Escape",
+      "Verify return to normal view"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Download artifact content",
+    "steps": [
+      "Open artifact in panel",
+      "Locate download button",
+      "Click download",
+      "Verify file is downloaded",
+      "Verify file has correct extension",
+      "Verify file contains correct content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Artifact versioning and history",
+    "steps": [
+      "Generate initial artifact",
+      "Modify and regenerate artifact",
+      "Locate version history",
+      "View version list",
+      "Select previous version",
+      "Verify older version is displayed",
+      "Verify can switch between versions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation branching",
+    "steps": [
+      "Navigate to conversation with messages",
+      "Locate branch option on a message",
+      "Create branch from message",
+      "Verify new branch conversation is created",
+      "Verify branch has correct starting message",
+      "Continue conversation in branch",
+      "Verify branch diverges from original"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Share conversation via link",
+    "steps": [
+      "Navigate to conversation",
+      "Locate share option",
+      "Click share to generate link",
+      "Verify share link is created",
+      "Copy share link",
+      "Open link in new browser/incognito",
+      "Verify conversation is viewable (read-only)",
+      "Verify no editing options are available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Share conversation with expiration",
+    "steps": [
+      "Navigate to share settings",
+      "Enable expiration option",
+      "Set expiration time",
+      "Create share link",
+      "Verify expiration is shown",
+      "Wait for expiration (or mock time)",
+      "Verify expired link shows error"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Revoke shared conversation link",
+    "steps": [
+      "Create shared link for conversation",
+      "Navigate to shared link settings",
+      "Locate revoke/delete link option",
+      "Click revoke",
+      "Verify link is deleted",
+      "Attempt to access old link",
+      "Verify link no longer works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Prompt library access",
+    "steps": [
+      "Open command palette or menu",
+      "Navigate to prompt library",
+      "Browse available prompts",
+      "Verify prompts are categorized",
+      "Select a prompt",
+      "Verify prompt is loaded into input",
+      "Modify and send prompt"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Save prompt to library",
+    "steps": [
+      "Navigate to conversation",
+      "Create or type a useful prompt",
+      "Locate save to library option",
+      "Click save",
+      "Enter prompt title and category",
+      "Save prompt",
+      "Navigate to prompt library",
+      "Verify saved prompt is listed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Command palette (Cmd/Ctrl+K)",
+    "steps": [
+      "Press Cmd+K (Mac) or Ctrl+K (Windows/Linux)",
+      "Verify command palette opens",
+      "Type search query",
+      "Verify results filter in real-time",
+      "Select result with keyboard",
+      "Verify action is executed",
+      "Press Escape to close",
+      "Verify palette closes"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Keyboard shortcuts reference",
+    "steps": [
+      "Open settings or help menu",
+      "Navigate to keyboard shortcuts",
+      "Verify shortcuts reference is displayed",
+      "Verify all shortcuts are listed",
+      "Close shortcuts reference",
+      "Test a shortcut to verify it works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Search across all conversations",
+    "steps": [
+      "Open search functionality",
+      "Type search query",
+      "Verify results include matches from all conversations",
+      "Verify message content is searchable",
+      "Click on result",
+      "Verify navigation to exact message",
+      "Verify search term is highlighted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Filter search by project",
+    "steps": [
+      "Open search",
+      "Enter search query",
+      "Locate project filter option",
+      "Select specific project",
+      "Verify results are filtered",
+      "Clear project filter",
+      "Verify all projects are searched"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Filter search by date range",
+    "steps": [
+      "Open search",
+      "Enter search query",
+      "Locate date filter option",
+      "Select date range (e.g., last week)",
+      "Verify results are filtered by date",
+      "Clear date filter",
+      "Verify all dates are included"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Filter search by model",
+    "steps": [
+      "Open search",
+      "Enter search query",
+      "Locate model filter option",
+      "Select specific model",
+      "Verify results are filtered",
+      "Verify only selected model's conversations appear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Token usage display per message",
+    "steps": [
+      "Navigate to a conversation",
+      "Send a message",
+      "Locate token count for user message",
+      "Verify token count is displayed",
+      "Receive assistant response",
+      "Locate token count for assistant message",
+      "Verify both input and output tokens shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation cost estimation",
+    "steps": [
+      "Navigate to conversation",
+      "Locate cost estimation",
+      "Verify cost is calculated based on tokens",
+      "Send messages and verify cost accumulates",
+      "Verify cost per message is shown",
+      "Verify total conversation cost is displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Daily usage dashboard",
+    "steps": [
+      "Navigate to usage settings or dashboard",
+      "View daily usage statistics",
+      "Verify usage is broken down by day",
+      "Verify charts or graphs are displayed",
+      "Verify data matches actual usage"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Monthly usage dashboard",
+    "steps": [
+      "Navigate to usage dashboard",
+      "Select monthly view",
+      "Verify month selector works",
+      "Verify monthly totals are displayed",
+      "Verify comparison with previous months"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Usage limits and warnings",
+    "steps": [
+      "Configure usage limit settings",
+      "Set a usage limit threshold",
+      "Reach usage threshold",
+      "Verify warning notification appears",
+      "Approach or exceed limit",
+      "Verify appropriate action (warning/block)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "API quota tracking",
+    "steps": [
+      "Navigate to settings or usage page",
+      "View API quota information",
+      "Verify current usage vs quota",
+      "Verify quota resets date/time is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Settings modal with tabbed interface",
+    "steps": [
+      "Navigate to settings",
+      "Verify settings opens as modal or page",
+      "Verify tabs are visible (General, Appearance, etc.)",
+      "Click on different tabs",
+      "Verify tab content switches",
+      "Verify tab navigation works correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accessibility - Full keyboard navigation",
+    "steps": [
+      "Use only keyboard (no mouse)",
+      "Navigate through UI with Tab key",
+      "Verify focus indicators are visible",
+      "Verify all interactive elements are reachable",
+      "Use Enter/Space to activate buttons",
+      "Navigate conversation list",
+      "Verify full app can be used without mouse"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accessibility - ARIA labels and roles",
+    "steps": [
+      "Use screen reader on application",
+      "Verify buttons have aria-labels",
+      "Verify landmarks are properly labeled",
+      "Verify images have alt text",
+      "Verify form inputs have labels",
+      "Verify dynamic content updates are announced"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accessibility - High contrast mode",
+    "steps": [
+      "Navigate to accessibility settings",
+      "Enable high contrast mode",
+      "Verify UI elements have stronger contrast",
+      "Verify text is more readable",
+      "Verify interactive elements are clearly distinguished"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accessibility - Reduced motion",
+    "steps": [
+      "Enable reduced motion in system/OS settings",
+      "Navigate to application",
+      "Verify animations are reduced or disabled",
+      "Verify transitions are instant or minimal",
+      "Verify functionality still works smoothly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mobile - Responsive layout",
+    "steps": [
+      "Open application on mobile device or resize browser",
+      "Verify layout adapts to screen size",
+      "Verify sidebar becomes collapsible on small screens",
+      "Verify chat area fills screen appropriately",
+      "Verify touch targets are appropriately sized",
+      "Verify text is readable on mobile"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mobile - Collapsible sidebar",
+    "steps": [
+      "Open application on mobile or narrow viewport",
+      "Verify sidebar is hidden or collapsed",
+      "Locate menu button to show sidebar",
+      "Click menu button",
+      "Verify sidebar slides in from left",
+      "Click outside or close button",
+      "Verify sidebar closes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Welcome screen for new users",
+    "steps": [
+      "Clear user data or use fresh account",
+      "Navigate to application",
+      "Verify welcome screen appears",
+      "Verify welcome message is displayed",
+      "Verify suggested prompts are shown",
+      "Click on suggested prompt",
+      "Verify prompt is loaded and can be sent"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Feature tour highlights",
+    "steps": [
+      "Start application as new user",
+      "Initiate feature tour if available",
+      "Verify step-by-step guide appears",
+      "Navigate through tour steps",
+      "Verify tour highlights UI elements",
+      "Complete or skip tour",
+      "Verify tour can be restarted from settings"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Quick tips and best practices",
+    "steps": [
+      "Navigate to help or tips section",
+      "Verify tips are displayed",
+      "Verify tips cover common use cases",
+      "Verify tips are helpful for new users"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Example prompts section",
+    "steps": [
+      "Navigate to home screen or help",
+      "Locate example prompts section",
+      "Verify example prompts are displayed",
+      "Verify prompts cover different categories",
+      "Click on example prompt",
+      "Verify prompt is loaded into input"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Data export options",
+    "steps": [
+      "Navigate to settings",
+      "Locate data export option",
+      "Click export data",
+      "Verify export options are presented",
+      "Select export format",
+      "Initiate export",
+      "Verify data download begins",
+      "Verify exported data is complete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "API key management in settings",
+    "steps": [
+      "Navigate to settings",
+      "Locate API key section",
+      "Verify API key field is masked",
+      "Option to show/reveal key",
+      "Option to update API key",
+      "Verify key changes are saved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Multi-turn conversation context",
+    "steps": [
+      "Start new conversation",
+      "Send first message",
+      "Receive response",
+      "Send second message referencing first",
+      "Verify assistant understands context",
+      "Send third message continuing thread",
+      "Verify conversation maintains context"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Voice input (mock UI)",
+    "steps": [
+      "Navigate to conversation input area",
+      "Locate voice input button",
+      "Click voice input (mock)",
+      "Verify UI indicates recording mode",
+      "Click stop recording",
+      "Verify mock transcript is inserted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Response suggestions",
+    "steps": [
+      "Receive assistant response",
+      "Verify response suggestions appear",
+      "Click on suggestion",
+      "Verify suggestion is used as input",
+      "Verify new response is generated"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Related prompts",
+    "steps": [
+      "View conversation or suggestions",
+      "Verify related prompts are displayed",
+      "Click on related prompt",
+      "Verify prompt is loaded",
+      "Send prompt and verify relevance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Language preferences setting",
+    "steps": [
+      "Navigate to settings",
+      "Locate language preference option",
+      "Select different language",
+      "Save settings",
+      "Verify UI language changes if supported",
+      "Verify date/time formats update"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Privacy settings",
+    "steps": [
+      "Navigate to settings",
+      "Locate privacy settings",
+      "View privacy options",
+      "Toggle options if available",
+      "Save settings",
+      "Verify settings are applied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Team workspaces (mock UI)",
+    "steps": [
+      "Navigate to workspaces section",
+      "View team workspaces (mock)",
+      "Verify workspace list is displayed",
+      "Click on workspace",
+      "Verify workspace details shown",
+      "Verify UI indicates mock/non-functional"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Character count and token estimation in input",
+    "steps": [
+      "Navigate to conversation",
+      "Type message in input",
+      "Verify character count is displayed",
+      "Verify token estimate is shown",
+      "Type longer message",
+      "Verify counts update in real-time",
+      "Send message",
+      "Verify counts reset"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Team workspace sharing (mock)",
+    "steps": [
+      "Navigate to project or workspace",
+      "Locate share with team option",
+      "Click share option",
+      "Verify mock sharing modal appears",
+      "Verify UI indicates feature is mock/incomplete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project templates",
+    "steps": [
+      "Navigate to create new project",
+      "Locate templates option",
+      "View available templates",
+      "Select a template",
+      "Verify project is created with template content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project analytics display",
+    "steps": [
+      "Navigate to project",
+      "Locate analytics section",
+      "Verify usage stats are displayed",
+      "Verify conversation count shown",
+      "Verify message count shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project knowledge base upload",
+    "steps": [
+      "Navigate to project settings",
+      "Locate knowledge base section",
+      "Click add files",
+      "Select file(s) to upload",
+      "Verify upload progress shown",
+      "Verify files are added to project"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar resize handle functionality",
+    "steps": [
+      "Locate sidebar resize handle",
+      "Click and drag resize handle",
+      "Verify sidebar width changes",
+      "Verify main content area adjusts",
+      "Release resize handle",
+      "Verify new size is maintained"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Notification toasts",
+    "steps": [
+      "Trigger action that shows notification",
+      "Verify toast appears",
+      "Verify toast auto-dismisses after timeout",
+      "Verify toast can be manually dismissed",
+      "Verify toast content is clear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Chat layout is clean and centered",
+    "steps": [
+      "Navigate to application",
+      "Verify chat area is centered on page",
+      "Verify adequate margins on sides",
+      "Verify chat doesn't stretch to edges",
+      "Take screenshot and verify visual appeal"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Message bubbles have proper alignment",
+    "steps": [
+      "Navigate to conversation",
+      "Send user message",
+      "Verify user message is right-aligned",
+      "Receive assistant message",
+      "Verify assistant message is left-aligned",
+      "Verify consistent spacing between messages"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Color scheme matches claude.ai design",
+    "steps": [
+      "Navigate to application in light mode",
+      "Verify primary accent is orange/amber (#CC785C or similar)",
+      "Verify background is white or near-white",
+      "Verify surface areas are light gray",
+      "Take screenshot for verification"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Dark mode color scheme",
+    "steps": [
+      "Enable dark mode",
+      "Verify background is dark gray (#1A1A1A)",
+      "Verify surface areas are darker gray (#2A2A2A)",
+      "Verify text is off-white (#E5E5E5)",
+      "Verify borders are dark gray (#404040)",
+      "Take screenshot for verification"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Typography uses system font stack",
+    "steps": [
+      "Navigate to application",
+      "Verify sans-serif font is used for body text",
+      "Verify code uses monospace font",
+      "Verify font sizes are consistent",
+      "Verify line height is comfortable"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Buttons have proper styling",
+    "steps": [
+      "Verify primary buttons have orange/amber background",
+      "Verify primary buttons have white text",
+      "Verify buttons have rounded corners",
+      "Verify secondary buttons have border style",
+      "Verify hover states are visible",
+      "Verify disabled state has reduced opacity"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Input fields have proper styling",
+    "steps": [
+      "Verify input fields have rounded borders",
+      "Verify focus ring is visible on focus",
+      "Verify placeholder text is gray",
+      "Verify input background is appropriate",
+      "Verify error states show red styling"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Cards have proper styling",
+    "steps": [
+      "Verify cards have subtle border or shadow",
+      "Verify cards have rounded corners (8px)",
+      "Verify cards have appropriate padding",
+      "Verify hover state adds slight shadow"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Animations are smooth",
+    "steps": [
+      "Trigger message send",
+      "Verify message fades in smoothly",
+      "Open sidebar",
+      "Verify sidebar slides in smoothly",
+      "Trigger any modal or overlay",
+      "Verify transitions are 150-300ms duration",
+      "Verify animations feel responsive"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Typing indicator animation",
+    "steps": [
+      "Send message and wait for response",
+      "Verify typing indicator appears",
+      "Verify indicator has animated dots",
+      "Verify animation is smooth",
+      "Verify animation stops when response arrives"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Loading spinner styling",
+    "steps": [
+      "Trigger loading state",
+      "Verify spinner is visible",
+      "Verify spinner animation is smooth",
+      "Verify spinner size is appropriate",
+      "Verify spinner uses theme colors"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Skeleton loaders for content",
+    "steps": [
+      "Navigate to conversation list",
+      "Reload or refresh view",
+      "Verify skeleton loaders appear",
+      "Verify skeletons have correct shape",
+      "Verify skeletons animate while loading",
+      "Verify content replaces skeletons smoothly"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Sidebar visual styling",
+    "steps": [
+      "Navigate to application",
+      "Verify sidebar has proper background",
+      "Verify conversation items have proper spacing",
+      "Verify selected item is highlighted",
+      "Verify icons are visible and aligned",
+      "Verify scrollbar is styled appropriately"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Conversation item styling",
+    "steps": [
+      "View conversation list",
+      "Verify conversation titles are visible",
+      "Verify preview text is shown",
+      "Verify timestamps are formatted nicely",
+      "Verify pin/archive icons if present",
+      "Verify hover state is visible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Modal overlay styling",
+    "steps": [
+      "Open any modal (settings, share, etc.)",
+      "Verify dark overlay covers background",
+      "Verify modal is centered",
+      "Verify modal has rounded corners",
+      "Verify modal has appropriate shadow",
+      "Verify close button is visible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Code block visual styling",
+    "steps": [
+      "Navigate to conversation with code",
+      "Verify code blocks have dark background",
+      "Verify syntax colors are applied",
+      "Verify line numbers are visible",
+      "Verify copy button is positioned correctly",
+      "Verify language badge is visible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Artifact panel styling",
+    "steps": [
+      "Open artifact panel",
+      "Verify panel slides in from right",
+      "Verify panel has proper background",
+      "Verify tabs are styled correctly",
+      "Verify action buttons are visible",
+      "Verify panel header is clear"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Model selector dropdown styling",
+    "steps": [
+      "Open model selector",
+      "Verify dropdown has proper styling",
+      "Verify options are clearly visible",
+      "Verify selected option is highlighted",
+      "Verify icons/badges are aligned",
+      "Verify hover states work"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Settings page styling",
+    "steps": [
+      "Navigate to settings",
+      "Verify tab navigation is styled",
+      "Verify form controls are aligned",
+      "Verify section headings are clear",
+      "Verify save buttons are prominent"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Welcome screen visual appeal",
+    "steps": [
+      "Start new conversation",
+      "Verify welcome screen is displayed",
+      "Verify welcome message is centered",
+      "Verify suggested prompts are visually appealing",
+      "Verify proper spacing and typography"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Command palette styling",
+    "steps": [
+      "Open command palette",
+      "Verify overlay is semi-transparent",
+      "Verify search input is prominent",
+      "Verify results list is scrollable",
+      "Verify selected item is highlighted",
+      "Verify keyboard hints are visible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Tooltip styling",
+    "steps": [
+      "Hover over elements with tooltips",
+      "Verify tooltips appear correctly",
+      "Verify tooltip has proper styling",
+      "Verify tooltip position is appropriate",
+      "Verify tooltip text is readable"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Empty state styling",
+    "steps": [
+      "Navigate to empty conversation list",
+      "Verify empty state message is centered",
+      "Verify empty state has appropriate icon",
+      "Verify call-to-action is visible",
+      "Verify visual appeal of empty state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Focus ring visibility",
+    "steps": [
+      "Navigate using keyboard only",
+      "Tab through interactive elements",
+      "Verify focus ring is visible on all elements",
+      "Verify focus ring uses accent color",
+      "Verify focus ring has proper width"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Responsive design on tablet",
+    "steps": [
+      "Resize browser to tablet width (768px)",
+      "Verify layout adapts correctly",
+      "Verify sidebar can be toggled",
+      "Verify content remains usable",
+      "Verify no horizontal scrolling needed"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Responsive design on mobile",
+    "steps": [
+      "Resize browser to mobile width (375px)",
+      "Verify layout is mobile-friendly",
+      "Verify touch targets are appropriately sized",
+      "Verify text is readable",
+      "Verify icons are touch-friendly"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Scrollbar styling in light mode",
+    "steps": [
+      "Open application in light mode",
+      "Scroll through conversation",
+      "Verify scrollbar is styled",
+      "Verify scrollbar has appropriate color",
+      "Verify scrollbar is not too thick"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Scrollbar styling in dark mode",
+    "steps": [
+      "Open application in dark mode",
+      "Scroll through conversation",
+      "Verify scrollbar matches dark theme",
+      "Verify scrollbar is visible but not intrusive"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Image message display styling",
+    "steps": [
+      "View conversation with uploaded image",
+      "Verify image is displayed properly sized",
+      "Verify image has rounded corners",
+      "Verify image doesn't overflow container",
+      "Verify image quality is maintained"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Token counter styling",
+    "steps": [
+      "View message with token count",
+      "Verify token count is visible but subtle",
+      "Verify token count is properly positioned",
+      "Verify styling matches theme"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Usage dashboard charts styling",
+    "steps": [
+      "Navigate to usage dashboard",
+      "Verify charts are rendered correctly",
+      "Verify chart colors match theme",
+      "Verify chart labels are readable",
+      "Verify legends are clear"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Custom instruction editor styling",
+    "steps": [
+      "Navigate to custom instructions",
+      "Verify text area is properly sized",
+      "Verify formatting options are visible",
+      "Verify preview area works correctly"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Share modal styling",
+    "steps": [
+      "Open share modal",
+      "Verify modal is visually appealing",
+      "Verify share link is displayed prominently",
+      "Verify copy button is styled correctly",
+      "Verify expiration settings are clear"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Export modal styling",
+    "steps": [
+      "Open export modal",
+      "Verify format options are listed clearly",
+      "Verify selected format is highlighted",
+      "Verify download button is prominent",
+      "Verify modal has proper styling"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome screen example prompts are clickable",
+    "steps": [
+      "Navigate to home screen",
+      "Locate example prompts",
+      "Click on first example prompt",
+      "Verify prompt is loaded into input",
+      "Verify user can modify prompt",
+      "Send prompt and verify response"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Conversation auto-save functionality",
+    "steps": [
+      "Start new conversation",
+      "Send several messages",
+      "Verify messages are saved automatically",
+      "Refresh page or navigate away",
+      "Return to conversation",
+      "Verify all messages are preserved",
+      "Verify no data loss occurred"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Auto-generate conversation title",
+    "steps": [
+      "Start new conversation",
+      "Send first message",
+      "Wait for response",
+      "Verify conversation title is auto-generated",
+      "Verify title is relevant to first exchange",
+      "Verify title appears in conversation list"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Delete message within conversation",
+    "steps": [
+      "Navigate to conversation with messages",
+      "Locate message options",
+      "Select delete option",
+      "Verify message is removed",
+      "Verify conversation still makes sense",
+      "Verify deletion is reflected in UI"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Folder creation and management",
+    "steps": [
+      "Navigate to sidebar",
+      "Click create new folder",
+      "Enter folder name",
+      "Verify folder is created",
+      "Verify folder appears in list",
+      "Edit folder name",
+      "Delete folder",
+      "Verify folder is removed"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Conversation timestamps display",
+    "steps": [
+      "View conversation list",
+      "Verify today's conversations show time",
+      "Verify yesterday's conversations show 'Yesterday'",
+      "Verify older show dates",
+      "Verify format is consistent"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project selector dropdown functionality",
+    "steps": [
+      "Locate project selector",
+      "Click to open dropdown",
+      "Verify projects are listed",
+      "Verify 'No Project' option exists",
+      "Select different project",
+      "Verify project selection changes",
+      "Verify conversations update accordingly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Edit project settings",
+    "steps": [
+      "Navigate to project settings",
+      "Edit project name",
+      "Verify name is updated",
+      "Edit project description",
+      "Verify description is saved",
+      "Change project color",
+      "Verify color change is reflected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "View conversation history",
+    "steps": [
+      "Navigate to conversation",
+      "Scroll through message history",
+      "Verify older messages load",
+      "Verify scroll position is maintained",
+      "Verify messages render correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown link rendering",
+    "steps": [
+      "Send message with markdown links",
+      "Verify links render as clickable",
+      "Click on link",
+      "Verify link opens in new tab",
+      "Verify links are properly styled"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown table rendering",
+    "steps": [
+      "Send message with markdown table",
+      "Verify table renders correctly",
+      "Verify headers are bold",
+      "Verify borders are visible",
+      "Verify table is scrollable if wide"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "LaTeX/math equation rendering",
+    "steps": [
+      "Send message with LaTeX equations",
+      "Verify inline math renders (using $...$)",
+      "Verify block equations render (using $$...$$)",
+      "Verify equations are properly formatted",
+      "Verify math symbols are displayed correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Input attachment button functionality",
+    "steps": [
+      "Locate attachment button in input area",
+      "Click attachment button",
+      "Verify file picker opens",
+      "Select a file",
+      "Verify file preview appears",
+      "Remove attachment",
+      "Verify preview is removed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send button state changes",
+    "steps": [
+      "Navigate to conversation",
+      "Verify send button is enabled with text",
+      "Clear input field",
+      "Verify send button is disabled or inactive",
+      "Type text in input",
+      "Verify send button becomes active"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation list scroll behavior",
+    "steps": [
+      "View conversation list with many items",
+      "Verify scrollbar appears",
+      "Scroll through list",
+      "Verify smooth scrolling",
+      "Verify headers stick when scrolling"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Settings persistence across sessions",
+    "steps": [
+      "Change several settings",
+      "Save settings",
+      "Refresh page or logout/login",
+      "Verify settings are persisted",
+      "Verify all settings restored correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User profile display",
+    "steps": [
+      "Locate user profile in sidebar bottom",
+      "Verify user name is displayed",
+      "Verify avatar is shown (or placeholder)",
+      "Click on profile",
+      "Verify profile options appear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Logout functionality",
+    "steps": [
+      "Navigate to profile or settings",
+      "Locate logout option",
+      "Click logout",
+      "Verify user is logged out",
+      "Verify redirect to login/home",
+      "Verify session data is cleared"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Login page renders correctly",
+    "steps": [
+      "Navigate to login page",
+      "Verify login form is displayed",
+      "Verify email input field exists",
+      "Verify password input field exists",
+      "Verify login button is visible",
+      "Verify styling matches app theme"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Login form submission",
+    "steps": [
+      "Navigate to login page",
+      "Enter valid credentials",
+      "Click login button",
+      "Verify loading state appears",
+      "Verify successful login",
+      "Verify redirect to main app"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Login form validation",
+    "steps": [
+      "Navigate to login page",
+      "Click login without entering credentials",
+      "Verify validation error appears",
+      "Enter invalid email format",
+      "Verify email validation error",
+      "Enter valid email, invalid password",
+      "Verify appropriate error message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Error handling for API failures",
+    "steps": [
+      "Simulate API failure condition",
+      "Send message that would trigger API call",
+      "Verify error message is displayed",
+      "Verify error is user-friendly",
+      "Verify option to retry is available",
+      "Verify app remains in usable state"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Network disconnection handling",
+    "steps": [
+      "Start message send",
+      "Simulate network disconnection",
+      "Verify error message appears",
+      "Verify appropriate user feedback",
+      "Reconnect network",
+      "Verify app recovers gracefully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Concurrent conversation updates",
+    "steps": [
+      "Have multiple tabs with conversations",
+      "Send message in one tab",
+      "Switch to other tab",
+      "Verify update is reflected",
+      "Verify no conflicts or data corruption"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Memory usage with long conversations",
+    "steps": [
+      "Have conversation with 100+ messages",
+      "Verify app remains responsive",
+      "Verify scrolling is smooth",
+      "Verify no memory leaks evident",
+      "Navigate away and back",
+      "Verify performance is maintained"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project move conversations",
+    "steps": [
+      "Navigate to conversation",
+      "Access conversation settings",
+      "Select move to project option",
+      "Choose destination project",
+      "Verify conversation is moved",
+      "Verify original project list updates",
+      "Verify destination project updates"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Folder nested organization",
+    "steps": [
+      "Create parent folder",
+      "Create child folder inside parent",
+      "Verify nested structure works",
+      "Drag conversation into nested folder",
+      "Verify folder can be collapsed/expanded",
+      "Verify conversation moves correctly"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Mark conversation as read/unread",
+    "steps": [
+      "Navigate to conversation list",
+      "View unread conversation indicator",
+      "Open unread conversation",
+      "Verify indicator is removed",
+      "Receive new message while viewing",
+      "Verify conversation shows unread"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "View shared conversation (public link)",
+    "steps": [
+      "Access shared conversation URL",
+      "Verify read-only view loads",
+      "Verify no compose/input visible",
+      "Verify conversation is displayed correctly",
+      "Verify no edit options available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Prompt template categories",
+    "steps": [
+      "Navigate to prompt library",
+      "Verify prompts are categorized",
+      "Select category filter",
+      "Verify prompts filter correctly",
+      "Clear category filter",
+      "Verify all prompts shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Delete prompt from library",
+    "steps": [
+      "Navigate to prompt library",
+      "Locate delete option on prompt",
+      "Click delete",
+      "Verify confirmation if shown",
+      "Confirm deletion",
+      "Verify prompt is removed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Edit saved prompt",
+    "steps": [
+      "Navigate to prompt library",
+      "Locate edit option on prompt",
+      "Click edit",
+      "Modify prompt content",
+      "Save changes",
+      "Verify changes are reflected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Search prompts library",
+    "steps": [
+      "Navigate to prompt library",
+      "Enter search query",
+      "Verify prompts filter in real-time",
+      "Verify matching prompts are shown",
+      "Clear search",
+      "Verify all prompts shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Prompt usage count tracking",
+    "steps": [
+      "Navigate to prompt library",
+      "View prompt details",
+      "Verify usage count is displayed",
+      "Use prompt in conversation",
+      "Return to prompt library",
+      "Verify usage count incremented"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Export usage data",
+    "steps": [
+      "Navigate to usage dashboard",
+      "Locate export option",
+      "Click export",
+      "Verify data is exported",
+      "Verify exported data format is correct",
+      "Verify data completeness"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "View usage by model breakdown",
+    "steps": [
+      "Navigate to usage dashboard",
+      "Locate by-model breakdown",
+      "Verify usage is broken down by model",
+      "Verify totals per model are shown",
+      "Verify percentages or charts shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "View conversation-specific usage",
+    "steps": [
+      "Navigate to conversation",
+      "Locate usage stats",
+      "Verify tokens for conversation shown",
+      "Verify cost estimate shown",
+      "Verify matches overall usage data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Custom instruction templates",
+    "steps": [
+      "Navigate to custom instructions",
+      "Locate templates option",
+      "Select a template",
+      "Verify template is loaded",
+      "Modify template as needed",
+      "Save custom instruction"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Preview custom instruction effects",
+    "steps": [
+      "Enter custom instructions",
+      "Locate preview option",
+      "Open preview",
+      "Enter test message",
+      "See preview of response with instructions",
+      "Close preview",
+      "Verify preview helped refine instructions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Focus mode / distraction free",
+    "steps": [
+      "Enable focus mode if available",
+      "Verify sidebar is hidden",
+      "Verify only chat area is visible",
+      "Verify easy exit from focus mode",
+      "Exit focus mode",
+      "Verify normal view returns"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Copy entire message content",
+    "steps": [
+      "Navigate to conversation",
+      "Locate message copy option",
       "Click copy",
-      "Verify copied"
+      "Verify message copied to clipboard",
+      "Paste in another application",
+      "Verify complete message is copied"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 4",
+    "description": "Message reference/link within conversation",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Send message that references previous",
+      "Navigate to conversation",
+      "Click reference link",
+      "Verify navigation to referenced message",
+      "Verify context is clear"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 5",
+    "description": "Conversation bookmark/favorite",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Navigate to conversation",
+      "Locate bookmark option",
+      "Mark conversation as favorite",
+      "Navigate to favorites",
+      "Verify conversation appears",
+      "Remove bookmark",
+      "Verify conversation removed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 6",
+    "description": "History browser for conversation",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Open conversation",
+      "Locate history/timeline view",
+      "View message timeline",
+      "Navigate to specific point",
+      "Verify timeline is accurate"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 7",
+    "description": "Bulk conversation actions",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Select multiple conversations",
+      "Locate bulk action options",
+      "Perform bulk delete",
+      "Verify all selected are deleted",
+      "Select and bulk archive",
+      "Verify archive applied"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 8",
+    "description": "Conversation notification preferences",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Navigate to settings",
+      "Locate notification settings",
+      "Toggle notification options",
+      "Save settings",
+      "Verify settings are applied"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 9",
+    "description": "Sound effects toggle",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Navigate to settings",
+      "Locate sound settings",
+      "Enable sound effects",
+      "Trigger action with sound",
+      "Verify sound plays",
+      "Disable sound",
+      "Verify no sound on actions"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 10",
+    "description": "API health check endpoint",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Send request to health check endpoint",
+      "Verify 200 response",
+      "Verify response indicates API status",
+      "Verify response time is reasonable"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 11",
+    "description": "Conversation list loading state",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Refresh application",
+      "Verify loading indicator in sidebar",
+      "Verify conversation list loads progressively",
+      "Verify no flash of wrong content"
     ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 12",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 13",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 14",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 15",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 16",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 17",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 18",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 19",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 20",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Send message streaming test 21",
-    "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 22",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 23",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 24",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 25",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 26",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 27",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 28",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 29",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 30",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Send message streaming test 31",
-    "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 32",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 33",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 34",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 35",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 36",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 37",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 38",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 39",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 40",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Send message streaming test 41",
-    "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 42",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 43",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 44",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 45",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 46",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 47",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 48",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 49",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 50",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 51",
+    "description": "Image lightbox view",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "View message with image",
+      "Click on image",
+      "Verify image opens in lightbox",
+      "Verify zoom controls if available",
+      "Close lightbox",
+      "Verify return to conversation"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 52",
+    "description": "Markdown task list rendering",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Send message with task list (- [ ] todo)",
+      "Verify checkboxes render",
+      "Verify checked items show differently",
+      "Verify task list is readable"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 53",
+    "description": "Code block language detection",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Send message generating code",
+      "Verify language is detected",
+      "Verify language badge shows",
+      "Test with different languages",
+      "Verify correct detection"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 54",
+    "description": "Syntax highlighting for JavaScript",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Request JavaScript code",
+      "Verify JS syntax is highlighted",
+      "Verify keywords are colored",
+      "Verify strings have different color",
+      "Verify comments are styled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 55",
+    "description": "Syntax highlighting for Python",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Request Python code",
+      "Verify Python syntax is highlighted",
+      "Verify indentation guides visible",
+      "Verify proper coloring"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 56",
+    "description": "Syntax highlighting for HTML",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Request HTML code",
+      "Verify HTML syntax is highlighted",
+      "Verify tags are colored",
+      "Verify attributes are styled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 57",
+    "description": "Syntax highlighting for CSS",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Request CSS code",
+      "Verify CSS syntax is highlighted",
+      "Verify selectors are styled",
+      "Verify properties and values colored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "New conversation test 58",
+    "description": "Syntax highlighting for SQL",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Request SQL query",
+      "Verify SQL syntax is highlighted",
+      "Verify keywords are colored",
+      "Verify strings are styled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 59",
+    "description": "Syntax highlighting for JSON",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Request JSON output",
+      "Verify JSON is formatted and highlighted",
+      "Verify keys and values colored differently",
+      "Verify proper indentation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 60",
+    "description": "Typing indicator while waiting",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Send message",
+      "Verify typing indicator appears immediately",
+      "Verify indicator shows before response",
+      "Verify indicator disappears when response starts",
+      "Verify indicator style matches theme"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 61",
+    "description": "Message streaming animation",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Send message and receive streaming response",
+      "Verify text appears incrementally",
+      "Verify smooth animation of new text",
+      "Verify cursor blinks at end",
+      "Verify complete message when done"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 62",
+    "description": "Markdown horizontal rule rendering",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Send message with horizontal rule (---)",
+      "Verify horizontal rule renders",
+      "Verify proper spacing around rule"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 63",
+    "description": "Undo send message (within time limit)",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Send message",
+      "Quickly locate undo option",
+      "Click undo within time limit",
+      "Verify message is removed",
+      "Verify input field has message again",
+      "Modify and resend if needed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 64",
+    "description": "Insert prompt from library to input",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Open prompt library",
+      "Browse prompts",
+      "Click insert/use on prompt",
+      "Verify prompt is inserted into input",
+      "Verify input remains editable"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 65",
+    "description": "API rate limiting handling",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Trigger rapid message sending",
+      "Hit rate limit",
+      "Verify rate limit error is shown",
+      "Verify retry after message is displayed",
+      "Wait for rate limit reset",
+      "Verify sending works again"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 66",
+    "description": "Long message input handling",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Paste very long text into input",
+      "Verify input handles gracefully",
+      "Verify scrolling works within input",
+      "Verify token estimation updates",
+      "Send long message",
+      "Verify message is sent correctly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 67",
+    "description": "Special characters in messages",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Send message with special characters (<>&\"')",
+      "Verify characters are handled correctly",
+      "Verify no HTML injection possible",
+      "Verify characters display properly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 68",
+    "description": "Emoji in messages",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Send message with emojis",
+      "Verify emojis render correctly",
+      "Verify no rendering issues",
+      "Send message with only emojis",
+      "Verify proper display"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 69",
+    "description": "RTL language support in input",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Switch to RTL language",
+      "Type message in RTL language",
+      "Verify text aligns correctly",
+      "Verify input direction is correct",
+      "Send RTL message",
+      "Verify message renders correctly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 70",
+    "description": "Code injection prevention in input",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Type potential code injection in input",
+      "Verify input is sanitized",
+      "Send message",
+      "Verify no code execution occurs",
+      "Verify text displays as plain text"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 71",
+    "description": "Markdown preview toggle",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Locate markdown preview toggle if available",
+      "Enable preview mode",
+      "Verify rendered markdown is shown",
+      "Disable preview",
+      "Verify raw markdown is shown"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 72",
+    "description": "Auto-scroll during streaming",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Send message expecting long response",
+      "Start receiving streaming response",
+      "Manually scroll up during streaming",
+      "Verify auto-scroll stops when user scrolls",
+      "Wait for streaming to complete",
+      "Verify scroll position remains"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 73",
+    "description": "Jump to newest message",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Navigate to conversation with long history",
+      "Scroll up to view older messages",
+      "Locate jump to newest button",
+      "Click jump to newest",
+      "Verify view scrolls to latest message",
+      "Verify visual indicator shows current position"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 74",
+    "description": "Message reactions (if supported)",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Locate reaction option on message",
+      "Click to add reaction",
+      "Verify reaction appears on message",
+      "Remove reaction",
+      "Verify reaction is removed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 75",
+    "description": "Conversation merge functionality",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Select first conversation",
+      "Locate merge option",
+      "Select second conversation",
+      "Complete merge",
+      "Verify messages are combined",
+      "Verify correct chronological order"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 76",
+    "description": "Dark mode toggle keyboard shortcut",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Look for theme toggle shortcut",
+      "Press keyboard shortcut",
+      "Verify theme toggles",
+      "Press again",
+      "Verify theme reverts"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 77",
+    "description": "Logout keyboard shortcut",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Look for logout shortcut",
+      "Press shortcut (if exists)",
+      "Verify logout action triggered",
+      "Verify confirmation if required"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 78",
+    "description": "Conversation list sorting options",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Locate sorting option in sidebar",
+      "Sort by newest",
+      "Verify correct order",
+      "Sort by oldest",
+      "Verify correct order",
+      "Sort alphabetically",
+      "Verify correct order"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 79",
+    "description": "Quick switch between recent conversations",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Locate recent conversations quick access",
+      "Use keyboard shortcut for quick switch",
+      "Navigate with arrow keys",
+      "Select conversation",
+      "Verify switch occurs"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 80",
+    "description": "PWA installation prompt",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Visit app on supported browser",
+      "Verify PWA install prompt appears",
+      "Or locate install option in menu",
+      "Install app",
+      "Verify app installs correctly",
+      "Launch from home screen",
+      "Verify full functionality"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 81",
+    "description": "PWA offline functionality",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Install app as PWA",
+      "Go offline",
+      "Navigate to app",
+      "Verify offline page or cached content",
+      "Verify appropriate offline message"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 82",
+    "description": "Push notifications (mock)",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Navigate to notification settings",
+      "Enable notifications",
+      "Verify notification permission requested",
+      "Receive notification (mock)",
+      "Click notification",
+      "Verify app opens correctly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 83",
+    "description": "Deep link to conversation",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Generate deep link to conversation",
+      "Open deep link",
+      "Verify correct conversation loads",
+      "Verify correct position in conversation"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 84",
+    "description": "Deep link to specific message",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Generate link to specific message",
+      "Open link",
+      "Verify conversation loads",
+      "Verify view scrolls to specific message",
+      "Verify message is highlighted"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 85",
+    "description": "Session timeout handling",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Stay idle until session timeout",
+      "Attempt action after timeout",
+      "Verify redirect to login",
+      "Verify appropriate message shown",
+      "Log in again",
+      "Verify state is restored"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 86",
+    "description": "Remember login session",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Log in to application",
+      "Select remember me if available",
+      "Close browser tab",
+      "Reopen browser",
+      "Navigate to app",
+      "Verify session is remembered"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 87",
+    "description": "Markdown footnote rendering",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Send message with footnotes",
+      "Verify footnotes render correctly",
+      "Verify clickable footnote references",
+      "Verify footnote content at bottom"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 88",
+    "description": "Message threading display",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "View conversation with threads",
+      "Verify thread structure visible",
+      "Click to expand thread",
+      "Verify all replies shown",
+      "Collapse thread",
+      "Verify thread collapses"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 89",
+    "description": "Auto-save draft message",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Start typing message",
+      "Navigate away without sending",
+      "Return to conversation",
+      "Verify draft is restored",
+      "Send message",
+      "Verify draft is cleared"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 90",
+    "description": "Multiple attachments in single message",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Click attachment button",
+      "Select multiple images",
+      "Verify all previews appear",
+      "Send message",
+      "Verify all images sent",
+      "Verify all images display"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 91",
+    "description": "Attachment file type validation",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Try to attach unsupported file type",
+      "Verify error message appears",
+      "Verify only allowed types can be attached",
+      "Attach supported file type",
+      "Verify file is accepted"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 92",
+    "description": "Attachment size limit handling",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Try to attach very large file",
+      "Verify size limit error",
+      "Verify friendly error message",
+      "Attach file within limit",
+      "Verify file is accepted"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 93",
+    "description": "Conversation rename via double-click",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Navigate to conversation",
+      "Double-click on title",
+      "Verify inline edit mode",
+      "Type new name",
+      "Press Enter to save",
+      "Verify title updated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 94",
+    "description": "Sidebar collapse/expand toggle",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Locate sidebar toggle button",
+      "Click to collapse sidebar",
+      "Verify sidebar hides",
+      "Click to expand",
+      "Verify sidebar shows again",
+      "Verify state persists if applicable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 95",
+    "description": "Mention bot in conversation",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Type @ in message",
+      "Verify autocomplete suggestion appears",
+      "Select bot from list",
+      "Verify mention is inserted",
+      "Send message",
+      "Verify bot responds appropriately"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 96",
+    "description": "Rich text formatting toolbar",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Locate formatting toolbar above input",
+      "Click bold button",
+      "Type text",
+      "Verify text is bolded",
+      "Click italic button",
+      "Verify text is italicized",
+      "Verify formatting is applied to message"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 97",
+    "description": "Slash commands for quick actions",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Type / in input field",
+      "Verify slash command menu appears",
+      "Type command name",
+      "Verify filtering",
+      "Select command",
+      "Verify command is executed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 98",
+    "description": "Markdown preview in input (optional)",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Toggle markdown preview in input area",
+      "Type markdown in input",
+      "Verify rendered preview shown",
+      "Toggle back to raw",
+      "Verify raw markdown shown"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 99",
+    "description": "Conversation statistics display",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Navigate to conversation details",
+      "Verify message count shown",
+      "Verify token count shown",
+      "Verify total cost shown",
+      "Verify creation date shown"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 100",
+    "description": "Accessibility skip links",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Use screen reader",
+      "Find skip link if present",
+      "Activate skip link",
+      "Verify navigation to main content",
+      "Verify focus moves correctly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 101",
+    "description": "Keyboard accessible dropdown menus",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Navigate to dropdown with keyboard",
+      "Open dropdown with Enter/Space",
+      "Navigate options with arrow keys",
+      "Select option with Enter",
+      "Verify dropdown closes",
+      "Verify selection is applied"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 102",
+    "description": "Escape key closes modals",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Open any modal",
+      "Press Escape key",
+      "Verify modal closes",
+      "Verify focus returns to trigger element"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 103",
+    "description": "Back button navigation",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Navigate through app",
+      "Press browser back button",
+      "Verify previous state is restored",
+      "Press forward button",
+      "Verify forward state is restored"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 104",
+    "description": "URL reflects current conversation",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Navigate to conversation",
+      "Check URL in browser",
+      "Verify conversation ID in URL",
+      "Copy URL",
+      "Open in new tab",
+      "Verify same conversation loads"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 105",
+    "description": "Browser tab title updates",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Open application",
+      "Verify tab title is app name",
+      "Navigate to named conversation",
+      "Verify tab title includes conversation name",
+      "Navigate to new conversation",
+      "Verify title updates"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 106",
+    "description": "Favicon updates per conversation",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Check current favicon",
+      "Navigate to conversation",
+      "Verify favicon updates if dynamic",
+      "Navigate away",
+      "Verify favicon returns to default"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 107",
+    "description": "Print conversation functionality",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Navigate to conversation",
+      "Open print dialog",
+      "Verify print stylesheet applied",
+      "Verify conversation formats for print",
+      "Verify page breaks handled correctly"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 108",
+    "description": "Memory-efficient message rendering",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Open conversation with many messages",
+      "Monitor memory usage",
+      "Scroll through messages",
+      "Verify memory doesn't grow excessively",
+      "Navigate away",
+      "Verify memory is released"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 109",
+    "description": "WebSocket connection for real-time updates",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Verify WebSocket connection established",
+      "Verify connection persists",
+      "Make change in another tab",
+      "Verify update appears in real-time",
+      "Verify reconnection on disconnect"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 110",
+    "description": "Request cancellation",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Send message",
+      "While processing, cancel request",
+      "Verify request is cancelled",
+      "Verify UI updates appropriately",
+      "Verify can send new message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 111",
+    "description": "Response time display",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Send message",
+      "Receive response",
+      "Verify response time is shown",
+      "Verify time is accurate",
+      "Verify format is readable"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 112",
+    "description": "API error recovery",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Trigger API error",
+      "Verify error is displayed",
+      "Verify retry option",
+      "Click retry",
+      "Verify request is retried",
+      "Verify successful recovery"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 113",
+    "description": "Graceful degradation on feature failure",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Identify non-critical feature",
+      "Simulate feature failure",
+      "Verify app continues working",
+      "Verify feature failure doesn't crash app",
+      "Verify error is logged"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 114",
+    "description": "Concurrent message sending prevention",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Send message",
+      "While waiting for response, try to send another",
+      "Verify send is prevented",
+      "Wait for response",
+      "Verify sending is re-enabled"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 115",
+    "description": "Paste image from clipboard",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "Copy image to clipboard",
+      "Focus on message input",
+      "Paste with Ctrl/Cmd+V",
+      "Verify image is inserted",
+      "Send message",
+      "Verify pasted image is sent"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 116",
+    "description": "Drag and drop file upload",
     "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
+      "Drag image file over input area",
+      "Verify drop zone highlights",
+      "Drop file",
+      "Verify file is uploaded",
+      "Verify preview appears",
+      "Send message",
+      "Verify file is included"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Typing indicator test 117",
+    "description": "Conversation thumbnail preview",
     "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
+      "Hover over conversation in list",
+      "Verify preview popup if available",
+      "Verify preview shows message content",
+      "Click away",
+      "Verify preview closes"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "New conversation test 118",
+    "description": "Batch export of all data",
     "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
+      "Navigate to data settings",
+      "Locate full export option",
+      "Request full data export",
+      "Verify download of all data",
+      "Verify export includes all conversations",
+      "Verify export includes settings"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Switch conversations test 119",
+    "description": "Account deletion",
     "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
+      "Navigate to account settings",
+      "Locate delete account option",
+      "Click delete",
+      "Verify confirmation required",
+      "Enter password to confirm",
+      "Complete deletion",
+      "Verify account is removed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Rename conversation test 120",
+    "description": "Two-factor authentication setup (mock)",
     "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
+      "Navigate to security settings",
+      "Locate 2FA option",
+      "Click setup (mock)",
+      "Verify QR code displayed (mock)",
+      "Verify backup codes shown",
+      "Verify mock confirmation"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Send message streaming test 121",
+    "description": "Password change functionality",
     "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
+      "Navigate to security settings",
+      "Locate change password",
+      "Enter current password",
+      "Enter new password",
+      "Confirm new password",
+      "Submit",
+      "Verify success message"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Markdown rendering test 122",
+    "description": "Email change functionality",
     "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
+      "Navigate to profile settings",
+      "Locate change email option",
+      "Enter new email",
+      "Verify confirmation sent",
+      "Verify email can be updated"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Code syntax highlighting test 123",
+    "description": "Avatar upload functionality",
     "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
+      "Navigate to profile settings",
+      "Locate avatar upload option",
+      "Select image file",
+      "Verify preview",
+      "Upload avatar",
+      "Verify avatar is saved",
+      "Verify avatar appears in app"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Stop streaming test 124",
+    "description": "Active session management",
     "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
+      "Navigate to security settings",
+      "View active sessions",
+      "Verify current session is listed",
+      "Click logout other sessions",
+      "Verify other sessions are ended"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Auto-resize textarea test 125",
+    "description": "API usage reset notification",
     "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
+      "View usage dashboard",
+      "Verify reset date is shown",
+      "Verify time until reset is displayed",
+      "Verify countdown updates"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "Shift+Enter newline test 126",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 127",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 128",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 129",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 130",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Send message streaming test 131",
-    "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 132",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 133",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 134",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 135",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 136",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 137",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 138",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 139",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 140",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Send message streaming test 141",
-    "steps": [
-      "Navigate to chat",
-      "Locate input textarea",
-      "Type test message",
-      "Click send or Enter",
-      "Verify appears immediately",
-      "Observe streaming begins",
-      "Wait for completion",
-      "Verify full response",
-      "Check message saved",
-      "Verify conv created"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Markdown rendering test 142",
-    "steps": [
-      "Send request for markdown",
-      "Receive markdown content",
-      "Check headings render",
-      "Verify bold italic",
-      "Check lists render",
-      "Check code formatting",
-      "Verify blockquotes",
-      "Verify links clickable",
-      "Check all markup"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Code syntax highlighting test 143",
-    "steps": [
-      "Request code example",
-      "Receive code block",
-      "Verify highlighting",
-      "Check language label",
-      "Verify monospace font",
-      "Check line numbers",
-      "Test copy button",
-      "Click copy",
-      "Verify copied"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Stop streaming test 144",
-    "steps": [
-      "Send long question",
-      "Click send",
-      "Observe streaming",
-      "Wait for words",
-      "Click stop",
-      "Verify stops",
-      "Check preserved",
-      "Verify button",
-      "Test new message"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Auto-resize textarea test 145",
-    "steps": [
-      "Locate textarea",
-      "Verify min height",
-      "Type short",
-      "Verify stays",
-      "Type more",
-      "Verify grows",
-      "Type more",
-      "Verify grows",
-      "Delete",
-      "Verify shrinks"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Shift+Enter newline test 146",
-    "steps": [
-      "Focus input",
-      "Type line1",
-      "Shift+Enter",
-      "Verify new line",
-      "Type line2",
-      "Shift+Enter",
-      "Verify another",
-      "Enter send",
-      "Verify newlines",
-      "Verify stored"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Typing indicator test 147",
-    "steps": [
-      "Clear convs",
-      "Create new",
-      "Type message",
-      "Click send",
-      "Observe indicator",
-      "Verify animation",
-      "Wait response",
-      "Verify disappears",
-      "Verify only wait"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "New conversation test 148",
-    "steps": [
-      "Locate New Chat",
-      "Click New Chat",
-      "Verify clears",
-      "Verify updates",
-      "Verify focused",
-      "Type message",
-      "Send",
-      "Verify persisted",
-      "Verify title auto",
-      "Check sidebar"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Switch conversations test 149",
-    "steps": [
-      "Create first",
-      "Create second",
-      "Click first",
-      "Verify first",
-      "Verify correct",
-      "Click second",
-      "Verify updates",
-      "Verify messages",
-      "Verify title",
-      "Return first"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
-    "description": "Rename conversation test 150",
-    "steps": [
-      "Select conv",
-      "Locate title",
-      "Double-click",
-      "Verify editable",
-      "Clear title",
-      "Type new",
-      "Enter",
-      "Verify saved",
-      "Refresh",
-      "Verify persists"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Primary color test 1",
-    "steps": [
-      "Verify orange accent",
-      "Check buttons",
-      "Verify hover",
-      "Check active",
-      "Verify disabled",
-      "Check focus rings",
-      "Verify links",
-      "Check icons",
-      "Verify badges",
-      "Verify brand"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Typography test 2",
-    "steps": [
-      "Verify headings",
-      "Check body text",
-      "Verify code font",
-      "Verify message size",
-      "Check sidebar",
-      "Verify buttons",
-      "Check placeholder",
-      "Verify labels",
-      "Verify errors",
-      "Verify sizing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Spacing test 3",
-    "steps": [
-      "Verify margins",
-      "Check padding",
-      "Verify gaps",
-      "Check list spacing",
-      "Verify sections",
-      "Check modal",
-      "Check cards",
-      "Verify buttons",
-      "Verify inputs",
-      "Verify rhythm"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Border radius test 4",
-    "steps": [
-      "Verify buttons",
-      "Check cards",
-      "Verify inputs",
-      "Verify modal",
-      "Verify dropdowns",
-      "Verify avatars",
-      "Verify images",
-      "Verify badges",
-      "Verify consistent",
-      "Verify spec"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Shadows test 5",
-    "steps": [
-      "Verify card shadows",
-      "Check modal shadows",
-      "Check dropdown shadows",
-      "Verify hover shadows",
-      "Check elevation",
-      "Verify consistent",
-      "Test dark shadows",
-      "Test light shadows",
-      "Verify no harsh",
-      "Verify depth"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Animation test 6",
-    "steps": [
-      "Verify smooth",
-      "Check duration",
-      "Verify fade",
-      "Check slide",
-      "Verify loading",
-      "Test hover",
-      "Verify timing",
-      "Check no janky",
-      "Verify reduced",
-      "Test accessible"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Message bubbles test 7",
-    "steps": [
-      "Verify align",
-      "Check assistant",
-      "Verify colors",
-      "Check radius",
-      "Verify padding",
-      "Verify max width",
-      "Check wrapping",
-      "Verify timestamp",
-      "Verify avatar",
-      "Verify spacing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Sidebar test 8",
-    "steps": [
-      "Verify bg",
-      "Check items",
-      "Verify hover",
-      "Check active",
-      "Check icons",
-      "Verify truncation",
-      "Check scrollbar",
-      "Verify collapse",
-      "Verify resize",
-      "Verify border"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Input styling test 9",
-    "steps": [
-      "Verify border",
-      "Check focus ring",
-      "Verify placeholder",
-      "Check text color",
-      "Verify height",
-      "Check padding",
-      "Verify radius",
-      "Check error",
-      "Check disabled",
-      "Verify resize"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Button styling test 10",
-    "steps": [
-      "Verify primary",
-      "Check secondary",
-      "Verify icon",
-      "Verify disabled",
-      "Check hover",
-      "Check active",
-      "Verify loading",
-      "Check radius",
-      "Verify padding",
-      "Verify text"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Primary color test 11",
-    "steps": [
-      "Verify orange accent",
-      "Check buttons",
-      "Verify hover",
-      "Check active",
-      "Verify disabled",
-      "Check focus rings",
-      "Verify links",
-      "Check icons",
-      "Verify badges",
-      "Verify brand"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Typography test 12",
-    "steps": [
-      "Verify headings",
-      "Check body text",
-      "Verify code font",
-      "Verify message size",
-      "Check sidebar",
-      "Verify buttons",
-      "Check placeholder",
-      "Verify labels",
-      "Verify errors",
-      "Verify sizing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Spacing test 13",
-    "steps": [
-      "Verify margins",
-      "Check padding",
-      "Verify gaps",
-      "Check list spacing",
-      "Verify sections",
-      "Check modal",
-      "Check cards",
-      "Verify buttons",
-      "Verify inputs",
-      "Verify rhythm"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Border radius test 14",
-    "steps": [
-      "Verify buttons",
-      "Check cards",
-      "Verify inputs",
-      "Verify modal",
-      "Verify dropdowns",
-      "Verify avatars",
-      "Verify images",
-      "Verify badges",
-      "Verify consistent",
-      "Verify spec"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Shadows test 15",
-    "steps": [
-      "Verify card shadows",
-      "Check modal shadows",
-      "Check dropdown shadows",
-      "Verify hover shadows",
-      "Check elevation",
-      "Verify consistent",
-      "Test dark shadows",
-      "Test light shadows",
-      "Verify no harsh",
-      "Verify depth"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Animation test 16",
-    "steps": [
-      "Verify smooth",
-      "Check duration",
-      "Verify fade",
-      "Check slide",
-      "Verify loading",
-      "Test hover",
-      "Verify timing",
-      "Check no janky",
-      "Verify reduced",
-      "Test accessible"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Message bubbles test 17",
-    "steps": [
-      "Verify align",
-      "Check assistant",
-      "Verify colors",
-      "Check radius",
-      "Verify padding",
-      "Verify max width",
-      "Check wrapping",
-      "Verify timestamp",
-      "Verify avatar",
-      "Verify spacing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Sidebar test 18",
-    "steps": [
-      "Verify bg",
-      "Check items",
-      "Verify hover",
-      "Check active",
-      "Check icons",
-      "Verify truncation",
-      "Check scrollbar",
-      "Verify collapse",
-      "Verify resize",
-      "Verify border"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Input styling test 19",
-    "steps": [
-      "Verify border",
-      "Check focus ring",
-      "Verify placeholder",
-      "Check text color",
-      "Verify height",
-      "Check padding",
-      "Verify radius",
-      "Check error",
-      "Check disabled",
-      "Verify resize"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Button styling test 20",
-    "steps": [
-      "Verify primary",
-      "Check secondary",
-      "Verify icon",
-      "Verify disabled",
-      "Check hover",
-      "Check active",
-      "Verify loading",
-      "Check radius",
-      "Verify padding",
-      "Verify text"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Primary color test 21",
-    "steps": [
-      "Verify orange accent",
-      "Check buttons",
-      "Verify hover",
-      "Check active",
-      "Verify disabled",
-      "Check focus rings",
-      "Verify links",
-      "Check icons",
-      "Verify badges",
-      "Verify brand"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Typography test 22",
-    "steps": [
-      "Verify headings",
-      "Check body text",
-      "Verify code font",
-      "Verify message size",
-      "Check sidebar",
-      "Verify buttons",
-      "Check placeholder",
-      "Verify labels",
-      "Verify errors",
-      "Verify sizing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Spacing test 23",
-    "steps": [
-      "Verify margins",
-      "Check padding",
-      "Verify gaps",
-      "Check list spacing",
-      "Verify sections",
-      "Check modal",
-      "Check cards",
-      "Verify buttons",
-      "Verify inputs",
-      "Verify rhythm"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Border radius test 24",
-    "steps": [
-      "Verify buttons",
-      "Check cards",
-      "Verify inputs",
-      "Verify modal",
-      "Verify dropdowns",
-      "Verify avatars",
-      "Verify images",
-      "Verify badges",
-      "Verify consistent",
-      "Verify spec"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Shadows test 25",
-    "steps": [
-      "Verify card shadows",
-      "Check modal shadows",
-      "Check dropdown shadows",
-      "Verify hover shadows",
-      "Check elevation",
-      "Verify consistent",
-      "Test dark shadows",
-      "Test light shadows",
-      "Verify no harsh",
-      "Verify depth"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Animation test 26",
-    "steps": [
-      "Verify smooth",
-      "Check duration",
-      "Verify fade",
-      "Check slide",
-      "Verify loading",
-      "Test hover",
-      "Verify timing",
-      "Check no janky",
-      "Verify reduced",
-      "Test accessible"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Message bubbles test 27",
-    "steps": [
-      "Verify align",
-      "Check assistant",
-      "Verify colors",
-      "Check radius",
-      "Verify padding",
-      "Verify max width",
-      "Check wrapping",
-      "Verify timestamp",
-      "Verify avatar",
-      "Verify spacing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Sidebar test 28",
-    "steps": [
-      "Verify bg",
-      "Check items",
-      "Verify hover",
-      "Check active",
-      "Check icons",
-      "Verify truncation",
-      "Check scrollbar",
-      "Verify collapse",
-      "Verify resize",
-      "Verify border"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Input styling test 29",
-    "steps": [
-      "Verify border",
-      "Check focus ring",
-      "Verify placeholder",
-      "Check text color",
-      "Verify height",
-      "Check padding",
-      "Verify radius",
-      "Check error",
-      "Check disabled",
-      "Verify resize"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Button styling test 30",
-    "steps": [
-      "Verify primary",
-      "Check secondary",
-      "Verify icon",
-      "Verify disabled",
-      "Check hover",
-      "Check active",
-      "Verify loading",
-      "Check radius",
-      "Verify padding",
-      "Verify text"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Primary color test 31",
-    "steps": [
-      "Verify orange accent",
-      "Check buttons",
-      "Verify hover",
-      "Check active",
-      "Verify disabled",
-      "Check focus rings",
-      "Verify links",
-      "Check icons",
-      "Verify badges",
-      "Verify brand"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Typography test 32",
-    "steps": [
-      "Verify headings",
-      "Check body text",
-      "Verify code font",
-      "Verify message size",
-      "Check sidebar",
-      "Verify buttons",
-      "Check placeholder",
-      "Verify labels",
-      "Verify errors",
-      "Verify sizing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Spacing test 33",
-    "steps": [
-      "Verify margins",
-      "Check padding",
-      "Verify gaps",
-      "Check list spacing",
-      "Verify sections",
-      "Check modal",
-      "Check cards",
-      "Verify buttons",
-      "Verify inputs",
-      "Verify rhythm"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Border radius test 34",
-    "steps": [
-      "Verify buttons",
-      "Check cards",
-      "Verify inputs",
-      "Verify modal",
-      "Verify dropdowns",
-      "Verify avatars",
-      "Verify images",
-      "Verify badges",
-      "Verify consistent",
-      "Verify spec"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Shadows test 35",
-    "steps": [
-      "Verify card shadows",
-      "Check modal shadows",
-      "Check dropdown shadows",
-      "Verify hover shadows",
-      "Check elevation",
-      "Verify consistent",
-      "Test dark shadows",
-      "Test light shadows",
-      "Verify no harsh",
-      "Verify depth"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Animation test 36",
-    "steps": [
-      "Verify smooth",
-      "Check duration",
-      "Verify fade",
-      "Check slide",
-      "Verify loading",
-      "Test hover",
-      "Verify timing",
-      "Check no janky",
-      "Verify reduced",
-      "Test accessible"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Message bubbles test 37",
-    "steps": [
-      "Verify align",
-      "Check assistant",
-      "Verify colors",
-      "Check radius",
-      "Verify padding",
-      "Verify max width",
-      "Check wrapping",
-      "Verify timestamp",
-      "Verify avatar",
-      "Verify spacing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Sidebar test 38",
-    "steps": [
-      "Verify bg",
-      "Check items",
-      "Verify hover",
-      "Check active",
-      "Check icons",
-      "Verify truncation",
-      "Check scrollbar",
-      "Verify collapse",
-      "Verify resize",
-      "Verify border"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Input styling test 39",
-    "steps": [
-      "Verify border",
-      "Check focus ring",
-      "Verify placeholder",
-      "Check text color",
-      "Verify height",
-      "Check padding",
-      "Verify radius",
-      "Check error",
-      "Check disabled",
-      "Verify resize"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Button styling test 40",
-    "steps": [
-      "Verify primary",
-      "Check secondary",
-      "Verify icon",
-      "Verify disabled",
-      "Check hover",
-      "Check active",
-      "Verify loading",
-      "Check radius",
-      "Verify padding",
-      "Verify text"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Primary color test 41",
-    "steps": [
-      "Verify orange accent",
-      "Check buttons",
-      "Verify hover",
-      "Check active",
-      "Verify disabled",
-      "Check focus rings",
-      "Verify links",
-      "Check icons",
-      "Verify badges",
-      "Verify brand"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Typography test 42",
-    "steps": [
-      "Verify headings",
-      "Check body text",
-      "Verify code font",
-      "Verify message size",
-      "Check sidebar",
-      "Verify buttons",
-      "Check placeholder",
-      "Verify labels",
-      "Verify errors",
-      "Verify sizing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Spacing test 43",
-    "steps": [
-      "Verify margins",
-      "Check padding",
-      "Verify gaps",
-      "Check list spacing",
-      "Verify sections",
-      "Check modal",
-      "Check cards",
-      "Verify buttons",
-      "Verify inputs",
-      "Verify rhythm"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Border radius test 44",
-    "steps": [
-      "Verify buttons",
-      "Check cards",
-      "Verify inputs",
-      "Verify modal",
-      "Verify dropdowns",
-      "Verify avatars",
-      "Verify images",
-      "Verify badges",
-      "Verify consistent",
-      "Verify spec"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Shadows test 45",
-    "steps": [
-      "Verify card shadows",
-      "Check modal shadows",
-      "Check dropdown shadows",
-      "Verify hover shadows",
-      "Check elevation",
-      "Verify consistent",
-      "Test dark shadows",
-      "Test light shadows",
-      "Verify no harsh",
-      "Verify depth"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Animation test 46",
-    "steps": [
-      "Verify smooth",
-      "Check duration",
-      "Verify fade",
-      "Check slide",
-      "Verify loading",
-      "Test hover",
-      "Verify timing",
-      "Check no janky",
-      "Verify reduced",
-      "Test accessible"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Message bubbles test 47",
-    "steps": [
-      "Verify align",
-      "Check assistant",
-      "Verify colors",
-      "Check radius",
-      "Verify padding",
-      "Verify max width",
-      "Check wrapping",
-      "Verify timestamp",
-      "Verify avatar",
-      "Verify spacing"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Sidebar test 48",
-    "steps": [
-      "Verify bg",
-      "Check items",
-      "Verify hover",
-      "Check active",
-      "Check icons",
-      "Verify truncation",
-      "Check scrollbar",
-      "Verify collapse",
-      "Verify resize",
-      "Verify border"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Input styling test 49",
-    "steps": [
-      "Verify border",
-      "Check focus ring",
-      "Verify placeholder",
-      "Check text color",
-      "Verify height",
-      "Check padding",
-      "Verify radius",
-      "Check error",
-      "Check disabled",
-      "Verify resize"
-    ],
-    "passes": false
-  },
-  {
-    "category": "style",
-    "description": "Style: Button styling test 50",
+    "description": "Feature flag toggles (internal)",
     "steps": [
-      "Verify primary",
-      "Check secondary",
-      "Verify icon",
-      "Verify disabled",
-      "Check hover",
-      "Check active",
-      "Verify loading",
-      "Check radius",
-      "Verify padding",
-      "Verify text"
+      "Access feature flags if admin",
+      "Toggle feature flag",
+      "Verify feature enables/disables",
+      "Reset flag",
+      "Verify original state"
     ],
     "passes": false
   }
