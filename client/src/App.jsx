@@ -1145,32 +1145,46 @@ function App() {
 
   // Send message
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = {
-      id: generateId(),
-      role: 'user',
-      content: input.trim(),
-      created_at: new Date().toISOString(),
-    };
-
-    // Create conversation if needed
-    if (!currentConversation) {
-      await createConversation();
-    }
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-    setIsStreaming(true);
-
-    // Create abort controller
-    const controller = new AbortController();
-    setAbortController(controller);
-
     try {
+      console.log('sendMessage: Starting');
+      if (!input.trim() || isLoading) {
+        console.log('sendMessage: Early return');
+        return;
+      }
+
+      const userMessage = {
+        id: generateId(),
+        role: 'user',
+        content: input.trim(),
+        created_at: new Date().toISOString(),
+      };
+      console.log('sendMessage: userMessage created');
+
+      // Create conversation if needed
+      let conversationId = currentConversation?.id;
+      console.log('sendMessage: conversationId before check:', conversationId);
+      if (!conversationId) {
+        console.log('sendMessage: Creating conversation');
+        await createConversation();
+        // Wait for state to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        conversationId = currentConversation?.id;
+        console.log('sendMessage: conversationId after create:', conversationId);
+      }
+
+      console.log('sendMessage: Updating state');
+      setMessages(prev => [...prev, userMessage]);
+      setInput('');
+      setIsLoading(true);
+      setIsStreaming(true);
+
+      // Create abort controller
+      const controller = new AbortController();
+      setAbortController(controller);
+
       // Add streaming message placeholder
       const assistantMessageId = generateId();
+      console.log('sendMessage: Adding placeholder');
       setMessages(prev => [...prev, {
         id: assistantMessageId,
         role: 'assistant',
@@ -1179,12 +1193,13 @@ function App() {
         created_at: new Date().toISOString(),
       }]);
 
+      console.log('sendMessage: Fetching');
       // Stream response
       const response = await fetch(`${API_BASE}/messages/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          conversation_id: currentConversation?.id,
+          conversation_id: conversationId,
           content: userMessage.content,
           model: selectedModel,
           temperature: temperature,
@@ -1193,10 +1208,12 @@ function App() {
         signal: controller.signal,
       });
 
+      console.log('sendMessage: Response received', response.status);
       if (!response.ok) {
         throw new Error('Failed to get response');
       }
 
+      console.log('sendMessage: Reading stream');
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullContent = '';
@@ -1216,6 +1233,7 @@ function App() {
       }
 
       // Mark streaming complete
+      console.log('sendMessage: Complete');
       setMessages(prev => prev.map(msg =>
         msg.id === assistantMessageId
           ? { ...msg, isStreaming: false }
@@ -1228,15 +1246,19 @@ function App() {
       }
 
     } catch (error) {
+      console.error('sendMessage error:', error);
       if (error.name === 'AbortError') {
         console.log('Request aborted');
       } else {
-        console.error('Error:', error);
-        setMessages(prev => prev.map(msg =>
-          msg.isStreaming
-            ? { ...msg, content: msg.content + '\n\n[Error: Failed to get response]' }
-            : msg
-        ));
+        // Safe state update with fallback
+        setMessages(prev => {
+          if (!prev || !Array.isArray(prev)) return prev;
+          return prev.map(msg =>
+            msg.isStreaming
+              ? { ...msg, content: (msg.content || '') + '\n\n[Error: Failed to get response]' }
+              : msg
+          );
+        });
       }
     } finally {
       setIsLoading(false);
