@@ -1,0 +1,3342 @@
+[
+  {
+    "category": "functional",
+    "description": "Send message streaming test 1",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 2",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 3",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 4",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 5",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 6",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 7",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 8",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 9",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 10",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 11",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 12",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 13",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 14",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 15",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 16",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 17",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 18",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 19",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 20",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 21",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 22",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 23",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 24",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 25",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 26",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 27",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 28",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 29",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 30",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 31",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 32",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 33",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 34",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 35",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 36",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 37",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 38",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 39",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 40",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 41",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 42",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 43",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 44",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 45",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 46",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 47",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 48",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 49",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 50",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 51",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 52",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 53",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 54",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 55",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 56",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 57",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 58",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 59",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 60",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 61",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 62",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 63",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 64",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 65",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 66",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 67",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 68",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 69",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 70",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 71",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 72",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 73",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 74",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 75",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 76",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 77",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 78",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 79",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 80",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 81",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 82",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 83",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 84",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 85",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 86",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 87",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 88",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 89",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 90",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 91",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 92",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 93",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 94",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 95",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 96",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 97",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 98",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 99",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 100",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 101",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 102",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 103",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 104",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 105",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 106",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 107",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 108",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 109",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 110",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 111",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 112",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 113",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 114",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 115",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 116",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 117",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 118",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 119",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 120",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 121",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 122",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 123",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 124",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 125",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 126",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 127",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 128",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 129",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 130",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 131",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 132",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 133",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 134",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 135",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 136",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 137",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 138",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 139",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 140",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Send message streaming test 141",
+    "steps": [
+      "Navigate to chat",
+      "Locate input textarea",
+      "Type test message",
+      "Click send or Enter",
+      "Verify appears immediately",
+      "Observe streaming begins",
+      "Wait for completion",
+      "Verify full response",
+      "Check message saved",
+      "Verify conv created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering test 142",
+    "steps": [
+      "Send request for markdown",
+      "Receive markdown content",
+      "Check headings render",
+      "Verify bold italic",
+      "Check lists render",
+      "Check code formatting",
+      "Verify blockquotes",
+      "Verify links clickable",
+      "Check all markup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Code syntax highlighting test 143",
+    "steps": [
+      "Request code example",
+      "Receive code block",
+      "Verify highlighting",
+      "Check language label",
+      "Verify monospace font",
+      "Check line numbers",
+      "Test copy button",
+      "Click copy",
+      "Verify copied"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Stop streaming test 144",
+    "steps": [
+      "Send long question",
+      "Click send",
+      "Observe streaming",
+      "Wait for words",
+      "Click stop",
+      "Verify stops",
+      "Check preserved",
+      "Verify button",
+      "Test new message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-resize textarea test 145",
+    "steps": [
+      "Locate textarea",
+      "Verify min height",
+      "Type short",
+      "Verify stays",
+      "Type more",
+      "Verify grows",
+      "Type more",
+      "Verify grows",
+      "Delete",
+      "Verify shrinks"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shift+Enter newline test 146",
+    "steps": [
+      "Focus input",
+      "Type line1",
+      "Shift+Enter",
+      "Verify new line",
+      "Type line2",
+      "Shift+Enter",
+      "Verify another",
+      "Enter send",
+      "Verify newlines",
+      "Verify stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Typing indicator test 147",
+    "steps": [
+      "Clear convs",
+      "Create new",
+      "Type message",
+      "Click send",
+      "Observe indicator",
+      "Verify animation",
+      "Wait response",
+      "Verify disappears",
+      "Verify only wait"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New conversation test 148",
+    "steps": [
+      "Locate New Chat",
+      "Click New Chat",
+      "Verify clears",
+      "Verify updates",
+      "Verify focused",
+      "Type message",
+      "Send",
+      "Verify persisted",
+      "Verify title auto",
+      "Check sidebar"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Switch conversations test 149",
+    "steps": [
+      "Create first",
+      "Create second",
+      "Click first",
+      "Verify first",
+      "Verify correct",
+      "Click second",
+      "Verify updates",
+      "Verify messages",
+      "Verify title",
+      "Return first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rename conversation test 150",
+    "steps": [
+      "Select conv",
+      "Locate title",
+      "Double-click",
+      "Verify editable",
+      "Clear title",
+      "Type new",
+      "Enter",
+      "Verify saved",
+      "Refresh",
+      "Verify persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Primary color test 1",
+    "steps": [
+      "Verify orange accent",
+      "Check buttons",
+      "Verify hover",
+      "Check active",
+      "Verify disabled",
+      "Check focus rings",
+      "Verify links",
+      "Check icons",
+      "Verify badges",
+      "Verify brand"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Typography test 2",
+    "steps": [
+      "Verify headings",
+      "Check body text",
+      "Verify code font",
+      "Verify message size",
+      "Check sidebar",
+      "Verify buttons",
+      "Check placeholder",
+      "Verify labels",
+      "Verify errors",
+      "Verify sizing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Spacing test 3",
+    "steps": [
+      "Verify margins",
+      "Check padding",
+      "Verify gaps",
+      "Check list spacing",
+      "Verify sections",
+      "Check modal",
+      "Check cards",
+      "Verify buttons",
+      "Verify inputs",
+      "Verify rhythm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Border radius test 4",
+    "steps": [
+      "Verify buttons",
+      "Check cards",
+      "Verify inputs",
+      "Verify modal",
+      "Verify dropdowns",
+      "Verify avatars",
+      "Verify images",
+      "Verify badges",
+      "Verify consistent",
+      "Verify spec"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Shadows test 5",
+    "steps": [
+      "Verify card shadows",
+      "Check modal shadows",
+      "Check dropdown shadows",
+      "Verify hover shadows",
+      "Check elevation",
+      "Verify consistent",
+      "Test dark shadows",
+      "Test light shadows",
+      "Verify no harsh",
+      "Verify depth"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Animation test 6",
+    "steps": [
+      "Verify smooth",
+      "Check duration",
+      "Verify fade",
+      "Check slide",
+      "Verify loading",
+      "Test hover",
+      "Verify timing",
+      "Check no janky",
+      "Verify reduced",
+      "Test accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Message bubbles test 7",
+    "steps": [
+      "Verify align",
+      "Check assistant",
+      "Verify colors",
+      "Check radius",
+      "Verify padding",
+      "Verify max width",
+      "Check wrapping",
+      "Verify timestamp",
+      "Verify avatar",
+      "Verify spacing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Sidebar test 8",
+    "steps": [
+      "Verify bg",
+      "Check items",
+      "Verify hover",
+      "Check active",
+      "Check icons",
+      "Verify truncation",
+      "Check scrollbar",
+      "Verify collapse",
+      "Verify resize",
+      "Verify border"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Input styling test 9",
+    "steps": [
+      "Verify border",
+      "Check focus ring",
+      "Verify placeholder",
+      "Check text color",
+      "Verify height",
+      "Check padding",
+      "Verify radius",
+      "Check error",
+      "Check disabled",
+      "Verify resize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Button styling test 10",
+    "steps": [
+      "Verify primary",
+      "Check secondary",
+      "Verify icon",
+      "Verify disabled",
+      "Check hover",
+      "Check active",
+      "Verify loading",
+      "Check radius",
+      "Verify padding",
+      "Verify text"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Primary color test 11",
+    "steps": [
+      "Verify orange accent",
+      "Check buttons",
+      "Verify hover",
+      "Check active",
+      "Verify disabled",
+      "Check focus rings",
+      "Verify links",
+      "Check icons",
+      "Verify badges",
+      "Verify brand"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Typography test 12",
+    "steps": [
+      "Verify headings",
+      "Check body text",
+      "Verify code font",
+      "Verify message size",
+      "Check sidebar",
+      "Verify buttons",
+      "Check placeholder",
+      "Verify labels",
+      "Verify errors",
+      "Verify sizing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Spacing test 13",
+    "steps": [
+      "Verify margins",
+      "Check padding",
+      "Verify gaps",
+      "Check list spacing",
+      "Verify sections",
+      "Check modal",
+      "Check cards",
+      "Verify buttons",
+      "Verify inputs",
+      "Verify rhythm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Border radius test 14",
+    "steps": [
+      "Verify buttons",
+      "Check cards",
+      "Verify inputs",
+      "Verify modal",
+      "Verify dropdowns",
+      "Verify avatars",
+      "Verify images",
+      "Verify badges",
+      "Verify consistent",
+      "Verify spec"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Shadows test 15",
+    "steps": [
+      "Verify card shadows",
+      "Check modal shadows",
+      "Check dropdown shadows",
+      "Verify hover shadows",
+      "Check elevation",
+      "Verify consistent",
+      "Test dark shadows",
+      "Test light shadows",
+      "Verify no harsh",
+      "Verify depth"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Animation test 16",
+    "steps": [
+      "Verify smooth",
+      "Check duration",
+      "Verify fade",
+      "Check slide",
+      "Verify loading",
+      "Test hover",
+      "Verify timing",
+      "Check no janky",
+      "Verify reduced",
+      "Test accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Message bubbles test 17",
+    "steps": [
+      "Verify align",
+      "Check assistant",
+      "Verify colors",
+      "Check radius",
+      "Verify padding",
+      "Verify max width",
+      "Check wrapping",
+      "Verify timestamp",
+      "Verify avatar",
+      "Verify spacing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Sidebar test 18",
+    "steps": [
+      "Verify bg",
+      "Check items",
+      "Verify hover",
+      "Check active",
+      "Check icons",
+      "Verify truncation",
+      "Check scrollbar",
+      "Verify collapse",
+      "Verify resize",
+      "Verify border"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Input styling test 19",
+    "steps": [
+      "Verify border",
+      "Check focus ring",
+      "Verify placeholder",
+      "Check text color",
+      "Verify height",
+      "Check padding",
+      "Verify radius",
+      "Check error",
+      "Check disabled",
+      "Verify resize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Button styling test 20",
+    "steps": [
+      "Verify primary",
+      "Check secondary",
+      "Verify icon",
+      "Verify disabled",
+      "Check hover",
+      "Check active",
+      "Verify loading",
+      "Check radius",
+      "Verify padding",
+      "Verify text"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Primary color test 21",
+    "steps": [
+      "Verify orange accent",
+      "Check buttons",
+      "Verify hover",
+      "Check active",
+      "Verify disabled",
+      "Check focus rings",
+      "Verify links",
+      "Check icons",
+      "Verify badges",
+      "Verify brand"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Typography test 22",
+    "steps": [
+      "Verify headings",
+      "Check body text",
+      "Verify code font",
+      "Verify message size",
+      "Check sidebar",
+      "Verify buttons",
+      "Check placeholder",
+      "Verify labels",
+      "Verify errors",
+      "Verify sizing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Spacing test 23",
+    "steps": [
+      "Verify margins",
+      "Check padding",
+      "Verify gaps",
+      "Check list spacing",
+      "Verify sections",
+      "Check modal",
+      "Check cards",
+      "Verify buttons",
+      "Verify inputs",
+      "Verify rhythm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Border radius test 24",
+    "steps": [
+      "Verify buttons",
+      "Check cards",
+      "Verify inputs",
+      "Verify modal",
+      "Verify dropdowns",
+      "Verify avatars",
+      "Verify images",
+      "Verify badges",
+      "Verify consistent",
+      "Verify spec"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Shadows test 25",
+    "steps": [
+      "Verify card shadows",
+      "Check modal shadows",
+      "Check dropdown shadows",
+      "Verify hover shadows",
+      "Check elevation",
+      "Verify consistent",
+      "Test dark shadows",
+      "Test light shadows",
+      "Verify no harsh",
+      "Verify depth"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Animation test 26",
+    "steps": [
+      "Verify smooth",
+      "Check duration",
+      "Verify fade",
+      "Check slide",
+      "Verify loading",
+      "Test hover",
+      "Verify timing",
+      "Check no janky",
+      "Verify reduced",
+      "Test accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Message bubbles test 27",
+    "steps": [
+      "Verify align",
+      "Check assistant",
+      "Verify colors",
+      "Check radius",
+      "Verify padding",
+      "Verify max width",
+      "Check wrapping",
+      "Verify timestamp",
+      "Verify avatar",
+      "Verify spacing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Sidebar test 28",
+    "steps": [
+      "Verify bg",
+      "Check items",
+      "Verify hover",
+      "Check active",
+      "Check icons",
+      "Verify truncation",
+      "Check scrollbar",
+      "Verify collapse",
+      "Verify resize",
+      "Verify border"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Input styling test 29",
+    "steps": [
+      "Verify border",
+      "Check focus ring",
+      "Verify placeholder",
+      "Check text color",
+      "Verify height",
+      "Check padding",
+      "Verify radius",
+      "Check error",
+      "Check disabled",
+      "Verify resize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Button styling test 30",
+    "steps": [
+      "Verify primary",
+      "Check secondary",
+      "Verify icon",
+      "Verify disabled",
+      "Check hover",
+      "Check active",
+      "Verify loading",
+      "Check radius",
+      "Verify padding",
+      "Verify text"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Primary color test 31",
+    "steps": [
+      "Verify orange accent",
+      "Check buttons",
+      "Verify hover",
+      "Check active",
+      "Verify disabled",
+      "Check focus rings",
+      "Verify links",
+      "Check icons",
+      "Verify badges",
+      "Verify brand"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Typography test 32",
+    "steps": [
+      "Verify headings",
+      "Check body text",
+      "Verify code font",
+      "Verify message size",
+      "Check sidebar",
+      "Verify buttons",
+      "Check placeholder",
+      "Verify labels",
+      "Verify errors",
+      "Verify sizing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Spacing test 33",
+    "steps": [
+      "Verify margins",
+      "Check padding",
+      "Verify gaps",
+      "Check list spacing",
+      "Verify sections",
+      "Check modal",
+      "Check cards",
+      "Verify buttons",
+      "Verify inputs",
+      "Verify rhythm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Border radius test 34",
+    "steps": [
+      "Verify buttons",
+      "Check cards",
+      "Verify inputs",
+      "Verify modal",
+      "Verify dropdowns",
+      "Verify avatars",
+      "Verify images",
+      "Verify badges",
+      "Verify consistent",
+      "Verify spec"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Shadows test 35",
+    "steps": [
+      "Verify card shadows",
+      "Check modal shadows",
+      "Check dropdown shadows",
+      "Verify hover shadows",
+      "Check elevation",
+      "Verify consistent",
+      "Test dark shadows",
+      "Test light shadows",
+      "Verify no harsh",
+      "Verify depth"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Animation test 36",
+    "steps": [
+      "Verify smooth",
+      "Check duration",
+      "Verify fade",
+      "Check slide",
+      "Verify loading",
+      "Test hover",
+      "Verify timing",
+      "Check no janky",
+      "Verify reduced",
+      "Test accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Message bubbles test 37",
+    "steps": [
+      "Verify align",
+      "Check assistant",
+      "Verify colors",
+      "Check radius",
+      "Verify padding",
+      "Verify max width",
+      "Check wrapping",
+      "Verify timestamp",
+      "Verify avatar",
+      "Verify spacing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Sidebar test 38",
+    "steps": [
+      "Verify bg",
+      "Check items",
+      "Verify hover",
+      "Check active",
+      "Check icons",
+      "Verify truncation",
+      "Check scrollbar",
+      "Verify collapse",
+      "Verify resize",
+      "Verify border"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Input styling test 39",
+    "steps": [
+      "Verify border",
+      "Check focus ring",
+      "Verify placeholder",
+      "Check text color",
+      "Verify height",
+      "Check padding",
+      "Verify radius",
+      "Check error",
+      "Check disabled",
+      "Verify resize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Button styling test 40",
+    "steps": [
+      "Verify primary",
+      "Check secondary",
+      "Verify icon",
+      "Verify disabled",
+      "Check hover",
+      "Check active",
+      "Verify loading",
+      "Check radius",
+      "Verify padding",
+      "Verify text"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Primary color test 41",
+    "steps": [
+      "Verify orange accent",
+      "Check buttons",
+      "Verify hover",
+      "Check active",
+      "Verify disabled",
+      "Check focus rings",
+      "Verify links",
+      "Check icons",
+      "Verify badges",
+      "Verify brand"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Typography test 42",
+    "steps": [
+      "Verify headings",
+      "Check body text",
+      "Verify code font",
+      "Verify message size",
+      "Check sidebar",
+      "Verify buttons",
+      "Check placeholder",
+      "Verify labels",
+      "Verify errors",
+      "Verify sizing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Spacing test 43",
+    "steps": [
+      "Verify margins",
+      "Check padding",
+      "Verify gaps",
+      "Check list spacing",
+      "Verify sections",
+      "Check modal",
+      "Check cards",
+      "Verify buttons",
+      "Verify inputs",
+      "Verify rhythm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Border radius test 44",
+    "steps": [
+      "Verify buttons",
+      "Check cards",
+      "Verify inputs",
+      "Verify modal",
+      "Verify dropdowns",
+      "Verify avatars",
+      "Verify images",
+      "Verify badges",
+      "Verify consistent",
+      "Verify spec"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Shadows test 45",
+    "steps": [
+      "Verify card shadows",
+      "Check modal shadows",
+      "Check dropdown shadows",
+      "Verify hover shadows",
+      "Check elevation",
+      "Verify consistent",
+      "Test dark shadows",
+      "Test light shadows",
+      "Verify no harsh",
+      "Verify depth"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Animation test 46",
+    "steps": [
+      "Verify smooth",
+      "Check duration",
+      "Verify fade",
+      "Check slide",
+      "Verify loading",
+      "Test hover",
+      "Verify timing",
+      "Check no janky",
+      "Verify reduced",
+      "Test accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Message bubbles test 47",
+    "steps": [
+      "Verify align",
+      "Check assistant",
+      "Verify colors",
+      "Check radius",
+      "Verify padding",
+      "Verify max width",
+      "Check wrapping",
+      "Verify timestamp",
+      "Verify avatar",
+      "Verify spacing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Sidebar test 48",
+    "steps": [
+      "Verify bg",
+      "Check items",
+      "Verify hover",
+      "Check active",
+      "Check icons",
+      "Verify truncation",
+      "Check scrollbar",
+      "Verify collapse",
+      "Verify resize",
+      "Verify border"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Input styling test 49",
+    "steps": [
+      "Verify border",
+      "Check focus ring",
+      "Verify placeholder",
+      "Check text color",
+      "Verify height",
+      "Check padding",
+      "Verify radius",
+      "Check error",
+      "Check disabled",
+      "Verify resize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Style: Button styling test 50",
+    "steps": [
+      "Verify primary",
+      "Check secondary",
+      "Verify icon",
+      "Verify disabled",
+      "Check hover",
+      "Check active",
+      "Verify loading",
+      "Check radius",
+      "Verify padding",
+      "Verify text"
+    ],
+    "passes": false
+  }
+]
