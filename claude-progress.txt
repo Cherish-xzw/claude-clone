@@ -1,6 +1,29 @@
 Progress Update - 2026-04-05 (continued)
 
 Implemented Features:
+- Usage limits and warnings:
+  * Added Toast notification system to fix showToast bug
+    - Toast state and showToast function
+    - Auto-dismiss after 3 seconds
+    - Support for success, error, warning, info types
+    - Manual dismiss button
+    - Slide-in animation
+  * Usage limits configuration in Settings > Usage tab:
+    - Monthly token limit slider (100K - 10M tokens)
+    - Daily cost limit slider ($1 - $100)
+    - Warning threshold slider (50% - 100%)
+    - Visual progress bar showing current usage vs limit
+  * Warning logic:
+    - Warning toasts when approaching limits (based on threshold %)
+    - Error toasts when exceeding limits
+  * Settings persisted to localStorage
+  * Updated feature_list.json: marked Usage limits test as passing
+
+Status: 179 passing, 83 remaining
+
+Previous Update - 2026-04-05 (continued)
+
+Implemented Features:
 - Verified existing features through code review:
   * Conversation-specific system prompts (Settings > General > Conversation System Prompt textarea)
     - System prompt saved per-conversation via API
