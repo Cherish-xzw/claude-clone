@@ -255,7 +255,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch }) {
   const isUser = message.role === 'user';
 
   return (
@@ -410,6 +410,12 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
                 className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Edit
+              </button>
+              <button
+                onClick={() => onBranch && onBranch(message)}
+                className="text-xs text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Branch
               </button>
               <button
                 onClick={() => onDelete && onDelete(message)}
@@ -1428,6 +1434,54 @@ function App() {
     } catch (error) {
       console.error('Error deleting message:', error);
       showToast('Failed to delete message', 'error');
+    }
+  };
+
+  // Branch conversation from a specific message
+  const branchConversation = async (message) => {
+    try {
+      // Find the index of the message in the current messages array
+      const messageIndex = messages.findIndex(msg => msg.id === message.id);
+      if (messageIndex === -1) return;
+
+      // Get messages up to and including the branch point
+      const branchMessages = messages.slice(0, messageIndex + 1);
+
+      // Create a new conversation
+      const response = await fetch(`${API_BASE}/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `Branch from: ${currentConversation?.title || 'Chat'}`
+        }),
+      });
+      const data = await response.json();
+      const newConversation = data.conversation || data;
+
+      // Add messages to the new conversation
+      for (const msg of branchMessages) {
+        await fetch(`${API_BASE}/conversations/${newConversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: msg.role,
+            content: msg.content,
+            images: msg.images
+          }),
+        });
+      }
+
+      // Reload conversations list
+      loadConversations();
+
+      // Select the new conversation
+      selectConversation(newConversation.id);
+
+      // Show toast
+      showToast('Branch created', 'success');
+    } catch (error) {
+      console.error('Error branching conversation:', error);
+      showToast('Failed to create branch', 'error');
     }
   };
 
@@ -2701,6 +2755,7 @@ function App() {
                       onSaveEdit={saveEditedMessage}
                       onCancelEdit={cancelEditMessage}
                       onDelete={deleteMessage}
+                      onBranch={branchConversation}
                       onImageClick={(imageData) => setLightboxImage(imageData)}
                       onOpenArtifact={() => {
                         if (artifacts.length > 0) {

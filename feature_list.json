@@ -859,7 +859,7 @@
       "Continue conversation in branch",
       "Verify branch diverges from original"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
