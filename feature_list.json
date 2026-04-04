@@ -2141,7 +2141,7 @@
       "Verify option to retry is available",
       "Verify app remains in usable state"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
