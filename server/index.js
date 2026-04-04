@@ -141,6 +141,26 @@ try {
   console.error('Prompt library migration error:', error);
 }
 
+// Create message_reactions table if it doesn't exist
+try {
+  const reactionsTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='message_reactions'").get();
+  if (!reactionsTableExists) {
+    db.exec(`
+      CREATE TABLE message_reactions (
+        id TEXT PRIMARY KEY,
+        message_id TEXT NOT NULL,
+        emoji TEXT NOT NULL,
+        user_id TEXT DEFAULT 'default',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (message_id) REFERENCES messages(id)
+      )
+    `);
+    console.log('Created message_reactions table');
+  }
+} catch (error) {
+  console.error('Message reactions migration error:', error);
+}
+
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY || '',
@@ -507,6 +527,71 @@ app.delete('/api/messages/:id', (req, res) => {
   } catch (error) {
     console.error('Error deleting message:', error);
     res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
+// ============== MESSAGE REACTIONS ==============
+
+// GET /api/messages/:id/reactions - Get reactions for a message
+app.get('/api/messages/:id/reactions', (req, res) => {
+  try {
+    const reactions = db.prepare(`
+      SELECT mr.*,
+             COUNT(*) as count,
+             GROUP_CONCAT(mr.user_id) as user_ids
+      FROM message_reactions mr
+      WHERE mr.message_id = ?
+      GROUP BY mr.emoji
+    `).all(req.params.id);
+    res.json(reactions);
+  } catch (error) {
+    console.error('Error fetching reactions:', error);
+    res.status(500).json({ error: 'Failed to fetch reactions' });
+  }
+});
+
+// POST /api/messages/:id/reactions - Add a reaction to a message
+app.post('/api/messages/:id/reactions', (req, res) => {
+  try {
+    const { emoji, user_id = 'default' } = req.body;
+    const id = generateId();
+
+    // Check if user already reacted with this emoji
+    const existing = db.prepare(`
+      SELECT * FROM message_reactions
+      WHERE message_id = ? AND emoji = ? AND user_id = ?
+    `).get(req.params.id, emoji, user_id);
+
+    if (existing) {
+      // Remove the existing reaction (toggle behavior)
+      db.prepare('DELETE FROM message_reactions WHERE id = ?').run(existing.id);
+      res.json({ removed: true, emoji });
+    } else {
+      // Add new reaction
+      db.prepare(`
+        INSERT INTO message_reactions (id, message_id, emoji, user_id)
+        VALUES (?, ?, ?, ?)
+      `).run(id, req.params.id, emoji, user_id);
+      res.json({ added: true, emoji, id });
+    }
+  } catch (error) {
+    console.error('Error adding reaction:', error);
+    res.status(500).json({ error: 'Failed to add reaction' });
+  }
+});
+
+// DELETE /api/messages/:id/reactions/:emoji - Remove a specific reaction
+app.delete('/api/messages/:id/reactions/:emoji', (req, res) => {
+  try {
+    const { user_id = 'default' } = req.query;
+    db.prepare(`
+      DELETE FROM message_reactions
+      WHERE message_id = ? AND emoji = ? AND user_id = ?
+    `).run(req.params.id, decodeURIComponent(req.params.emoji), user_id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing reaction:', error);
+    res.status(500).json({ error: 'Failed to remove reaction' });
   }
 });
 

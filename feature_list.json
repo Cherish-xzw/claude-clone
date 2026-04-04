@@ -2771,7 +2771,7 @@
       "Remove reaction",
       "Verify reaction is removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

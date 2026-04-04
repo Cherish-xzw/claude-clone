@@ -325,12 +325,58 @@ function CodeBlock({ language, code }) {
 function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en' }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
+  const [reactions, setReactions] = React.useState([]);
+  const [showReactionPicker, setShowReactionPicker] = React.useState(false);
 
   // Check if language is RTL
   const isRTL = ['ar', 'he', 'fa', 'ur'].includes(language);
 
   // Calculate message cost
   const messageCost = calculateMessageCost(message.inputTokens || 0, message.outputTokens || 0, model);
+
+  // Fetch reactions on mount
+  React.useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        const response = await fetch(`/api/messages/${message.id}/reactions`);
+        if (response.ok) {
+          const data = await response.json();
+          setReactions(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch reactions:', error);
+      }
+    };
+    if (message.id) {
+      fetchReactions();
+    }
+  }, [message.id]);
+
+  // Handle adding/removing reaction
+  const handleReaction = async (emoji) => {
+    try {
+      const response = await fetch(`/api/messages/${message.id}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji, user_id: 'default' })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        // Refetch reactions to update UI
+        const reactionsResponse = await fetch(`/api/messages/${message.id}/reactions`);
+        if (reactionsResponse.ok) {
+          const data = await reactionsResponse.json();
+          setReactions(Array.isArray(data) ? data : []);
+        }
+        setShowReactionPicker(false);
+      }
+    } catch (error) {
+      console.error('Failed to add reaction:', error);
+    }
+  };
+
+  // Common reaction emojis
+  const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
   return (
     <article className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`} role="article" aria-label={`${isUser ? 'Your' : 'Assistant'} message`}>
@@ -527,6 +573,48 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
               </button>
             </div>
           )}
+          {/* Reactions display and picker */}
+          <div className="relative mt-1">
+            {/* Existing reactions */}
+            {reactions.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {reactions.map((reaction) => (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReaction(reaction.emoji)}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
+                    title={`${reaction.count} reaction${reaction.count > 1 ? 's' : ''}`}
+                  >
+                    <span>{reaction.emoji}</span>
+                    <span className="text-gray-600 dark:text-gray-300">{reaction.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Add reaction button */}
+            <button
+              onClick={() => setShowReactionPicker(!showReactionPicker)}
+              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mt-1"
+              aria-label="Add reaction"
+            >
+              <span>Add reaction</span>
+            </button>
+            {/* Reaction picker popup */}
+            {showReactionPicker && (
+              <div className="absolute z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 flex gap-1">
+                {reactionEmojis.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReaction(emoji)}
+                    className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    title={`React with ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </article>

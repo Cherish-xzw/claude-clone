@@ -1,6 +1,18 @@
 Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
+- Message reactions:
+  * Created message_reactions table in database (migration in server/index.js)
+  * Added GET /api/messages/:id/reactions endpoint to fetch reactions for a message
+  * Added POST /api/messages/:id/reactions endpoint (toggle: add if not exists, remove if exists)
+  * Added DELETE /api/messages/:id/reactions/:emoji endpoint
+  * Updated Message component with reactions state and UI
+  * Added "Add reaction" button below message action buttons
+  * Added reaction picker popup with 6 emoji options: 👍 ❤️ 😂 😮 😢 🙏
+  * Added reactions display showing emoji with count
+  * Clicking existing reaction toggles (removes) it
+  * Updated feature_list.json: marked test #2764 (Message reactions) as passing
+
 - Conversation bookmark/favorite:
   * Added is_favorited column to conversations table (server migration)
   * Updated GET /api/conversations to support favorites filter (?favorites=true)
@@ -28,7 +40,7 @@ Implemented Features:
   * Added RTL support to message editing textarea
   * Updated feature_list.json: marked test #2712 (RTL language support) as passing
 
-Status: 192 passing, 70 remaining
+Status: 193 passing, 69 remaining
 
 Previous Update - 2026-04-05 (new session)
 
