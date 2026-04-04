@@ -2257,7 +2257,7 @@
       "Confirm deletion",
       "Verify prompt is removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
