@@ -340,6 +340,13 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
                       },
                       pre({ children }) {
                         return <>{children}</>;
+                      },
+                      a({ node, href, children, ...props }) {
+                        return (
+                          <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                            {children}
+                          </a>
+                        );
                       }
                     }}
                   >

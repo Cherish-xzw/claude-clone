@@ -1988,7 +1988,7 @@
       "Verify link opens in new tab",
       "Verify links are properly styled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
