@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
 
 // Theme Context
 const ThemeContext = createContext();
@@ -402,8 +404,8 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                 {message.content && (
                   <ReactMarkdown
                     className="markdown-content"
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeHighlight, rehypeRaw, rehypeKatex]}
                     components={{
                       code({ node, inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
@@ -3195,7 +3197,10 @@ function App() {
                   }`}>
                     <div className="text-xs opacity-70 mb-1">{msg.role === 'user' ? 'You' : 'Assistant'}</div>
                     <div className="prose dark:prose-invert prose-sm max-w-none">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >{msg.content}</ReactMarkdown>
                     </div>
                   </div>
                 </div>

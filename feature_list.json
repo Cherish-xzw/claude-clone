@@ -2012,7 +2012,7 @@
       "Verify equations are properly formatted",
       "Verify math symbols are displayed correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
