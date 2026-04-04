@@ -3919,6 +3919,7 @@ function App() {
             selectConversation(conv);
             setShowCommandPalette(false);
           }}
+          apiBase={API_BASE}
         />
       </div>
     </ThemeContext.Provider>
@@ -3926,10 +3927,60 @@ function App() {
 }
 
 // Command Palette Component
-function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, onOpenPromptLibrary, conversations, onSelectConversation }) {
+function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, onOpenPromptLibrary, conversations, onSelectConversation, apiBase }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [messageResults, setMessageResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef(null);
+
+  // Search messages when query changes
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) {
+      setMessageResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeoutId = setTimeout(() => {
+      fetch(`${apiBase}/search/messages?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          setMessageResults(Array.isArray(data) ? data.slice(0, 20) : []);
+          setIsSearching(false);
+        })
+        .catch(() => {
+          setMessageResults([]);
+          setIsSearching(false);
+        });
+    }, 300); // Debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [query, apiBase]);
+
+  // Highlight search term in text
+  const highlightSearchTerm = (text, searchTerm) => {
+    if (!searchTerm.trim() || !text) return text;
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/50 rounded px-0.5">{part}</mark> : part
+    );
+  };
+
+  // Get preview snippet from message content
+  const getMessageSnippet = (content, searchTerm, maxLength = 100) => {
+    if (!content) return '';
+    const lowerContent = content.toLowerCase();
+    const lowerSearch = searchTerm.toLowerCase();
+    const index = lowerContent.indexOf(lowerSearch);
+    if (index === -1) return content.substring(0, maxLength) + (content.length > maxLength ? '...' : '');
+    const start = Math.max(0, index - 30);
+    const end = Math.min(content.length, index + searchTerm.length + 50);
+    let snippet = (start > 0 ? '...' : '') + content.substring(start, end) + (end < content.length ? '...' : '');
+    return snippet;
+  };
 
   // Available commands
   const allCommands = [
@@ -3966,6 +4017,9 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
     return acc;
   }, {});
 
+  // Total items including message results
+  const totalItems = filteredCommands.length + messageResults.length;
+
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
@@ -3973,14 +4027,21 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, filteredCommands.length - 1));
+        setSelectedIndex(prev => Math.min(prev + 1, totalItems - 1));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex(prev => Math.max(prev - 1, 0));
-      } else if (e.key === 'Enter' && filteredCommands[selectedIndex]) {
+      } else if (e.key === 'Enter') {
         e.preventDefault();
-        filteredCommands[selectedIndex].action();
-        onClose();
+        // Check if selected item is a message result
+        if (selectedIndex >= filteredCommands.length && messageResults[selectedIndex - filteredCommands.length]) {
+          const msg = messageResults[selectedIndex - filteredCommands.length];
+          onSelectConversation({ id: msg.conversation_id, title: msg.conversation_title });
+          onClose();
+        } else if (filteredCommands[selectedIndex]) {
+          filteredCommands[selectedIndex].action();
+          onClose();
+        }
       } else if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
@@ -3989,13 +4050,14 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredCommands, selectedIndex, onClose]);
+  }, [isOpen, filteredCommands, selectedIndex, onClose, messageResults, totalItems]);
 
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
+      setMessageResults([]);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -4028,6 +4090,13 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
 
   let flatIndex = 0;
 
+  // Add message results icon
+  const MessageIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+  );
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-[15vh] z-50" onClick={onClose}>
       <div
@@ -4042,14 +4111,71 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Type a command or search..."
+            placeholder="Type a command or search messages..."
             className="w-full px-4 py-4 bg-transparent focus:outline-none text-base"
           />
           <kbd className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600">ESC</kbd>
         </div>
 
         {/* Results */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto">
+          {/* Message Search Results */}
+          {query.length >= 2 && (
+            <div>
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-900 flex items-center gap-2">
+                {isSearching ? (
+                  <>
+                    <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    Searching messages...
+                  </>
+                ) : (
+                  <>Messages ({messageResults.length})</>
+                )}
+              </div>
+              {!isSearching && messageResults.length > 0 && messageResults.map((msg, idx) => {
+                const currentIndex = filteredCommands.length + idx;
+                const isSelected = currentIndex === selectedIndex;
+                return (
+                  <button
+                    key={msg.id}
+                    onClick={() => {
+                      onSelectConversation({ id: msg.conversation_id, title: msg.conversation_title });
+                      onClose();
+                    }}
+                    onMouseEnter={() => setSelectedIndex(currentIndex)}
+                    className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors ${
+                      isSelected ? 'bg-primary-500/10 dark:bg-primary-500/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className={`w-8 h-8 flex items-center justify-center rounded-lg mt-0.5 ${
+                      isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700'
+                    }`}>
+                      <MessageIcon />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium text-sm ${isSelected ? 'text-primary-600 dark:text-primary-400' : ''}`}>
+                        {msg.conversation_title || 'Untitled'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {msg.role === 'user' ? 'You: ' : 'Claude: '}
+                        {highlightSearchTerm(getMessageSnippet(msg.content, query), query)}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {new Date(msg.created_at).toLocaleDateString()}
+                    </span>
+                  </button>
+                );
+              })}
+              {!isSearching && query.length >= 2 && messageResults.length === 0 && (
+                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+                  No messages found for "{query}"
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Command Results */}
           {Object.entries(groupedCommands).map(([category, commands]) => (
             <div key={category}>
               <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-900">
@@ -4088,7 +4214,7 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
               })}
             </div>
           ))}
-          {filteredCommands.length === 0 && (
+          {filteredCommands.length === 0 && messageResults.length === 0 && !isSearching && (
             <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
               No results found
             </div>

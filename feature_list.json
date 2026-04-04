@@ -973,7 +973,7 @@
       "Verify navigation to exact message",
       "Verify search term is highlighted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
