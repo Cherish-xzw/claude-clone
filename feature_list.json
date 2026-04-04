@@ -1194,7 +1194,7 @@
       "Click on suggested prompt",
       "Verify prompt is loaded and can be sent"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1232,7 +1232,7 @@
       "Click on example prompt",
       "Verify prompt is loaded into input"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
