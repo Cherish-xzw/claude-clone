@@ -1038,6 +1038,28 @@ function UsageDashboard() {
         </div>
       )}
 
+      {/* API Quota Information */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+        <h5 className="font-medium mb-3 text-blue-900 dark:text-blue-100">API Quota</h5>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Monthly Input</p>
+            <p className="text-lg font-semibold">{formatNumber(monthlyData?.totals?.input_tokens || 0)}</p>
+            <p className="text-xs text-gray-400">/ 10M tokens</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Monthly Output</p>
+            <p className="text-lg font-semibold">{formatNumber(monthlyData?.totals?.output_tokens || 0)}</p>
+            <p className="text-xs text-gray-400">/ 50M tokens</p>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+          <p className="text-xs text-gray-500">
+            <span className="font-medium">Quota resets:</span> First of next month
+          </p>
+        </div>
+      </div>
+
       {/* Empty State */}
       {dailyUsage.length === 0 && monthlyData?.monthly?.length === 0 && (
         <div className="text-center py-8 text-gray-500">

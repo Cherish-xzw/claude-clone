@@ -1053,7 +1053,7 @@
       "Verify charts or graphs are displayed",
       "Verify data matches actual usage"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1089,7 +1089,7 @@
       "Verify current usage vs quota",
       "Verify quota resets date/time is shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
