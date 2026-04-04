@@ -2075,7 +2075,7 @@
       "Click on profile",
       "Verify profile options appear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
