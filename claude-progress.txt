@@ -440,3 +440,22 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: 2bd5966
 - Current Status: 140 passing, 122 remaining
 - Next: Implement other remaining features (system prompts, branching, search, etc.)
+
+2026-04-04 Session (continued - evening):
+- Implemented Save prompt to library feature:
+  * Backend API endpoints: GET/POST/PUT/DELETE /api/prompts/library
+  * GET /api/prompts/categories endpoint
+  * Frontend SavePromptModal component with title, description, category
+  * Frontend PromptLibrary modal with list of saved prompts
+  * Added Bookmark icons (Bookmark, BookmarkFilled, BookmarkPlus)
+  * Save prompt button in input area (enabled when text entered)
+  * Prompt Library button in sidebar
+  * Integrated with Command Palette (Cmd/Ctrl+K)
+- Verified with browser automation:
+  * Prompt Library modal opens correctly from sidebar
+  * Save Prompt modal displays with input preview
+  * Category selection works
+- Updated feature_list.json: marked Save prompt to library test as passing
+- Committed changes: a18a7cc
+- Current Status: 141 passing, 121 remaining
+- Next: Implement other remaining features (conversation branching, search, etc.)
