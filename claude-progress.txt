@@ -1,6 +1,16 @@
 Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
+- Conversation bookmark/favorite:
+  * Added is_favorited column to conversations table (server migration)
+  * Updated GET /api/conversations to support favorites filter (?favorites=true)
+  * Updated PUT /api/conversations/:id to support is_favorited field
+  * Added toggle favorite button in conversation item (hover action with bookmark icon)
+  * Added yellow bookmark icon indicator for favorited conversations in list
+  * Added "Show Favorites" filter button in sidebar with highlight styling
+  * Added toast feedback when adding/removing from favorites
+  * Updated feature_list.json: marked test #2415 (Conversation bookmark/favorite) as passing
+
 - Keyboard navigation accessibility:
   * Added global :focus-visible styles in index.css for visible focus indicators
   * Added :focus:not(:focus-visible) to hide outline on mouse clicks (smart focus)
@@ -18,7 +28,7 @@ Implemented Features:
   * Added RTL support to message editing textarea
   * Updated feature_list.json: marked test #2712 (RTL language support) as passing
 
-Status: 191 passing, 71 remaining
+Status: 192 passing, 70 remaining
 
 Previous Update - 2026-04-05 (new session)
 
