@@ -2614,9 +2614,16 @@ function App() {
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-              Press Enter to send, Shift+Enter for new line
-            </p>
+            <div className="flex items-center justify-between mt-2 px-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Press Enter to send, Shift+Enter for new line
+              </p>
+              {input.trim() && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {input.length} chars · ~{Math.ceil(input.length / 4)} tokens
+                </p>
+              )}
+            </div>
           </div>
           </div>
 

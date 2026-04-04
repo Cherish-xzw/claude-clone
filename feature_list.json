@@ -1365,7 +1365,7 @@
       "Send message",
       "Verify counts reset"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
