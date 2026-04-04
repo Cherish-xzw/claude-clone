@@ -51,6 +51,79 @@ const formatCost = (cost) => {
   return '$' + cost.toFixed(4);
 };
 
+// Sound effects using Web Audio API
+class SoundPlayer {
+  constructor() {
+    this.audioContext = null;
+    this.enabled = true;
+  }
+
+  init() {
+    if (!this.audioContext) {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return this.audioContext;
+  }
+
+  setEnabled(enabled) {
+    this.enabled = enabled;
+  }
+
+  playTone(frequency, duration, type = 'sine', volume = 0.3) {
+    if (!this.enabled) return;
+
+    try {
+      const ctx = this.init();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = type;
+      gainNode.gain.value = volume;
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + duration);
+    } catch (e) {
+      console.log('Sound playback error:', e);
+    }
+  }
+
+  playSend() {
+    // Short click sound for sending message
+    this.playTone(800, 0.08, 'sine', 0.2);
+    setTimeout(() => this.playTone(1000, 0.06, 'sine', 0.15), 50);
+  }
+
+  playReceive() {
+    // Pleasant ding for receiving message
+    this.playTone(523, 0.15, 'sine', 0.2);
+    setTimeout(() => this.playTone(659, 0.15, 'sine', 0.2), 100);
+    setTimeout(() => this.playTone(784, 0.2, 'sine', 0.15), 200);
+  }
+
+  playError() {
+    // Low error tone
+    this.playTone(200, 0.3, 'square', 0.15);
+  }
+
+  playSuccess() {
+    // Ascending success tone
+    this.playTone(440, 0.1, 'sine', 0.15);
+    setTimeout(() => this.playTone(554, 0.1, 'sine', 0.15), 80);
+    setTimeout(() => this.playTone(659, 0.15, 'sine', 0.15), 160);
+  }
+}
+
+const soundPlayer = new SoundPlayer();
+
 // Icons
 const Icons = {
   Plus: () => (
@@ -289,6 +362,13 @@ const Icons = {
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
       <polyline points="22,6 12,13 2,6"></polyline>
       <path d="M2 6l10 7 10-7"></path>
+    </svg>
+  ),
+  Print: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
     </svg>
   ),
 };
@@ -671,7 +751,7 @@ const isRTL = (lang) => {
 };
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, onToggleFavorite, folders, language }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, folders, language }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
@@ -810,6 +890,17 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           aria-label="Export conversation"
         >
           <Icons.Download />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrint(conversation);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          title="Print"
+          aria-label="Print conversation"
+        >
+          <Icons.Print />
         </button>
         <button
           onClick={(e) => {
@@ -1359,7 +1450,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1420,6 +1511,24 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                       <option key={model.id} value={model.id}>{model.name}</option>
                     ))}
                   </select>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-sm">Sound Effects</h5>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Play sounds for message sent/received</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={soundEffectsEnabled}
+                      onChange={(e) => {
+                        setSoundEffectsEnabled(e.target.checked);
+                        soundPlayer.setEnabled(e.target.checked);
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                  </label>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Temperature: {temperature}</label>
@@ -2388,6 +2497,7 @@ function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: 'Demo User', avatar: null });
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => loadSetting('soundEffectsEnabled', true));
   const [folders, setFolders] = useState([]);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -2548,6 +2658,37 @@ function App() {
     localStorage.setItem('usageLimits', JSON.stringify(usageLimits));
   }, [usageLimits]);
 
+  // Auto-save draft message to localStorage
+  useEffect(() => {
+    if (currentConversation?.id && input) {
+      localStorage.setItem(`draft_${currentConversation.id}`, input);
+    }
+  }, [input, currentConversation?.id]);
+
+  // Restore draft message when switching conversations
+  useEffect(() => {
+    if (currentConversation?.id) {
+      const savedDraft = localStorage.getItem(`draft_${currentConversation.id}`);
+      if (savedDraft && !input) {
+        setInput(savedDraft);
+      }
+    }
+  }, [currentConversation?.id]);
+
+  // Clear draft when message is sent
+  useEffect(() => {
+    if (!isLoading && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'user') {
+        // Clear draft after user sends message
+        const draftKey = `draft_${currentConversation?.id}`;
+        if (localStorage.getItem(draftKey)) {
+          localStorage.removeItem(draftKey);
+        }
+      }
+    }
+  }, [messages, isLoading, currentConversation?.id]);
+
   // Save sidebar width to localStorage
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
@@ -2586,6 +2727,22 @@ function App() {
     loadConversations();
     loadFolders();
   }, []);
+
+  // Update browser tab title based on current conversation
+  useEffect(() => {
+    if (currentConversation?.title) {
+      document.title = `${currentConversation.title} - Claude Clone`;
+    } else if (messages.length > 0) {
+      // Use first message content as title if no title set
+      const firstUserMessage = messages.find(m => m.role === 'user');
+      if (firstUserMessage) {
+        const title = firstUserMessage.content.substring(0, 50) + (firstUserMessage.content.length > 50 ? '...' : '');
+        document.title = `${title} - Claude Clone`;
+      }
+    } else {
+      document.title = 'Claude Clone';
+    }
+  }, [currentConversation, messages]);
 
   // Check for shared link in URL
   useEffect(() => {
@@ -2951,6 +3108,90 @@ function App() {
     } catch (error) {
       console.error('Failed to export conversation:', error);
     }
+  };
+
+  // Print conversation
+  const printConversation = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const conversationTitle = currentConversation?.title || 'Claude Clone Conversation';
+    const printDate = new Date().toLocaleString();
+
+    // Build print content
+    let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>${conversationTitle}</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; color: #e5e5e5; }
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    .meta { color: #666; font-size: 14px; margin-bottom: 30px; }
+    .message { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e5e5; }
+    @media (prefers-color-scheme: dark) {
+      .message { border-color: #404040; }
+    }
+    .role { font-weight: 600; margin-bottom: 8px; }
+    .role.user { color: #CC785C; }
+    .role.assistant { color: #2563eb; }
+    .content { white-space: pre-wrap; word-wrap: break-word; }
+    .content pre {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    @media (prefers-color-scheme: dark) {
+      .content pre { background: #2a2a2a; }
+    }
+    @media print {
+      body { padding: 0; }
+      .message { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <h1>${conversationTitle}</h1>
+  <p class="meta">Printed on ${printDate} | Model: ${currentConversation?.model || 'claude-sonnet-4-5-20250929'}</p>
+`;
+
+    messages.forEach(msg => {
+      const roleClass = msg.role === 'user' ? 'user' : 'assistant';
+      const roleLabel = msg.role === 'user' ? 'User' : 'Assistant';
+      html += `
+  <div class="message">
+    <div class="role ${roleClass}">${roleLabel}</div>
+    <div class="content">${escapeHtml(msg.content || '')}</div>
+  </div>
+`;
+    });
+
+    html += '</body></html>';
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
+  // Escape HTML helper
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   };
 
   // Update conversation title
@@ -3529,6 +3770,9 @@ function App() {
       setIsLoading(true);
       setIsStreaming(true);
 
+      // Play send sound
+      soundPlayer.playSend();
+
       // Create abort controller for this request
       const requestController = new AbortController();
       setAbortController(requestController);
@@ -3684,6 +3928,9 @@ function App() {
           : msg
       ));
 
+      // Play receive sound when response is complete
+      soundPlayer.playReceive();
+
       // Detect and extract artifacts from the response
       const detectedArtifacts = detectArtifacts(responseText);
       if (detectedArtifacts.length > 0) {
@@ -3712,6 +3959,8 @@ function App() {
 
     } catch (error) {
       console.error('sendMessage error:', error);
+      // Play error sound
+      soundPlayer.playError();
       if (error.name === 'AbortError') {
         console.log('Request aborted');
       } else {
@@ -4073,6 +4322,7 @@ function App() {
                               onMoveToFolder={moveConversationToFolder}
                               onToggleUnread={toggleConversationUnread}
                               onToggleFavorite={toggleConversationFavorite}
+                              onPrint={printConversation}
                               folders={folders}
                             />
                           ))}
@@ -4101,6 +4351,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
@@ -4124,6 +4375,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
@@ -4147,6 +4399,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
@@ -4170,6 +4423,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
@@ -4193,6 +4447,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
@@ -4216,6 +4471,7 @@ function App() {
                       onMoveToFolder={moveConversationToFolder}
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
+                      onPrint={printConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}

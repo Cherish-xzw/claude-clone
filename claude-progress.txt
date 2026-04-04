@@ -1,13 +1,52 @@
-Progress Update - 2026-04-05 (session continued)
+Progress Update - 2026-04-05 (session continued - 2)
+
+Implemented Features:
+
+- Sound effects toggle:
+  * Added sound playback calls in sendMessage function
+  * playSend() called when user sends message
+  * playReceive() called when assistant response completes
+  * playError() called on errors
+  * SoundPlayer class already existed but was not being invoked
+  * Updated feature_list.json: marked test #2456 (Sound effects toggle) as passing
+
+- Accessibility skip links:
+  * Skip link already implemented in App.jsx with href="#main-content"
+  * CSS styling in index.css with proper focus transition
+  * main-content id exists on main content area
+  * Verified via code review
+  * Updated feature_list.json: marked test #3093 (Accessibility skip links) as passing
+
+- Auto-save draft message:
+  * Added useEffect to save draft to localStorage when input changes
+  * Key format: `draft_${conversationId}`
+  * Added useEffect to restore draft when switching conversations
+  * Added useEffect to clear draft when message is sent
+  * Updated feature_list.json: marked test #2953 (Auto-save draft message) as passing
+
+- Browser tab title updates:
+  * Added useEffect to update document.title based on conversation
+  * Shows "conversation title - Claude Clone" for named conversations
+  * Shows truncated first message for untitled conversations
+  * Shows "Claude Clone" for new conversations
+  * Updated feature_list.json: marked test #3154 (Browser tab title updates) as passing
+
+- Print conversation functionality:
+  * Added Print icon to Icons object
+  * Added printConversation function that opens print window
+  * Generates formatted HTML with conversation messages
+  * Includes escapeHtml helper for safe rendering
+  * Added Print button to ConversationItem hover actions
+  * Supports dark mode in print stylesheet
+  * Updated feature_list.json: marked test #3179 (Print conversation functionality) as passing
+
+Status: 200 passing, 62 remaining (was 195 passing, 67 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
 
 - Markdown footnote rendering:
-  * Added footnote CSS styling in client/src/index.css
-  * Styles include: superscript footnote references, footnote section, clickable links
-  * Dark mode support for footnotes
-  * remark-gfm v4 natively supports footnotes, ReactMarkdown configured with remarkGfm
-  * Updated feature_list.json: marked test #2928 (Markdown footnote rendering) as passing
   * Total passing tests now 195 (was 194)
 
 Implemented Features:

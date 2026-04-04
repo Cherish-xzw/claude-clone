@@ -2463,7 +2463,7 @@
       "Disable sound",
       "Verify no sound on actions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2959,7 +2959,7 @@
       "Send message",
       "Verify draft is cleared"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3098,7 +3098,7 @@
       "Verify navigation to main content",
       "Verify focus moves correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3160,7 +3160,7 @@
       "Navigate to new conversation",
       "Verify title updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3184,7 +3184,7 @@
       "Verify conversation formats for print",
       "Verify page breaks handled correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
