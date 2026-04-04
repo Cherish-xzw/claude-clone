@@ -2283,7 +2283,7 @@
       "Clear search",
       "Verify all prompts shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2647,7 +2647,7 @@
       "Verify prompt is inserted into input",
       "Verify input remains editable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2796,7 +2796,7 @@
       "Press again",
       "Verify theme reverts"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

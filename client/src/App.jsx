@@ -781,6 +781,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
       { keys: ['Cmd', 'N'], description: 'New conversation' },
       { keys: ['Cmd', 'S'], description: 'Save conversation' },
       { keys: ['Cmd', '/'], description: 'Open keyboard shortcuts' },
+      { keys: ['Cmd', 'Shift', 'L'], description: 'Toggle dark mode' },
       { keys: ['Esc'], description: 'Close modal/palette' },
     ]},
     { category: 'Messages', items: [
@@ -1703,13 +1704,19 @@ function SavePromptModal({ isOpen, onClose, promptTitle, setPromptTitle, promptD
 // Prompt Library Modal
 function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDeletePrompt, onSaveNewPrompt, input }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (!isOpen) return null;
 
   const categories = ['All', ...new Set(prompts.map(p => p.category || 'General'))];
-  const filteredPrompts = selectedCategory === 'All'
-    ? prompts
-    : prompts.filter(p => (p.category || 'General') === selectedCategory);
+  const filteredPrompts = prompts.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
+    const matchesSearch = searchQuery === '' ||
+      p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.prompt_template?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div
@@ -1748,6 +1755,39 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
           </div>
         ) : (
           <>
+            {/* Search Input */}
+            <div className="mb-4">
+              <div className="relative">
+                <Icons.Search />
+                <input
+                  type="text"
+                  placeholder="Search prompts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus:border-primary-500 focus:outline-none transition-colors"
+                  aria-label="Search prompts"
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    aria-label="Clear search"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Category Filter */}
             <div className="flex gap-2 mb-4 flex-wrap">
               {categories.map(cat => (
@@ -1767,7 +1807,19 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
 
             {/* Prompts List */}
             <div className="flex-1 overflow-y-auto space-y-3">
-              {filteredPrompts.map(prompt => (
+              {filteredPrompts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-gray-500 dark:text-gray-400 mb-2">No prompts found</p>
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-primary-500 hover:text-primary-600 text-sm"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                </div>
+              ) : filteredPrompts.map(prompt => (
                 <div
                   key={prompt.id}
                   className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -2040,7 +2092,7 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Command palette keyboard shortcut (Cmd/Ctrl+K) and Keyboard Shortcuts (Cmd/Ctrl+/)
+  // Command palette keyboard shortcut (Cmd/Ctrl+K) and Keyboard Shortcuts (Cmd/Ctrl+/) and Dark Mode (Cmd/Ctrl+Shift+L)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -2051,10 +2103,14 @@ function App() {
         e.preventDefault();
         setShowKeyboardShortcuts(prev => !prev);
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
+        e.preventDefault();
+        setTheme(theme === 'dark' ? 'light' : 'dark');
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [theme]);
 
   // Load conversations from API
   const loadConversations = async () => {
