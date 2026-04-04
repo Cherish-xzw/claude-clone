@@ -1116,7 +1116,7 @@
       "Navigate conversation list",
       "Verify full app can be used without mouse"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
