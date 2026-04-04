@@ -459,3 +459,15 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: a18a7cc
 - Current Status: 141 passing, 121 remaining
 - Next: Implement other remaining features (conversation branching, search, etc.)
+
+2026-04-04 Session (continued - late evening):
+- Implemented Delete message within conversation feature:
+  * Added onDelete prop to Message component
+  * Added Delete button for user messages (shows Edit and Delete buttons)
+  * Added deleteMessage function in App component
+  * Backend already had DELETE /api/messages/:id endpoint
+  * Shows toast notification on delete success/failure
+- Updated feature_list.json: marked test #1903 (Delete message within conversation) as passing
+- Committed changes: 03947ef
+- Current Status: 142 passing, 120 remaining
+- Next: Continue implementing remaining features
