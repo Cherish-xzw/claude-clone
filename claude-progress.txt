@@ -686,3 +686,18 @@ Next: Continue implementing remaining features (usage limits, quota warnings, et
 Current Status: 161 passing, 100 remaining
 Next: Continue implementing remaining features (custom date filters, etc.)
 
+2026-04-04 Session (continued - late evening):
+- Implemented Conversation-specific system prompts feature:
+  * Backend: Added system_prompt column migration to conversations table
+  * Backend: Updated PUT /api/conversations/:id to handle system_prompt updates
+  * Frontend: Updated selectConversation to load conversation's system prompt from API
+  * Frontend: Added saveConversationSystemPrompt function to persist to backend
+  * Frontend: Added handleSystemPromptChange with debounce for auto-save
+  * Frontend: Updated SettingsModal to use onSystemPromptChange callback
+  * Updated UI text to clarify this is conversation-specific system prompt
+- Note: Browser automation evaluate function not working - verified through code review
+- Committed changes: daf43bc
+
+Current Status: 161 passing, 100 remaining
+Next: Continue implementing remaining features (Daily usage dashboard, Usage limits, etc.)
+
