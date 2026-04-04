@@ -1260,7 +1260,7 @@
       "Option to update API key",
       "Verify key changes are saved"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
