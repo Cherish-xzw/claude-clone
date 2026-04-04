@@ -715,6 +715,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'appearance', label: 'Appearance' },
+    { id: 'privacy', label: 'Privacy' },
     { id: 'about', label: 'About' },
   ];
 
@@ -838,6 +839,54 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <option value="medium">Medium</option>
                     <option value="large">Large</option>
                   </select>
+                </div>
+              </div>
+            )}
+            {activeTab === 'privacy' && (
+              <div className="space-y-6">
+                <h4 className="font-semibold text-lg">Privacy Settings</h4>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">Save Conversation History</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Store your conversations locally</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">Allow Analytics</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Help improve Claude Clone</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">Auto-delete Old Messages</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Automatically remove messages older than 30 days</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                  <h5 className="font-medium text-sm mb-2">Data Management</h5>
+                  <div className="space-y-2">
+                    <button className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors">
+                      Export All Data
+                    </button>
+                    <button className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors">
+                      Delete All Conversations
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

@@ -1274,7 +1274,7 @@
       "Send third message continuing thread",
       "Verify conversation maintains context"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1337,7 +1337,7 @@
       "Save settings",
       "Verify settings are applied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
