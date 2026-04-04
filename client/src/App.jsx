@@ -1528,7 +1528,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1889,7 +1889,15 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                   <h5 className="font-medium text-sm mb-2">Data Management</h5>
                   <div className="space-y-2">
-                    <button className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors">
+                    <button
+                      onClick={onExportAllData}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
                       Export All Data
                     </button>
                     <button className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors">
@@ -2925,6 +2933,9 @@ function App() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState(null);
   const [exportFormat, setExportFormat] = useState('json');
+  const [batchExportData, setBatchExportData] = useState(null);
+  const [showBatchExportModal, setShowBatchExportModal] = useState(false);
+  const [batchExportFormat, setBatchExportFormat] = useState('json');
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -3573,6 +3584,101 @@ function App() {
       setShowExportModal(true);
     } catch (error) {
       console.error('Failed to export conversation:', error);
+    }
+  };
+
+  // Batch export all data (conversations, messages, projects, settings)
+  const exportAllData = async () => {
+    try {
+      setShowBatchExportModal(true);
+
+      // Fetch all conversations
+      const convResponse = await fetch(`${API_BASE}/conversations`);
+      const allConversations = convResponse.ok ? (await convResponse.json()) : [];
+
+      // Fetch messages for each conversation
+      const conversationsWithMessages = await Promise.all(
+        allConversations.map(async (conv) => {
+          try {
+            const msgResponse = await fetch(`${API_BASE}/conversations/${conv.id}/messages`);
+            const msgData = msgResponse.ok ? await msgResponse.json() : { messages: [] };
+            return {
+              ...conv,
+              messages: msgData.messages || []
+            };
+          } catch {
+            return { ...conv, messages: [] };
+          }
+        })
+      );
+
+      // Fetch all projects
+      let allProjects = [];
+      try {
+        const projResponse = await fetch(`${API_BASE}/projects`);
+        if (projResponse.ok) {
+          allProjects = await projResponse.json();
+        }
+      } catch {
+        // Projects might not be available
+      }
+
+      // Fetch usage data
+      let usageData = { daily: [], monthly: [], byModel: [] };
+      try {
+        const usageDaily = await fetch(`${API_BASE}/usage/daily`).then(r => r.ok ? r.json() : []);
+        const usageMonthly = await fetch(`${API_BASE}/usage/monthly`).then(r => r.ok ? r.json() : []);
+        const usageByModel = await fetch(`${API_BASE}/usage/by-model`).then(r => r.ok ? r.json() : []);
+        usageData = { daily: usageDaily, monthly: usageMonthly, byModel: usageByModel };
+      } catch {
+        // Usage data might not be available
+      }
+
+      // Build comprehensive export object
+      const exportObj = {
+        exported_at: new Date().toISOString(),
+        app_version: '1.0.0',
+        summary: {
+          total_conversations: conversationsWithMessages.length,
+          total_messages: conversationsWithMessages.reduce((sum, c) => sum + c.messages.length, 0),
+          total_projects: allProjects.length,
+        },
+        conversations: conversationsWithMessages.map(c => ({
+          id: c.id,
+          title: c.title,
+          model: c.model,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          is_archived: c.is_archived,
+          is_pinned: c.is_pinned,
+          is_favorited: c.is_favorited,
+          messages: c.messages.map(m => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            created_at: m.created_at,
+            tokens: m.tokens,
+          })),
+        })),
+        projects: allProjects.map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+        })),
+        usage: usageData,
+      };
+
+      // Format as JSON
+      const jsonData = JSON.stringify(exportObj, null, 2);
+      setBatchExportData(jsonData);
+      setBatchExportFormat('json');
+
+    } catch (error) {
+      console.error('Failed to export all data:', error);
+      setShowBatchExportModal(false);
+      showToast('Failed to export data', 'error');
     }
   };
 
@@ -5773,6 +5879,128 @@ function App() {
           </div>
         )}
 
+        {/* Batch Export All Data Modal */}
+        {showBatchExportModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowBatchExportModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Export All Data</h3>
+                <button
+                  onClick={() => setShowBatchExportModal(false)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setBatchExportFormat('json')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${batchExportFormat === 'json' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}
+                >
+                  JSON
+                </button>
+                <button
+                  onClick={() => setBatchExportFormat('csv')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${batchExportFormat === 'csv' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}
+                >
+                  CSV
+                </button>
+              </div>
+              {batchExportFormat === 'csv' && (
+                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    CSV export will include conversations and messages in a flat format.
+                    For full data with all metadata, use JSON format.
+                  </p>
+                </div>
+              )}
+              <div className="flex-1 overflow-auto mb-4">
+                {batchExportData ? (
+                  <pre className="text-xs bg-gray-100 dark:bg-gray-700 p-4 rounded-lg overflow-auto max-h-96">
+                    {batchExportFormat === 'json'
+                      ? batchExportData
+                      : 'CSV preview not available - download to view'}
+                  </pre>
+                ) : (
+                  <div className="flex items-center justify-center h-48">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowBatchExportModal(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    if (batchExportData) {
+                      let content = batchExportData;
+                      let mimeType = 'application/json';
+                      let extension = 'json';
+
+                      if (batchExportFormat === 'csv') {
+                        // Convert JSON to CSV
+                        try {
+                          const data = JSON.parse(batchExportData);
+                          // Create CSV with conversations and messages
+                          const csvRows = ['Type,ID,Title,Content,Created At'];
+
+                          // Add conversations
+                          if (data.conversations) {
+                            data.conversations.forEach(conv => {
+                              csvRows.push(`conversation,"${(conv.id || '').replace(/"/g, '""')}","${(conv.title || '').replace(/"/g, '""')}","","${conv.created_at || ''}"`);
+                              // Add messages
+                              if (conv.messages) {
+                                conv.messages.forEach(msg => {
+                                  const content = (msg.content || '').replace(/"/g, '""').substring(0, 500);
+                                  csvRows.push(`message,"${(msg.id || '').replace(/"/g, '""')}","","${content}","${msg.created_at || ''}"`);
+                                });
+                              }
+                            });
+                          }
+
+                          content = csvRows.join('\n');
+                          mimeType = 'text/csv';
+                          extension = 'csv';
+                        } catch (e) {
+                          console.error('CSV conversion error:', e);
+                          showToast('Failed to convert to CSV', 'error');
+                          return;
+                        }
+                      }
+
+                      const blob = new Blob([content], { type: mimeType });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `claude-clone-export-${new Date().toISOString().split('T')[0]}.${extension}`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      showToast(`Data exported as ${extension.toUpperCase()}`, 'success');
+                    }
+                  }}
+                  disabled={!batchExportData}
+                  className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Download {batchExportFormat === 'json' ? 'JSON' : 'CSV'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Share Modal */}
         {showShareModal && (
           <div
@@ -5974,7 +6202,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} onExportAllData={exportAllData} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
