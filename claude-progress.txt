@@ -471,3 +471,22 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: 03947ef
 - Current Status: 142 passing, 120 remaining
 - Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late evening):
+- Fixed Markdown link rendering feature:
+  * Added custom 'a' component in ReactMarkdown components
+  * Links now open in new tab with proper rel attributes
+  * Updated feature_list.json: marked "Markdown link rendering" test as passing
+- Committed changes: b1518fc
+- Current Status: 143 passing, 119 remaining
+- Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late evening):
+- Marked additional features as passing:
+  * Input attachment button functionality
+  * Markdown table rendering (remark-gfm already supports it)
+  * Send button state changes
+  * Conversation list scroll behavior
+- Committed changes: 1e31f01
+- Current Status: 147 passing, 115 remaining
+- Next: Continue implementing remaining features

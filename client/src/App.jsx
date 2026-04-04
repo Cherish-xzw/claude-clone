@@ -374,6 +374,14 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
           {!isUser && !message.isStreaming && !isEditing && (
             <div className="flex gap-2">
               <button
+                onClick={() => {
+                  navigator.clipboard.writeText(message.content);
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+              >
+                <Icons.Copy /> Copy
+              </button>
+              <button
                 onClick={() => onRegenerate && onRegenerate(message.id)}
                 className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -391,6 +399,12 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
           )}
           {isUser && !isEditing && (
             <div className="flex gap-2">
+              <button
+                onClick={() => navigator.clipboard.writeText(message.content)}
+                className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+              >
+                <Icons.Copy /> Copy
+              </button>
               <button
                 onClick={() => onEdit && onEdit(message)}
                 className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

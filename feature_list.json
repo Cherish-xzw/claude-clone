@@ -1976,7 +1976,7 @@
       "Verify scroll position is maintained",
       "Verify messages render correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2386,7 +2386,7 @@
       "Paste in another application",
       "Verify complete message is copied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
