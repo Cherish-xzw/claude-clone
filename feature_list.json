@@ -1001,7 +1001,7 @@
       "Clear date filter",
       "Verify all dates are included"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

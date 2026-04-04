@@ -4173,7 +4173,49 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [messageResults, setMessageResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [dateFilter, setDateFilter] = useState(''); // '', 'today', 'week', 'month', '3months', 'year', 'custom'
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
   const inputRef = useRef(null);
+
+  // Calculate date range based on filter
+  const getDateRange = () => {
+    const now = new Date();
+    let dateFrom = null;
+    let dateTo = null;
+
+    switch (dateFilter) {
+      case 'today':
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        dateTo = now.toISOString();
+        break;
+      case 'week':
+        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        dateTo = now.toISOString();
+        break;
+      case 'month':
+        dateFrom = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString();
+        dateTo = now.toISOString();
+        break;
+      case '3months':
+        dateFrom = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).toISOString();
+        dateTo = now.toISOString();
+        break;
+      case 'year':
+        dateFrom = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString();
+        dateTo = now.toISOString();
+        break;
+      case 'custom':
+        if (customDateFrom) dateFrom = new Date(customDateFrom).toISOString();
+        if (customDateTo) dateTo = new Date(customDateTo + 'T23:59:59').toISOString();
+        break;
+      default:
+        // No date filter
+        break;
+    }
+
+    return { dateFrom, dateTo };
+  };
 
   // Search messages when query changes
   useEffect(() => {
@@ -4185,7 +4227,12 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
 
     setIsSearching(true);
     const timeoutId = setTimeout(() => {
-      fetch(`${apiBase}/search/messages?q=${encodeURIComponent(query)}`)
+      const { dateFrom, dateTo } = getDateRange();
+      let url = `${apiBase}/search/messages?q=${encodeURIComponent(query)}`;
+      if (dateFrom) url += `&date_from=${encodeURIComponent(dateFrom)}`;
+      if (dateTo) url += `&date_to=${encodeURIComponent(dateTo)}`;
+
+      fetch(url)
         .then(res => res.json())
         .then(data => {
           setMessageResults(Array.isArray(data) ? data.slice(0, 20) : []);
@@ -4198,7 +4245,7 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
     }, 300); // Debounce
 
     return () => clearTimeout(timeoutId);
-  }, [query, apiBase]);
+  }, [query, apiBase, dateFilter, customDateFrom, customDateTo]);
 
   // Highlight search term in text
   const highlightSearchTerm = (text, searchTerm) => {
@@ -4299,6 +4346,9 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
       setQuery('');
       setSelectedIndex(0);
       setMessageResults([]);
+      setDateFilter('');
+      setCustomDateFrom('');
+      setCustomDateTo('');
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -4357,6 +4407,47 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
           />
           <kbd className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600">ESC</kbd>
         </div>
+
+        {/* Date Filter */}
+        {query.length >= 2 && (
+          <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Date:</span>
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={dateFilter}
+                onChange={e => setDateFilter(e.target.value)}
+                className="px-2 py-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              >
+                <option value="">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Past Week</option>
+                <option value="month">Past Month</option>
+                <option value="3months">Past 3 Months</option>
+                <option value="year">Past Year</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              {dateFilter === 'custom' && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="date"
+                    value={customDateFrom}
+                    onChange={e => setCustomDateFrom(e.target.value)}
+                    className="px-2 py-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    placeholder="From"
+                  />
+                  <span className="text-xs text-gray-400">to</span>
+                  <input
+                    type="date"
+                    value={customDateTo}
+                    onChange={e => setCustomDateTo(e.target.value)}
+                    className="px-2 py-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    placeholder="To"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
