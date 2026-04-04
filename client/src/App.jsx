@@ -1498,6 +1498,8 @@ function App() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile overlay menu
+  const [isMobile, setIsMobile] = useState(false); // Track if mobile viewport
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [filterModel, setFilterModel] = useState('');
@@ -1618,6 +1620,25 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Mobile viewport detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false); // Hide sidebar on mobile by default
+        setIsMobileMenuOpen(false);
+      } else {
+        setSidebarOpen(true);
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    checkMobile(); // Initial check
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Load conversations from API
@@ -2576,13 +2597,44 @@ function App() {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <div className="h-screen flex bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 overflow-hidden`}>
-          <div className="p-4 flex flex-col h-full">
+        {/* Mobile Overlay */}
+        {isMobile && isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar - Desktop: fixed width, Mobile: overlay slide-in */}
+        <div className={`
+          ${isMobile ? 'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300' : 'relative flex-shrink-0'}
+          ${isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : ''}
+          ${!isMobile ? (sidebarOpen ? 'w-72' : 'w-0') : ''}
+          bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-hidden
+        `}>
+          <div className="p-4 flex flex-col h-full w-72">
+            {/* Mobile Header with Close Button */}
+            <div className="flex items-center justify-between mb-4 md:hidden">
+              <span className="font-semibold text-sm">Menu</span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                aria-label="Close menu"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
             {/* New Chat Button */}
             <button
               data-tour="new-chat"
-              onClick={createConversation}
+              onClick={() => {
+                createConversation();
+                setIsMobileMenuOpen(false);
+              }}
               className="flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium"
             >
               <Icons.Plus />
@@ -2856,9 +2908,17 @@ function App() {
             {/* Header */}
             <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
+              {/* Menu/Sidebar Toggle Button */}
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => {
+                  if (isMobile) {
+                    setIsMobileMenuOpen(true);
+                  } else {
+                    setSidebarOpen(!sidebarOpen);
+                  }
+                }}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label={isMobile ? "Open menu" : (sidebarOpen ? "Close sidebar" : "Open sidebar")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>

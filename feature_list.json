@@ -1166,7 +1166,7 @@
       "Verify touch targets are appropriately sized",
       "Verify text is readable on mobile"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1180,7 +1180,7 @@
       "Click outside or close button",
       "Verify sidebar closes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
