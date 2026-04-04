@@ -2932,7 +2932,8 @@
       "Verify clickable footnote references",
       "Verify footnote content at bottom"
     ],
-    "passes": false
+    "passes": true,
+    "completed_at": "2026-04-05T01:45:00.000Z"
   },
   {
     "category": "functional",

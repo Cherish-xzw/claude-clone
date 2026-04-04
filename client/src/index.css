@@ -205,3 +205,74 @@ select:focus-visible,
   outline: 3px solid #000000;
   outline-offset: 2px;
 }
+
+/* Markdown footnote styles */
+.markdown-content sup {
+  line-height: 0;
+}
+
+.markdown-content sup a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0 2px;
+}
+
+.markdown-content sup a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content section[data-footnotes] {
+  border-top: 1px solid var(--border-color);
+  margin-top: 2rem;
+  padding-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.markdown-content section[data-footnotes] h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.markdown-content section[data-footnotes] ol {
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.markdown-content section[data-footnotes] li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.markdown-content section[data-footnotes] li p {
+  margin: 0;
+}
+
+.markdown-content a[data-footnote-ref],
+.markdown-content a[data-footnote-backref] {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.75rem;
+  vertical-align: super;
+}
+
+.markdown-content a[data-footnote-ref]:hover,
+.markdown-content a[data-footnote-backref]:hover {
+  text-decoration: underline;
+}
+
+.markdown-content a[data-footnote-backref] {
+  margin-left: 2px;
+}
+
+/* Dark mode footnotes */
+.dark .markdown-content section[data-footnotes] {
+  border-top-color: var(--border-color);
+}
+
+.dark .markdown-content section[data-footnotes] h4 {
+  color: var(--text-secondary);
+}
