@@ -502,3 +502,15 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: 2cf36a9
 - Current Status: 149 passing, 113 remaining
 - Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late evening):
+- Implemented Conversation branching feature:
+  * Added Branch button to user messages (with Copy, Edit, Branch, Delete)
+  * Added branchConversation function in App component
+  * Creates new conversation with messages up to branch point
+  * Selects new conversation after branching
+  * Shows toast notification on success/failure
+- Marked "Conversation branching" test as passing
+- Committed changes: 0842a34
+- Current Status: 151 passing, 111 remaining
+- Next: Continue implementing remaining features
