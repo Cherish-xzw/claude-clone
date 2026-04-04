@@ -1208,7 +1208,7 @@
       "Complete or skip tour",
       "Verify tour can be restarted from settings"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1936,7 +1936,7 @@
       "Verify older show dates",
       "Verify format is consistent"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

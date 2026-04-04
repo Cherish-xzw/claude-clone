@@ -393,6 +393,136 @@ function QuickTips({ onClose }) {
   );
 }
 
+// Feature Tour Component
+function FeatureTour({ onClose }) {
+  const tourSteps = [
+    {
+      target: '[data-tour="new-chat"]',
+      title: 'Start a New Chat',
+      description: 'Click here to start a new conversation. Each conversation maintains its own context.',
+      position: 'bottom'
+    },
+    {
+      target: '[data-tour="search"]',
+      title: 'Search Conversations',
+      description: 'Quickly find any conversation by searching through your history.',
+      position: 'bottom'
+    },
+    {
+      target: '[data-tour="model-selector"]',
+      title: 'Choose Your Model',
+      description: 'Select from different Claude models optimized for various tasks.',
+      position: 'bottom'
+    },
+    {
+      target: '[data-tour="input-area"]',
+      title: 'Type Your Message',
+      description: 'Enter your message here and press Enter or click Send. Use Shift+Enter for new lines.',
+      position: 'top'
+    },
+    {
+      target: '[data-tour="settings"]',
+      title: 'Customize Settings',
+      description: 'Access settings to customize theme, model parameters, and more.',
+      position: 'top'
+    }
+  ];
+
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const handleNext = () => {
+    if (currentStep < tourSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      onClose();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const step = tourSteps[currentStep];
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-4 text-white">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Icons.Bot />
+              Welcome to Claude Clone
+            </h3>
+            <button
+              onClick={onClose}
+              className="p-1 rounded hover:bg-white/20 transition-colors"
+              aria-label="Skip tour"
+            >
+              <Icons.X />
+            </button>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="flex gap-1 p-3 bg-gray-50 dark:bg-gray-800">
+          {tourSteps.map((_, index) => (
+            <div
+              key={index}
+              className={`h-1 flex-1 rounded-full transition-colors ${
+                index <= currentStep ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+              <span className="text-primary-600 dark:text-primary-400 font-semibold">
+                {currentStep + 1}
+              </span>
+            </div>
+            <h4 className="font-semibold text-lg">{step.title}</h4>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {step.description}
+          </p>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            >
+              Skip Tour
+            </button>
+            <div className="flex gap-2">
+              {currentStep > 0 && (
+                <button
+                  onClick={handlePrevious}
+                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Previous
+                </button>
+              )}
+              <button
+                onClick={handleNext}
+                className="px-4 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+              >
+                {currentStep < tourSteps.length - 1 ? 'Next' : 'Finish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Code block component with copy functionality
 function CodeBlock({ language, code }) {
   const [copied, setCopied] = useState(false);
@@ -594,7 +724,10 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
     const diff = now - date;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'Today';
+    if (days === 0) {
+      // Today: show time (e.g., "10:30 AM")
+      return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    }
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
     return date.toLocaleDateString();
@@ -863,7 +996,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts, showToast }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts, showToast, onRestartTour }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1106,6 +1239,15 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <Icons.Search />
                     Keyboard Shortcuts
                   </button>
+                  {onRestartTour && (
+                    <button
+                      onClick={() => { onClose(); onRestartTour(); }}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-lg text-sm text-primary-600 dark:text-primary-400 transition-colors w-full mt-2"
+                    >
+                      <Icons.Bot />
+                      Restart Feature Tour
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -1397,6 +1539,8 @@ function App() {
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
   const [toasts, setToasts] = useState([]); // Toast notifications
   const [showQuickTips, setShowQuickTips] = useState(false); // Quick tips modal
+  const [showFeatureTour, setShowFeatureTour] = useState(false); // Feature tour
+  const [tourStep, setTourStep] = useState(0); // Current tour step
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -2437,6 +2581,7 @@ function App() {
           <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
             <button
+              data-tour="new-chat"
               onClick={createConversation}
               className="flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium"
             >
@@ -2457,6 +2602,7 @@ function App() {
             <div className="mt-4 relative">
               <Icons.Search />
               <input
+                data-tour="search"
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
@@ -2680,6 +2826,7 @@ function App() {
 
             {/* Settings Button */}
             <button
+              data-tour="settings"
               onClick={() => setShowSettings(true)}
               className="mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
             >
@@ -2758,10 +2905,12 @@ function App() {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <ModelSelector
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
+              <div data-tour="model-selector">
+                <ModelSelector
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                />
+              </div>
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -2793,12 +2942,20 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <button
-                  onClick={() => setShowQuickTips(true)}
-                  className="mt-8 px-4 py-2 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 border border-primary-500 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                >
-                  View Quick Tips
-                </button>
+                <div className="mt-8 flex gap-3 flex-wrap justify-center">
+                  <button
+                    onClick={() => setShowFeatureTour(true)}
+                    className="px-4 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-full transition-colors"
+                  >
+                    Start Feature Tour
+                  </button>
+                  <button
+                    onClick={() => setShowQuickTips(true)}
+                    className="px-4 py-2 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 border border-primary-500 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                  >
+                    View Quick Tips
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -2838,7 +2995,7 @@ function App() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div data-tour="input-area" className="p-4 border-t border-gray-200 dark:border-gray-700">
             {/* Image Upload Preview */}
             {uploadedImages.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3 max-w-4xl mx-auto">
@@ -3287,7 +3444,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} showToast={showToast} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} showToast={showToast} onRestartTour={() => setShowFeatureTour(true)} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
@@ -3305,6 +3462,11 @@ function App() {
               <QuickTips onClose={() => setShowQuickTips(false)} />
             </div>
           </div>
+        )}
+
+        {/* Feature Tour Modal */}
+        {showFeatureTour && (
+          <FeatureTour onClose={() => setShowFeatureTour(false)} />
         )}
         {showWorkspaces && (
           <div
