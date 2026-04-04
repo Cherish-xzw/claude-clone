@@ -1,4 +1,18 @@
-Progress Update - 2026-04-05 (late evening)
+Progress Update - 2026-04-05 (late evening continued)
+
+Implemented Features:
+- Edit saved prompt:
+  * Added updatePromptInLibrary function to make PUT requests to /api/prompts/library/:id
+  * Added onEditPrompt prop to PromptLibraryModal component
+  * Added editing state variables (editingPrompt, editTitle, editDescription, editTemplate, editCategory)
+  * Added edit button with pencil icon next to each prompt in the library
+  * Added edit modal form with title, description, template, and category fields
+  * Save Changes button calls onEditPrompt with prompt ID and updates
+  * Updated feature_list.json: marked test #2273 (Edit saved prompt) as passing
+
+Status: 181 passing, 81 remaining
+
+Previous Update - 2026-04-05 (late evening)
 
 Implemented Features:
 - Markdown preview toggle:
