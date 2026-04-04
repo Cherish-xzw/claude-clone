@@ -994,6 +994,196 @@ app.get('/api/prompts/categories', (req, res) => {
   }
 });
 
+// ============== USAGE TRACKING ==============
+
+// GET /api/usage/daily - Get daily usage statistics
+app.get('/api/usage/daily', (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+
+    const dailyStats = db.prepare(`
+      SELECT
+        DATE(created_at) as date,
+        SUM(input_tokens) as input_tokens,
+        SUM(output_tokens) as output_tokens,
+        COUNT(*) as message_count
+      FROM messages
+      WHERE role = 'assistant'
+      AND created_at >= datetime('now', '-' || ? || ' days')
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+    `).all(parseInt(days));
+
+    // Calculate costs based on model usage
+    // For simplicity, we'll use average pricing
+    const pricing = {
+      input: 3.75, // $3.75 per million input tokens (Sonnet average)
+      output: 15   // $15 per million output tokens (Sonnet average)
+    };
+
+    const dailyStatsWithCost = dailyStats.map(day => ({
+      ...day,
+      cost: ((day.input_tokens || 0) / 1000000 * pricing.input +
+             (day.output_tokens || 0) / 1000000 * pricing.output)
+    }));
+
+    res.json(dailyStatsWithCost);
+  } catch (error) {
+    console.error('Error fetching daily usage:', error);
+    res.status(500).json({ error: 'Failed to fetch daily usage' });
+  }
+});
+
+// GET /api/usage/monthly - Get monthly usage statistics
+app.get('/api/usage/monthly', (req, res) => {
+  try {
+    const { months = 6 } = req.query;
+
+    const monthlyStats = db.prepare(`
+      SELECT
+        strftime('%Y-%m', created_at) as month,
+        SUM(input_tokens) as input_tokens,
+        SUM(output_tokens) as output_tokens,
+        COUNT(*) as message_count
+      FROM messages
+      WHERE role = 'assistant'
+      AND created_at >= datetime('now', '-' || (? * 30) || ' days')
+      GROUP BY strftime('%Y-%m', created_at)
+      ORDER BY month DESC
+    `).all(parseInt(months));
+
+    // Calculate costs based on model usage
+    const pricing = {
+      input: 3.75, // $3.75 per million input tokens
+      output: 15   // $15 per million output tokens
+    };
+
+    const monthlyStatsWithCost = monthlyStats.map(month => ({
+      ...month,
+      cost: ((month.input_tokens || 0) / 1000000 * pricing.input +
+             (month.output_tokens || 0) / 1000000 * pricing.output)
+    }));
+
+    // Calculate totals
+    const totals = monthlyStatsWithCost.reduce((acc, month) => ({
+      input_tokens: acc.input_tokens + (month.input_tokens || 0),
+      output_tokens: acc.output_tokens + (month.output_tokens || 0),
+      message_count: acc.message_count + (month.message_count || 0),
+      cost: acc.cost + (month.cost || 0)
+    }), { input_tokens: 0, output_tokens: 0, message_count: 0, cost: 0 });
+
+    res.json({
+      monthly: monthlyStatsWithCost,
+      totals: totals
+    });
+  } catch (error) {
+    console.error('Error fetching monthly usage:', error);
+    res.status(500).json({ error: 'Failed to fetch monthly usage' });
+  }
+});
+
+// GET /api/usage/by-model - Get usage statistics by model
+app.get('/api/usage/by-model', (req, res) => {
+  try {
+    const modelStats = db.prepare(`
+      SELECT
+        c.model,
+        SUM(m.input_tokens) as input_tokens,
+        SUM(m.output_tokens) as output_tokens,
+        COUNT(m.id) as message_count
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE m.role = 'assistant'
+      GROUP BY c.model
+      ORDER BY message_count DESC
+    `).all();
+
+    // Model-specific pricing
+    const modelPricing = {
+      'claude-sonnet-4-5-20250929': { input: 3.75, output: 15 },
+      'claude-haiku-4-5-20251001': { input: 0.80, output: 4 },
+      'claude-opus-4-1-20250805': { input: 15, output: 75 }
+    };
+
+    const modelStatsWithCost = modelStats.map(stat => {
+      const pricing = modelPricing[stat.model] || { input: 3.75, output: 15 };
+      return {
+        ...stat,
+        cost: (stat.input_tokens / 1000000 * pricing.input +
+               stat.output_tokens / 1000000 * pricing.output)
+      };
+    });
+
+    res.json(modelStatsWithCost);
+  } catch (error) {
+    console.error('Error fetching usage by model:', error);
+    res.status(500).json({ error: 'Failed to fetch usage by model' });
+  }
+});
+
+// GET /api/usage/conversations/:id - Get usage for a specific conversation
+app.get('/api/usage/conversations/:id', (req, res) => {
+  try {
+    const usage = db.prepare(`
+      SELECT
+        SUM(input_tokens) as input_tokens,
+        SUM(output_tokens) as output_tokens,
+        COUNT(*) as message_count
+      FROM messages
+      WHERE conversation_id = ?
+      AND role = 'assistant'
+    `).get(req.params.id);
+
+    // Get conversation info
+    const conversation = db.prepare('SELECT * FROM conversations WHERE id = ?').get(req.params.id);
+    const model = conversation?.model || 'claude-sonnet-4-5-20250929';
+
+    // Calculate cost
+    const modelPricing = {
+      'claude-sonnet-4-5-20250929': { input: 3.75, output: 15 },
+      'claude-haiku-4-5-20251001': { input: 0.80, output: 4 },
+      'claude-opus-4-1-20250805': { input: 15, output: 75 }
+    };
+    const pricing = modelPricing[model] || { input: 3.75, output: 15 };
+
+    res.json({
+      ...usage,
+      cost: (usage.input_tokens / 1000000 * pricing.input +
+             usage.output_tokens / 1000000 * pricing.output),
+      model: model
+    });
+  } catch (error) {
+    console.error('Error fetching conversation usage:', error);
+    res.status(500).json({ error: 'Failed to fetch conversation usage' });
+  }
+});
+
+// GET /api/usage/today - Get today's usage summary
+app.get('/api/usage/today', (req, res) => {
+  try {
+    const today = db.prepare(`
+      SELECT
+        SUM(input_tokens) as input_tokens,
+        SUM(output_tokens) as output_tokens,
+        COUNT(*) as message_count
+      FROM messages
+      WHERE role = 'assistant'
+      AND DATE(created_at) = DATE('now')
+    `).get();
+
+    const pricing = { input: 3.75, output: 15 };
+
+    res.json({
+      ...today,
+      cost: ((today.input_tokens || 0) / 1000000 * pricing.input +
+             (today.output_tokens || 0) / 1000000 * pricing.output)
+    });
+  } catch (error) {
+    console.error('Error fetching today usage:', error);
+    res.status(500).json({ error: 'Failed to fetch today usage' });
+  }
+});
+
 // ============== HEALTH CHECK ==============
 
 app.get('/api/health', (req, res) => {

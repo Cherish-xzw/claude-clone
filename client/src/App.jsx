@@ -824,6 +824,207 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
   );
 }
 
+// Usage Dashboard Component - displays API usage statistics
+function UsageDashboard() {
+  const [dailyUsage, setDailyUsage] = useState([]);
+  const [monthlyData, setMonthlyData] = useState(null);
+  const [modelUsage, setModelUsage] = useState([]);
+  const [todayUsage, setTodayUsage] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsageData();
+  }, []);
+
+  const fetchUsageData = async () => {
+    setLoading(true);
+    try {
+      const [dailyRes, monthlyRes, modelRes, todayRes] = await Promise.all([
+        fetch(`${API_BASE}/usage/daily`),
+        fetch(`${API_BASE}/usage/monthly`),
+        fetch(`${API_BASE}/usage/by-model`),
+        fetch(`${API_BASE}/usage/today`)
+      ]);
+
+      const daily = await dailyRes.json();
+      const monthly = await monthlyRes.json();
+      const models = await modelRes.json();
+      const today = await todayRes.json();
+
+      setDailyUsage(Array.isArray(daily) ? daily : []);
+      setMonthlyData(monthly);
+      setModelUsage(Array.isArray(models) ? models : []);
+      setTodayUsage(today);
+    } catch (error) {
+      console.error('Error fetching usage data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatNumber = (num) => {
+    if (!num) return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
+  const formatCost = (cost) => {
+    if (!cost) return '$0.00';
+    return '$' + cost.toFixed(4);
+  };
+
+  const formatMonth = (monthStr) => {
+    if (!monthStr) return '';
+    const [year, month] = monthStr.split('-');
+    const date = new Date(year, month - 1);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h4 className="font-semibold text-lg">Usage Statistics</h4>
+
+      {/* Today's Summary */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg p-4 text-white">
+        <h5 className="text-sm font-medium opacity-90 mb-3">Today's Usage</h5>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-2xl font-bold">{formatNumber(todayUsage?.input_tokens)}</p>
+            <p className="text-xs opacity-80">Input Tokens</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{formatNumber(todayUsage?.output_tokens)}</p>
+            <p className="text-xs opacity-80">Output Tokens</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{todayUsage?.message_count || 0}</p>
+            <p className="text-xs opacity-80">Messages</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{formatCost(todayUsage?.cost)}</p>
+            <p className="text-xs opacity-80">Est. Cost</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Monthly Summary */}
+      {monthlyData && (
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <h5 className="font-medium mb-3">All-Time Summary</h5>
+          <div className="grid grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-xl font-semibold">{formatNumber(monthlyData.totals?.input_tokens)}</p>
+              <p className="text-xs text-gray-500">Input Tokens</p>
+            </div>
+            <div>
+              <p className="text-xl font-semibold">{formatNumber(monthlyData.totals?.output_tokens)}</p>
+              <p className="text-xs text-gray-500">Output Tokens</p>
+            </div>
+            <div>
+              <p className="text-xl font-semibold">{monthlyData.totals?.message_count || 0}</p>
+              <p className="text-xs text-gray-500">Messages</p>
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-primary-600">{formatCost(monthlyData.totals?.cost)}</p>
+              <p className="text-xs text-gray-500">Total Cost</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Breakdown */}
+      {monthlyData && monthlyData.monthly && monthlyData.monthly.length > 0 && (
+        <div>
+          <h5 className="font-medium mb-3">Monthly Breakdown</h5>
+          <div className="space-y-2">
+            {monthlyData.monthly.map((month, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{formatMonth(month.month)}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatNumber(month.input_tokens)} in / {formatNumber(month.output_tokens)} out
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-sm">{month.message_count} msgs</p>
+                  <p className="text-xs text-primary-600">{formatCost(month.cost)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Model Usage */}
+      {modelUsage.length > 0 && (
+        <div>
+          <h5 className="font-medium mb-3">Usage by Model</h5>
+          <div className="space-y-2">
+            {modelUsage.map((model, idx) => {
+              const modelName = MODELS.find(m => m.id === model.model)?.name || model.model;
+              return (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{modelName}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatNumber(model.input_tokens)} in / {formatNumber(model.output_tokens)} out
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm">{model.message_count} msgs</p>
+                    <p className="text-xs text-primary-600">{formatCost(model.cost)}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Daily Chart */}
+      {dailyUsage.length > 0 && (
+        <div>
+          <h5 className="font-medium mb-3">Last 7 Days</h5>
+          <div className="flex items-end gap-1 h-24">
+            {dailyUsage.slice(0, 7).reverse().map((day, idx) => {
+              const maxMessages = Math.max(...dailyUsage.map(d => d.message_count || 0), 1);
+              const height = Math.max(10, ((day.message_count || 0) / maxMessages) * 100);
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className="w-full bg-primary-500 rounded-t transition-all"
+                    style={{ height: `${height}%` }}
+                    title={`${day.message_count || 0} messages`}
+                  ></div>
+                  <p className="text-xs text-gray-500">
+                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {dailyUsage.length === 0 && monthlyData?.monthly?.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>No usage data yet. Start a conversation to see your stats!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Settings modal
 function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, systemPrompt, setSystemPrompt }) {
   const { theme, setTheme } = useTheme();
@@ -846,6 +1047,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
     { id: 'appearance', label: 'Appearance' },
     { id: 'accessibility', label: 'Accessibility' },
     { id: 'privacy', label: 'Privacy' },
+    { id: 'usage', label: 'Usage' },
     { id: 'about', label: 'About' },
   ];
 
@@ -1097,6 +1299,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 </div>
               </div>
             )}
+            {activeTab === 'usage' && <UsageDashboard />}
             {activeTab === 'about' && (
               <div className="space-y-6">
                 <h4 className="font-semibold text-lg">About</h4>

@@ -647,3 +647,22 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Current Status: 159 passing, 102 remaining
 - Next: Continue implementing remaining features
 
+2026-04-04 Session (continued):
+- Implemented Monthly usage dashboard feature:
+  * Backend: Added /api/usage/daily endpoint for daily usage stats
+  * Backend: Added /api/usage/monthly endpoint for monthly stats with totals
+  * Backend: Added /api/usage/by-model endpoint for model-specific usage
+  * Backend: Added /api/usage/today endpoint for today's summary
+  * Backend: Added /api/usage/conversations/:id endpoint for per-conversation stats
+  * Frontend: Created UsageDashboard component in Settings modal
+  * Usage Dashboard displays: Today's summary, All-time totals, Monthly breakdown
+  * Usage Dashboard shows: Usage by model, Last 7 days chart
+  * Cost calculations based on model pricing (Sonnet/Haiku/Opus rates)
+- Added Usage tab to Settings modal alongside General, Appearance, etc.
+- Updated feature_list.json: marked "Monthly usage dashboard" test as passing
+- Note: Browser automation testing was unreliable during this session
+- Committed changes: [pending]
+
+Current Status: 160 passing, 101 remaining
+Next: Continue implementing remaining features (usage limits, quota warnings, etc.)
+

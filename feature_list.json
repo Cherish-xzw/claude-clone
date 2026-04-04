@@ -1065,7 +1065,7 @@
       "Verify monthly totals are displayed",
       "Verify comparison with previous months"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
