@@ -658,7 +658,7 @@
       "Verify image displays in message",
       "Verify image is sent to API"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -671,7 +671,7 @@
       "Close image viewer",
       "Verify return to conversation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

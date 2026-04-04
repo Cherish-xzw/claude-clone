@@ -32,15 +32,33 @@ app.post('/api/chat', async (req, res) => {
   console.log('=== CHAT ENDPOINT CALLED ===');
   console.log('Body:', JSON.stringify(req.body));
   try {
-    const { content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+    const { content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
 
     const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant.";
+
+    // Build user message content with images if present
+    let userMessageContent;
+    if (images && images.length > 0) {
+      userMessageContent = images.map(img => ({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: img.type || 'image/jpeg',
+          data: img.data.split(',')[1]
+        }
+      }));
+      if (content && content.trim()) {
+        userMessageContent.unshift({ type: 'text', text: content });
+      }
+    } else {
+      userMessageContent = content;
+    }
 
     const response = await anthropic.messages.create({
       model: model,
       max_tokens: 1024,
       system: systemPrompt,
-      messages: [{ role: 'user', content: content }],
+      messages: [{ role: 'user', content: userMessageContent }],
       temperature: parseFloat(temperature),
       top_p: parseFloat(top_p),
     });
@@ -175,7 +193,7 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 app.post('/api/messages/stream', async (req, res) => {
   console.log('=== Stream request received ===');
   try {
-    const { conversation_id, content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
 
     // Set up SSE headers FIRST (before API call)
     res.setHeader('Content-Type', 'text/event-stream');
@@ -186,7 +204,7 @@ app.post('/api/messages/stream', async (req, res) => {
     let conversationMessages = [];
     if (conversation_id) {
       conversationMessages = db.prepare(`
-        SELECT role, content FROM messages
+        SELECT role, content, images FROM messages
         WHERE conversation_id = ?
         ORDER BY created_at ASC
       `).all(conversation_id);
@@ -195,18 +213,70 @@ app.post('/api/messages/stream', async (req, res) => {
     // Build messages array
     const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant. Respond clearly and concisely.";
 
+    // Build user message content with images if present
+    let userMessageContent;
+    if (images && images.length > 0) {
+      // Claude vision API format for images
+      userMessageContent = images.map(img => ({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: img.type || 'image/jpeg',
+          data: img.data.split(',')[1] // Remove data URL prefix if present
+        }
+      }));
+      // Add text content if present
+      if (content && content.trim()) {
+        userMessageContent.unshift({
+          type: 'text',
+          text: content
+        });
+      }
+    } else {
+      userMessageContent = content;
+    }
+
+    // Build messages array with proper format
     const messages = [
-      ...conversationMessages.map(m => ({
-        role: m.role,
-        content: m.content
-      })),
+      ...conversationMessages.map(m => {
+        // Check if the message has images stored
+        let msgContent;
+        if (m.images) {
+          try {
+            const storedImages = JSON.parse(m.images);
+            if (storedImages && storedImages.length > 0) {
+              msgContent = storedImages.map(img => ({
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: img.type || 'image/jpeg',
+                  data: img.data.split(',')[1]
+                }
+              }));
+              if (m.content && m.content.trim()) {
+                msgContent.unshift({ type: 'text', text: m.content });
+              }
+            } else {
+              msgContent = m.content;
+            }
+          } catch {
+            msgContent = m.content;
+          }
+        } else {
+          msgContent = m.content;
+        }
+        return {
+          role: m.role,
+          content: msgContent
+        };
+      }),
       {
         role: 'user',
-        content: content
+        content: userMessageContent
       }
     ];
 
-    console.log('Calling Anthropic API...');
+    console.log('Calling Anthropic API with images:', images.length);
 
     // Send message to Claude with streaming
     const stream = await anthropic.messages.stream({
@@ -240,11 +310,12 @@ app.post('/api/messages/stream', async (req, res) => {
 
     // Save message to database
     if (conversation_id) {
-      // Save user message
+      // Save user message with images
+      const imagesJson = images && images.length > 0 ? JSON.stringify(images) : null;
       db.prepare(`
-        INSERT INTO messages (id, conversation_id, role, content)
-        VALUES (?, ?, 'user', ?)
-      `).run(generateId(), conversation_id, content);
+        INSERT INTO messages (id, conversation_id, role, content, images)
+        VALUES (?, ?, 'user', ?, ?)
+      `).run(generateId(), conversation_id, content, imagesJson);
 
       // Save assistant message
       db.prepare(`

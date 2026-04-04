@@ -255,7 +255,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick }) {
   const isUser = message.role === 'user';
 
   return (
@@ -267,6 +267,29 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
           {isUser ? <Icons.User /> : <Icons.Bot />}
         </div>
         <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
+          {/* Display images if present */}
+          {message.images && message.images.length > 0 && (
+            <div className={`flex flex-wrap gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+              {message.images.map((image, index) => (
+                <div
+                  key={image.id || index}
+                  className="relative group cursor-pointer"
+                  onClick={() => onImageClick && onImageClick(image.data)}
+                >
+                  <img
+                    src={image.data}
+                    alt={image.name || 'Uploaded image'}
+                    className={`max-w-[200px] max-h-[200px] rounded-lg border border-gray-300 dark:border-gray-600 object-cover ${
+                      isUser ? '' : ''
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                    <Icons.Maximize2 className="opacity-0 group-hover:opacity-100 text-white transition-opacity" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <div className={`px-4 py-3 rounded-2xl ${
             isUser
               ? 'bg-primary-500 text-white rounded-tr-sm'
@@ -761,6 +784,8 @@ function App() {
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedError, setSharedError] = useState(null);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
+  const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1125,6 +1150,32 @@ function App() {
     }
   };
 
+  // Image upload handling
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploadedImages(prev => [...prev, {
+            id: generateId(),
+            data: event.target.result, // Base64 data
+            name: file.name,
+            type: file.type
+          }]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    // Reset the file input
+    e.target.value = '';
+  };
+
+  // Remove uploaded image
+  const removeUploadedImage = (imageId) => {
+    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+  };
+
   // Create folder
   const createFolder = async () => {
     if (!newFolderName.trim()) return;
@@ -1198,15 +1249,21 @@ function App() {
   const sendMessage = async () => {
     try {
       console.log('sendMessage: Starting');
-      if (!input.trim() || isLoading) {
+      // Allow sending with images even if input is empty
+      if ((!input.trim() && uploadedImages.length === 0) || isLoading) {
         console.log('sendMessage: Early return');
         return;
       }
+
+      // Store images to include in message and clear state
+      const currentImages = [...uploadedImages];
+      setUploadedImages([]);
 
       const userMessage = {
         id: generateId(),
         role: 'user',
         content: input.trim(),
+        images: currentImages, // Include images in message
         created_at: new Date().toISOString(),
       };
       console.log('sendMessage: userMessage created');
@@ -1265,6 +1322,7 @@ function App() {
             body: JSON.stringify({
               conversation_id: conversationId,
               content: userMessage.content,
+              images: currentImages, // Include uploaded images
               model: selectedModel,
               temperature: temperature,
               top_p: topP,
@@ -1310,6 +1368,7 @@ function App() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               content: userMessage.content,
+              images: currentImages, // Include uploaded images
               model: selectedModel,
               temperature: temperature,
               top_p: topP,
@@ -1834,6 +1893,7 @@ function App() {
                     onEditedContentChange={setEditedMessageContent}
                     onSaveEdit={saveEditedMessage}
                     onCancelEdit={cancelEditMessage}
+                    onImageClick={(imageData) => setLightboxImage(imageData)}
                   />
                 ))}
                 {isStreaming && <TypingIndicator />}
@@ -1844,6 +1904,26 @@ function App() {
 
           {/* Input Area */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Image Upload Preview */}
+            {uploadedImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3 max-w-4xl mx-auto">
+                {uploadedImages.map(image => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.data}
+                      alt={image.name}
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
+                    <button
+                      onClick={() => removeUploadedImage(image.id)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex items-end gap-3 max-w-4xl mx-auto">
               <div className="flex-1 relative">
                 {/* Show recording indicator */}
@@ -1866,6 +1946,23 @@ function App() {
                   style={{ minHeight: '48px' }}
                 />
               </div>
+              {/* Hidden file input for image upload */}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+              />
+              {/* Image Upload Button */}
+              <label
+                htmlFor="image-upload"
+                className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+                title="Attach image"
+              >
+                <Icons.Image />
+              </label>
               {/* Voice Input Button */}
               <button
                 onClick={toggleVoiceRecording}
@@ -1888,7 +1985,7 @@ function App() {
               ) : (
                 <button
                   onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
                   className="p-3 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
                 >
                   <Icons.Send />
@@ -2094,6 +2191,30 @@ function App() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Image Lightbox Modal */}
+        {lightboxImage && (
+          <div
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+            onClick={() => setLightboxImage(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+              onClick={() => setLightboxImage(null)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Full size"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         )}
 
