@@ -598,7 +598,7 @@
       "Send message again",
       "Verify longer response is possible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
