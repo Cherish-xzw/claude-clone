@@ -1,6 +1,16 @@
 Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
+- Project templates:
+  * Added projectTemplates array with 5 templates: Blank, Coding Assistant, Writing Assistant, Research Helper, Brainstorming
+  * Each template includes icon, name, description, and customInstructions
+  * Updated Create Project modal to show "Use Template" button
+  * Added templates view with selectable template cards
+  * Template selection auto-fills project name and stores customInstructions
+  * Updated createFolder function to send custom_instructions to server
+  * Updated server POST /api/projects to accept custom_instructions field
+  * Updated feature_list.json: marked Project templates test as passing
+
 - Message reactions:
   * Created message_reactions table in database (migration in server/index.js)
   * Added GET /api/messages/:id/reactions endpoint to fetch reactions for a message
@@ -40,7 +50,7 @@ Implemented Features:
   * Added RTL support to message editing textarea
   * Updated feature_list.json: marked test #2712 (RTL language support) as passing
 
-Status: 193 passing, 69 remaining
+Status: 194 passing, 68 remaining
 
 Previous Update - 2026-04-05 (new session)
 
