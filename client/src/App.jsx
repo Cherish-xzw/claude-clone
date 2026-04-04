@@ -4024,6 +4024,34 @@ function App() {
     e.target.value = '';
   };
 
+  // Handle paste from clipboard (for images)
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setUploadedImages(prev => [...prev, {
+              id: generateId(),
+              data: event.target.result, // Base64 data
+              name: `pasted-image-${Date.now()}.${file.type.split('/')[1]}`,
+              type: file.type
+            }]);
+            // Show visual feedback
+            if (soundPlayer) soundPlayer.playReceive();
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
+    }
+  };
+
   // Remove uploaded image
   const removeUploadedImage = (imageId) => {
     setUploadedImages(prev => prev.filter(img => img.id !== imageId));
@@ -5557,6 +5585,7 @@ function App() {
                     }
                   }}
                   onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
                   placeholder="Type '/' for commands..."
                   rows={1}
                   className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
@@ -5750,7 +5779,7 @@ function App() {
             </div>
             <div className="flex items-center justify-between mt-2 px-1">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Press Enter to send, Shift+Enter for new line
+                Press Enter to send, Shift+Enter for new line, Ctrl/Cmd+V to paste image
               </p>
               {input.trim() && (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
