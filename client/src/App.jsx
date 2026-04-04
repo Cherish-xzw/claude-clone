@@ -65,6 +65,18 @@ const Icons = {
       <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
     </svg>
   ),
+  Eye: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  ),
+  EyeOff: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+  ),
   Settings: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"></circle>
@@ -2160,6 +2172,7 @@ function App() {
     const saved = localStorage.getItem('usageLimits');
     return saved ? JSON.parse(saved) : { enabled: false, monthlyTokenLimit: 1000000, dailyCostLimit: 10, warningThreshold: 80 };
   }); // Usage limits configuration
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false); // Markdown preview toggle
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -4201,6 +4214,33 @@ function App() {
                   style={{ minHeight: '48px' }}
                   aria-label="Message input"
                 />
+                {/* Markdown Preview Panel */}
+                {showMarkdownPreview && input.trim() && (
+                  <div className={`mt-2 p-3 rounded-xl border ${highContrast ? 'bg-white border-black' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Markdown Preview</span>
+                      <button
+                        onClick={() => setShowMarkdownPreview(false)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        aria-label="Close preview"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="markdown-content text-sm max-h-60 overflow-y-auto">
+                      <ReactMarkdown>{input}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+                {/* Show raw markdown when preview is disabled and there's content */}
+                {!showMarkdownPreview && input.trim() && (
+                  <div className={`mt-2 p-3 rounded-xl border ${highContrast ? 'bg-white border-black' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Raw Markdown</span>
+                    </div>
+                    <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">{input}</pre>
+                  </div>
+                )}
               </div>
               {/* Hidden file input for image upload */}
               <input
@@ -4220,6 +4260,16 @@ function App() {
               >
                 <Icons.Image />
               </label>
+              {/* Markdown Preview Toggle */}
+              <button
+                onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
+                className={`p-3 rounded-xl transition-colors ${showMarkdownPreview ? 'bg-primary-500 hover:bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'}`}
+                title={showMarkdownPreview ? 'Hide markdown preview' : 'Show markdown preview'}
+                aria-label={showMarkdownPreview ? 'Hide markdown preview' : 'Show markdown preview'}
+                aria-pressed={showMarkdownPreview}
+              >
+                {showMarkdownPreview ? <Icons.EyeOff /> : <Icons.Eye />}
+              </button>
               {/* Voice Input Button */}
               <button
                 onClick={toggleVoiceRecording}

@@ -2733,7 +2733,7 @@
       "Disable preview",
       "Verify raw markdown is shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
