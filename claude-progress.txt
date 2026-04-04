@@ -597,3 +597,22 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Current Status: 156 passing, 106 remaining
 - Next: Continue implementing remaining features (usage dashboards, API quota, etc.)
 
+2026-04-04 Session (continued - late evening):
+- Implemented Mark conversation as read/unread feature:
+  * Added is_unread column to conversations table (backend migration)
+  * Updated backend PUT endpoint to handle is_unread updates
+  * Added Mail/MailOpen icons for read/unread toggle
+  * Added unread indicator (blue dot) in conversation list
+  * Added toggleConversationUnread function in frontend
+  * Hover over conversation shows mail icon button to toggle read/unread
+  * Database migration adds column if not exists
+  * Verified with browser automation:
+    - Blue dot appears when conversation marked as unread
+    - Mail icon button visible on hover
+    - Click toggles between read/unread state
+    - Dot disappears when marked as read
+- Updated feature_list.json: marked test #28 (Mark conversation as read/unread) as passing
+- Committed changes: 6bf190d
+- Current Status: 157 passing, 105 remaining
+- Next: Implement other remaining features
+
