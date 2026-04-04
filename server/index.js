@@ -119,6 +119,12 @@ try {
     db.exec("ALTER TABLE conversations ADD COLUMN system_prompt TEXT DEFAULT ''");
     console.log('Added system_prompt column to conversations table');
   }
+  // Add is_favorited column if it doesn't exist (migration for bookmark/favorite feature)
+  const hasFavoritedColumn = columns.some(col => col.name === 'is_favorited');
+  if (!hasFavoritedColumn) {
+    db.exec("ALTER TABLE conversations ADD COLUMN is_favorited INTEGER DEFAULT 0");
+    console.log('Added is_favorited column to conversations table');
+  }
 } catch (error) {
   console.error('Migration error:', error);
 }
@@ -151,11 +157,31 @@ function generateId() {
 // GET /api/conversations - List all conversations
 app.get('/api/conversations', (req, res) => {
   try {
-    const conversations = db.prepare(`
-      SELECT * FROM conversations
-      WHERE is_deleted = 0
-      ORDER BY updated_at DESC
-    `).all();
+    const { favorites, project_id, archived } = req.query;
+    let query = `SELECT * FROM conversations WHERE is_deleted = 0`;
+    const params = [];
+
+    // Filter by favorites
+    if (favorites === 'true') {
+      query += ` AND is_favorited = 1`;
+    }
+
+    // Filter by project
+    if (project_id) {
+      query += ` AND project_id = ?`;
+      params.push(project_id);
+    }
+
+    // Filter by archived status
+    if (archived === 'true') {
+      query += ` AND is_archived = 1`;
+    } else if (archived === 'false') {
+      query += ` AND is_archived = 0`;
+    }
+
+    query += ` ORDER BY updated_at DESC`;
+
+    const conversations = db.prepare(query).all(...params);
     res.json(conversations);
   } catch (error) {
     console.error('Error fetching conversations:', error);
@@ -199,7 +225,7 @@ app.get('/api/conversations/:id', (req, res) => {
 // PUT /api/conversations/:id - Update conversation
 app.put('/api/conversations/:id', (req, res) => {
   try {
-    const { title, model, is_pinned, is_archived, is_deleted, is_unread, system_prompt } = req.body;
+    const { title, model, is_pinned, is_archived, is_deleted, is_unread, is_favorited, system_prompt } = req.body;
     const updates = [];
     const values = [];
 
@@ -209,6 +235,7 @@ app.put('/api/conversations/:id', (req, res) => {
     if (is_archived !== undefined) { updates.push('is_archived = ?'); values.push(is_archived ? 1 : 0); }
     if (is_deleted !== undefined) { updates.push('is_deleted = ?'); values.push(is_deleted ? 1 : 0); }
     if (is_unread !== undefined) { updates.push('is_unread = ?'); values.push(is_unread ? 1 : 0); }
+    if (is_favorited !== undefined) { updates.push('is_favorited = ?'); values.push(is_favorited ? 1 : 0); }
     if (system_prompt !== undefined) { updates.push('system_prompt = ?'); values.push(system_prompt); }
 
     updates.push('updated_at = CURRENT_TIMESTAMP');

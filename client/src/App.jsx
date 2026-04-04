@@ -583,7 +583,7 @@ const isRTL = (lang) => {
 };
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, folders, language }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, onToggleFavorite, folders, language }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
@@ -634,6 +634,9 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
             {conversation.is_pinned ? (
               <span className="text-primary-500" aria-hidden="true"><Icons.Pinned /></span>
             ) : null}
+            {conversation.is_favorited ? (
+              <span className="text-yellow-500" aria-hidden="true"><Icons.BookmarkFilled /></span>
+            ) : null}
             {conversation.title || 'New Conversation'}
             {conversation.is_unread ? (
               <span className="inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full" title="Unread" aria-label="Unread"></span>
@@ -664,6 +667,17 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           aria-label={conversation.is_pinned ? 'Unpin conversation' : 'Pin conversation'}
         >
           {conversation.is_pinned ? <Icons.Pinned /> : <Icons.Pin />}
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(conversation);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          title={conversation.is_favorited ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={conversation.is_favorited ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          {conversation.is_favorited ? <Icons.BookmarkFilled /> : <Icons.BookmarkPlus />}
         </button>
         <button
           onClick={(e) => {
@@ -2283,6 +2297,7 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: 'Demo User', avatar: null });
   const [folders, setFolders] = useState([]);
@@ -2612,6 +2627,29 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to toggle unread status:', error);
+    }
+  };
+
+  // Toggle conversation favorite status
+  const toggleConversationFavorite = async (conversation) => {
+    try {
+      const newFavoriteStatus = !conversation.is_favorited;
+      const response = await fetch(`${API_BASE}/conversations/${conversation.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_favorited: newFavoriteStatus }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setConversations(prev => prev.map(c =>
+          c.id === conversation.id ? { ...c, is_favorited: newFavoriteStatus } : c
+        ));
+        // Show toast feedback
+        showToast(newFavoriteStatus ? 'Added to favorites' : 'Removed from favorites', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite status:', error);
     }
   };
 
@@ -3619,7 +3657,7 @@ function App() {
 
   // Filter conversations by search and archived status
   let filteredConversations = conversations.filter(c =>
-    (showArchived ? c.is_archived : !c.is_archived) &&
+    (showFavorites ? c.is_favorited : (showArchived ? c.is_archived : !c.is_archived)) &&
     c.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
     (!filterProject || c.project_id === filterProject || (c.project_id === null && filterProject === 'none')) &&
     (!filterModel || c.model === filterModel)
@@ -3899,6 +3937,7 @@ function App() {
                               onArchive={archiveConversation}
                               onMoveToFolder={moveConversationToFolder}
                               onToggleUnread={toggleConversationUnread}
+                              onToggleFavorite={toggleConversationFavorite}
                               folders={folders}
                             />
                           ))}
@@ -3929,6 +3968,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -3951,6 +3991,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -3973,6 +4014,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -3995,6 +4037,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -4017,6 +4060,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -4039,6 +4083,7 @@ function App() {
                       onExport={exportConversation}
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
+                      onToggleFavorite={toggleConversationFavorite}
                       folders={folders}
                     />
                   ))}
@@ -4048,6 +4093,17 @@ function App() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 px-2">No conversations yet</p>
               )}
             </div>
+
+            {/* Favorites Toggle */}
+            <button
+              onClick={() => setShowFavorites(!showFavorites)}
+              className={`mt-2 flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${
+                showFavorites ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Icons.BookmarkFilled />
+              {showFavorites ? 'Showing Favorites' : 'Show Favorites'}
+            </button>
 
             {/* Archived Conversations Toggle */}
             <button

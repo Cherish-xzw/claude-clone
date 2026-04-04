@@ -2412,7 +2412,7 @@
       "Remove bookmark",
       "Verify conversation removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
