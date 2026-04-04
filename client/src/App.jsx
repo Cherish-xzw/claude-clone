@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -26,12 +26,28 @@ function generateId() {
 // API Base URL - use direct URL for API calls
 const API_BASE = 'http://localhost:3001/api';
 
-// Models configuration
+// Models configuration with pricing (per million tokens)
 const MODELS = [
-  { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Best balance of intelligence and speed' },
-  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', description: 'Fastest responses, great for simple tasks' },
-  { id: 'claude-opus-4-1-20250805', name: 'Claude Opus 4.1', description: 'Most capable for complex tasks' },
+  { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Best balance of intelligence and speed', inputPricePerM: 3.75, outputPricePerM: 15 },
+  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', description: 'Fastest responses, great for simple tasks', inputPricePerM: 0.80, outputPricePerM: 4 },
+  { id: 'claude-opus-4-1-20250805', name: 'Claude Opus 4.1', description: 'Most capable for complex tasks', inputPricePerM: 15, outputPricePerM: 75 },
 ];
+
+// Calculate cost based on tokens and model
+const calculateMessageCost = (inputTokens, outputTokens, modelId) => {
+  const model = MODELS.find(m => m.id === modelId);
+  if (!model) return 0;
+  const inputCost = (inputTokens / 1000000) * model.inputPricePerM;
+  const outputCost = (outputTokens / 1000000) * model.outputPricePerM;
+  return inputCost + outputCost;
+};
+
+// Format cost for display
+const formatCost = (cost) => {
+  if (cost < 0.001) return '$0.00';
+  if (cost < 0.01) return '$' + cost.toFixed(4);
+  return '$' + cost.toFixed(4);
+};
 
 // Icons
 const Icons = {
@@ -292,9 +308,12 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false }) {
+function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
+
+  // Calculate message cost
+  const messageCost = calculateMessageCost(message.inputTokens || 0, message.outputTokens || 0, model);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
@@ -426,6 +445,11 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
                 <span title="Output tokens">↓ {message.outputTokens}</span>
               )}
               <span>tokens</span>
+              {messageCost > 0 && (
+                <span className="text-primary-500/70 dark:text-primary-400/70" title="Estimated cost">
+                  · {formatCost(messageCost)}
+                </span>
+              )}
             </div>
           )}
           {!isUser && !message.isStreaming && !isEditing && (
@@ -1554,6 +1578,14 @@ function App() {
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+
+  // Calculate total conversation cost
+  const totalConversationCost = useMemo(() => {
+    const model = currentConversation?.model || selectedModel;
+    return messages.reduce((total, msg) => {
+      return total + calculateMessageCost(msg.inputTokens || 0, msg.outputTokens || 0, model);
+    }, 0);
+  }, [messages, currentConversation, selectedModel]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [selectedModel, setSelectedModel] = useState('claude-sonnet-4-5-20250929');
@@ -3247,6 +3279,11 @@ function App() {
                 selectedModel={selectedModel}
                 onModelChange={setSelectedModel}
               />
+              {totalConversationCost > 0 && (
+                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  Total: {formatCost(totalConversationCost)}
+                </span>
+              )}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -3292,6 +3329,7 @@ function App() {
                     <Message
                       key={message.id}
                       message={message}
+                      model={currentConversation?.model || MODELS[0].id}
                       onRegenerate={() => {}}
                       onEdit={startEditMessage}
                       isEditing={editingMessageId === message.id}

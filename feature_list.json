@@ -1041,7 +1041,7 @@
       "Verify cost per message is shown",
       "Verify total conversation cost is displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
