@@ -1078,7 +1078,7 @@
       "Approach or exceed limit",
       "Verify appropriate action (warning/block)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

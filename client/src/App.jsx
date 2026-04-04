@@ -884,7 +884,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Usage Dashboard Component - displays API usage statistics
-function UsageDashboard() {
+function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
   const [dailyUsage, setDailyUsage] = useState([]);
   const [monthlyData, setMonthlyData] = useState(null);
   const [modelUsage, setModelUsage] = useState([]);
@@ -920,6 +920,30 @@ function UsageDashboard() {
       setLoading(false);
     }
   };
+
+  // Check usage limits and show warnings
+  useEffect(() => {
+    if (!usageLimits?.enabled || !monthlyData?.totals || !todayUsage) return;
+
+    const monthlyTokens = monthlyData.totals.input_tokens + (monthlyData.totals.output_tokens || 0);
+    const dailyCost = todayUsage?.cost || 0;
+    const tokenLimit = usageLimits?.monthlyTokenLimit || 1000000;
+    const costLimit = usageLimits?.dailyCostLimit || 10;
+    const threshold = (usageLimits?.warningThreshold || 80) / 100;
+
+    // Check if approaching or exceeding limits
+    if (monthlyTokens > tokenLimit) {
+      showToast('Monthly token limit exceeded! Consider reducing usage.', 'error');
+    } else if (monthlyTokens > tokenLimit * threshold) {
+      showToast(`Warning: You've used ${Math.round((monthlyTokens / tokenLimit) * 100)}% of your monthly token limit.`, 'warning');
+    }
+
+    if (dailyCost > costLimit) {
+      showToast(`Daily cost limit exceeded! You've spent $${dailyCost.toFixed(2)} today.`, 'error');
+    } else if (dailyCost > costLimit * threshold) {
+      showToast(`Warning: You've spent $${dailyCost.toFixed(2)} of your $${costLimit.toFixed(2)} daily limit.`, 'warning');
+    }
+  }, [monthlyData, todayUsage, usageLimits]);
 
   const formatNumber = (num) => {
     if (!num) return '0';
@@ -1096,6 +1120,110 @@ function UsageDashboard() {
         </div>
       </div>
 
+      {/* Usage Limits Configuration */}
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+        <div className="flex items-center justify-between mb-4">
+          <h5 className="font-medium text-purple-900 dark:text-purple-100">Usage Limits</h5>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={usageLimits?.enabled || false}
+              onChange={(e) => {
+                const newLimits = { ...usageLimits, enabled: e.target.checked };
+                setUsageLimits(newLimits);
+                if (e.target.checked) {
+                  showToast('Usage limits enabled', 'success');
+                }
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-500"></div>
+          </label>
+        </div>
+
+        {usageLimits?.enabled && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Monthly Token Limit: {formatNumber(usageLimits?.monthlyTokenLimit || 1000000)}
+              </label>
+              <input
+                type="range"
+                min="100000"
+                max="10000000"
+                step="100000"
+                value={usageLimits?.monthlyTokenLimit || 1000000}
+                onChange={(e) => {
+                  const newLimits = { ...usageLimits, monthlyTokenLimit: parseInt(e.target.value) };
+                  setUsageLimits(newLimits);
+                }}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">Warning when usage exceeds this limit</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Daily Cost Limit: ${(usageLimits?.dailyCostLimit || 10).toFixed(2)}
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                value={usageLimits?.dailyCostLimit || 10}
+                onChange={(e) => {
+                  const newLimits = { ...usageLimits, dailyCostLimit: parseFloat(e.target.value) };
+                  setUsageLimits(newLimits);
+                }}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">Maximum daily cost in USD</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Warning Threshold: {usageLimits?.warningThreshold || 80}%
+              </label>
+              <input
+                type="range"
+                min="50"
+                max="100"
+                step="5"
+                value={usageLimits?.warningThreshold || 80}
+                onChange={(e) => {
+                  const newLimits = { ...usageLimits, warningThreshold: parseInt(e.target.value) };
+                  setUsageLimits(newLimits);
+                }}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">Show warning when reaching this percentage of limits</p>
+            </div>
+
+            {/* Current Status */}
+            {monthlyData && monthlyData.totals && (
+              <div className="mt-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                <p className="text-sm font-medium mb-2">Current Status</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                    <div
+                      className={`h-2 rounded-full ${
+                        (monthlyData.totals.input_tokens / (usageLimits?.monthlyTokenLimit || 1000000)) > 1 ? 'bg-red-500' :
+                        (monthlyData.totals.input_tokens / (usageLimits?.monthlyTokenLimit || 1000000)) > ((usageLimits?.warningThreshold || 80) / 100) ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(100, (monthlyData.totals.input_tokens / (usageLimits?.monthlyTokenLimit || 1000000)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {Math.round((monthlyData.totals.input_tokens / (usageLimits?.monthlyTokenLimit || 1000000)) * 100)}%
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Empty State */}
       {dailyUsage.length === 0 && monthlyData?.monthly?.length === 0 && (
         <div className="text-center py-8 text-gray-500">
@@ -1107,7 +1235,7 @@ function UsageDashboard() {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1405,7 +1533,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 </div>
               </div>
             )}
-            {activeTab === 'usage' && <UsageDashboard />}
+            {activeTab === 'usage' && <UsageDashboard usageLimits={usageLimits} setUsageLimits={setUsageLimits} showToast={showToast} />}
             {activeTab === 'about' && (
               <div className="space-y-6">
                 <h4 className="font-semibold text-lg">About</h4>
@@ -2027,9 +2155,28 @@ function App() {
   const [promptTitle, setPromptTitle] = useState(''); // Title for new prompt
   const [promptDescription, setPromptDescription] = useState(''); // Description for new prompt
   const [promptCategory, setPromptCategory] = useState('General'); // Category for new prompt
+  const [toasts, setToasts] = useState([]); // Toast notifications
+  const [usageLimits, setUsageLimits] = useState(() => {
+    const saved = localStorage.getItem('usageLimits');
+    return saved ? JSON.parse(saved) : { enabled: false, monthlyTokenLimit: 1000000, dailyCostLimit: 10, warningThreshold: 80 };
+  }); // Usage limits configuration
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Show toast notification
+  const showToast = (message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
+
+  // Remove toast manually
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   // Apply theme
   useEffect(() => {
@@ -2082,6 +2229,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('app_language', JSON.stringify(language));
   }, [language]);
+
+  // Save usage limits to localStorage
+  useEffect(() => {
+    localStorage.setItem('usageLimits', JSON.stringify(usageLimits));
+  }, [usageLimits]);
 
   // Save sidebar width to localStorage
   useEffect(() => {
@@ -4475,7 +4627,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
@@ -4593,6 +4745,53 @@ function App() {
           }}
           apiBase={API_BASE}
         />
+
+        {/* Toast Notifications */}
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          {toasts.map(toast => (
+            <div
+              key={toast.id}
+              className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[280px] max-w-md animate-slide-in ${
+                toast.type === 'success' ? 'bg-green-500 text-white' :
+                toast.type === 'error' ? 'bg-red-500 text-white' :
+                toast.type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-gray-800 text-white dark:bg-gray-700'
+              }`}
+              role="alert"
+            >
+              {toast.type === 'success' && (
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {toast.type === 'error' && (
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              {toast.type === 'warning' && (
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              )}
+              {toast.type === 'info' && (
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+              <span className="flex-1 text-sm">{toast.message}</span>
+              <button
+                onClick={() => removeToast(toast.id)}
+                className="p-1 hover:bg-white/20 rounded transition-colors"
+                aria-label="Dismiss notification"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </ThemeContext.Provider>
   );
