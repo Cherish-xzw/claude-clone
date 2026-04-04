@@ -627,7 +627,7 @@
       "Clear system prompt override",
       "Verify default behavior returns"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -916,7 +916,7 @@
       "Verify prompt is loaded into input",
       "Modify and send prompt"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

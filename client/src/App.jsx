@@ -231,6 +231,23 @@ const Icons = {
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </svg>
   ),
+  Bookmark: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+    </svg>
+  ),
+  BookmarkFilled: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+    </svg>
+  ),
+  BookmarkPlus: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+      <line x1="12" y1="8" x2="12" y2="14"></line>
+      <line x1="9" y1="11" x2="15" y2="11"></line>
+    </svg>
+  ),
 };
 
 // Code block component with copy functionality
@@ -758,7 +775,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, systemPrompt, setSystemPrompt }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -872,6 +889,17 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
                   </label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">System Prompt Override</label>
+                  <textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    placeholder="Enter a custom system prompt to override default behavior..."
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This will override the default system prompt for all messages in this conversation</p>
                 </div>
               </div>
             )}
@@ -1271,6 +1299,226 @@ function ArtifactPanel({
   );
 }
 
+// Save Prompt Modal
+function SavePromptModal({ isOpen, onClose, promptTitle, setPromptTitle, promptDescription, setPromptDescription, promptCategory, setPromptCategory, onSave, input }) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Save Prompt to Library</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        {/* Prompt Preview */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Prompt</label>
+          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm max-h-32 overflow-auto">
+            {input.length > 200 ? input.substring(0, 200) + '...' : input || 'No prompt entered'}
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Title</label>
+          <input
+            type="text"
+            value={promptTitle}
+            onChange={e => setPromptTitle(e.target.value)}
+            placeholder="Enter prompt title"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white"
+            autoFocus
+          />
+        </div>
+
+        {/* Description */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description (optional)</label>
+          <textarea
+            value={promptDescription}
+            onChange={e => setPromptDescription(e.target.value)}
+            placeholder="Enter a description"
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none text-black dark:text-white"
+          />
+        </div>
+
+        {/* Category */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Category</label>
+          <select
+            value={promptCategory}
+            onChange={e => setPromptCategory(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white"
+          >
+            <option value="General">General</option>
+            <option value="Coding">Coding</option>
+            <option value="Writing">Writing</option>
+            <option value="Analysis">Analysis</option>
+            <option value="Brainstorming">Brainstorming</option>
+            <option value="Education">Education</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSave}
+            disabled={!promptTitle.trim()}
+            className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+          >
+            Save Prompt
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Prompt Library Modal
+function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDeletePrompt, onSaveNewPrompt, input }) {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  if (!isOpen) return null;
+
+  const categories = ['All', ...new Set(prompts.map(p => p.category || 'General'))];
+  const filteredPrompts = selectedCategory === 'All'
+    ? prompts
+    : prompts.filter(p => (p.category || 'General') === selectedCategory);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Prompt Library</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        {prompts.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+              <Icons.Bookmark />
+            </div>
+            <h4 className="text-lg font-medium mb-2">No saved prompts</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mb-4">
+              Save useful prompts from your conversations to access them quickly later.
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Type a message and click the bookmark icon to save it.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Category Filter */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                    selectedCategory === cat
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Prompts List */}
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {filteredPrompts.map(prompt => (
+                <div
+                  key={prompt.id}
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium truncate">{prompt.title}</h4>
+                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs">
+                          {prompt.category || 'General'}
+                        </span>
+                      </div>
+                      {prompt.description && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          {prompt.description}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                        {prompt.prompt_template}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => {
+                          onSelectPrompt(prompt.prompt_template);
+                          onClose();
+                        }}
+                        className="p-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
+                        title="Use prompt"
+                      >
+                        <Icons.Send />
+                      </button>
+                      <button
+                        onClick={() => onDeletePrompt(prompt.id)}
+                        className="p-2 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
+                        title="Delete prompt"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Main App component
 function App() {
   // State
@@ -1315,6 +1563,7 @@ function App() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState(''); // System prompt override
   const [shareData, setShareData] = useState(null);
   const [shareLink, setShareLink] = useState('');
   const [sharedView, setSharedView] = useState(null); // For shared conversation view
@@ -1332,6 +1581,12 @@ function App() {
   const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
   const [responseSuggestions, setResponseSuggestions] = useState([]); // Suggested follow-up prompts
+  const [showSavePromptModal, setShowSavePromptModal] = useState(false); // Save prompt modal visibility
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false); // Prompt library modal visibility
+  const [savedPrompts, setSavedPrompts] = useState([]); // Saved prompts from library
+  const [promptTitle, setPromptTitle] = useState(''); // Title for new prompt
+  const [promptDescription, setPromptDescription] = useState(''); // Description for new prompt
+  const [promptCategory, setPromptCategory] = useState('General'); // Category for new prompt
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1746,6 +2001,66 @@ function App() {
     }
   };
 
+  // Load saved prompts from library
+  const loadSavedPrompts = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/prompts/library`);
+      if (response.ok) {
+        const data = await response.json();
+        setSavedPrompts(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to load saved prompts:', error);
+    }
+  };
+
+  // Save prompt to library
+  const savePromptToLibrary = async () => {
+    if (!promptTitle.trim() || !input.trim()) return;
+    try {
+      const response = await fetch(`${API_BASE}/prompts/library`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: promptTitle.trim(),
+          description: promptDescription.trim(),
+          prompt_template: input.trim(),
+          category: promptCategory,
+        }),
+      });
+      if (response.ok) {
+        const newPrompt = await response.json();
+        setSavedPrompts(prev => [newPrompt, ...prev]);
+        setShowSavePromptModal(false);
+        setPromptTitle('');
+        setPromptDescription('');
+        setPromptCategory('General');
+      }
+    } catch (error) {
+      console.error('Failed to save prompt:', error);
+    }
+  };
+
+  // Delete prompt from library
+  const deletePromptFromLibrary = async (promptId) => {
+    try {
+      const response = await fetch(`${API_BASE}/prompts/library/${promptId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setSavedPrompts(prev => prev.filter(p => p.id !== promptId));
+      }
+    } catch (error) {
+      console.error('Failed to delete prompt:', error);
+    }
+  };
+
+  // Open prompt library modal
+  const openPromptLibrary = () => {
+    loadSavedPrompts();
+    setShowPromptLibrary(true);
+  };
+
   // Voice recording (mock) - simulates voice input with mock transcript
   const toggleVoiceRecording = () => {
     if (isRecordingVoice) {
@@ -2149,6 +2464,7 @@ function App() {
               top_p: topP,
               max_tokens: maxTokens,
               thinking_enabled: thinkingEnabled,
+              system_prompt: systemPrompt || undefined,
             }),
             signal: requestController.signal,
           });
@@ -2225,6 +2541,7 @@ function App() {
               temperature: temperature,
               top_p: topP,
               max_tokens: maxTokens,
+              system_prompt: systemPrompt || undefined,
             }),
           });
 
@@ -2755,6 +3072,15 @@ function App() {
               Team Workspaces
             </button>
 
+            {/* Prompt Library Button */}
+            <button
+              onClick={openPromptLibrary}
+              className="mt-2 flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
+            >
+              <Icons.Bookmark />
+              Prompt Library
+            </button>
+
             {/* User Profile */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
@@ -3033,6 +3359,20 @@ function App() {
                 title={isRecordingVoice ? 'Stop recording' : 'Voice input (mock)'}
               >
                 {isRecordingVoice ? <Icons.MicOff /> : <Icons.Mic />}
+              </button>
+              {/* Save Prompt to Library Button */}
+              <button
+                onClick={() => {
+                  setPromptTitle('');
+                  setPromptDescription('');
+                  setPromptCategory('General');
+                  setShowSavePromptModal(true);
+                }}
+                disabled={!input.trim() || isLoading}
+                className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Save prompt to library"
+              >
+                <Icons.BookmarkPlus />
               </button>
               {isStreaming ? (
                 <button
@@ -3409,10 +3749,41 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} systemPrompt={systemPrompt} setSystemPrompt={setSystemPrompt} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
+
+        {/* Save Prompt Modal */}
+        <SavePromptModal
+          isOpen={showSavePromptModal}
+          onClose={() => setShowSavePromptModal(false)}
+          promptTitle={promptTitle}
+          setPromptTitle={setPromptTitle}
+          promptDescription={promptDescription}
+          setPromptDescription={setPromptDescription}
+          promptCategory={promptCategory}
+          setPromptCategory={setPromptCategory}
+          onSave={savePromptToLibrary}
+          input={input}
+        />
+
+        {/* Prompt Library Modal */}
+        <PromptLibraryModal
+          isOpen={showPromptLibrary}
+          onClose={() => setShowPromptLibrary(false)}
+          prompts={savedPrompts}
+          onSelectPrompt={(template) => {
+            setInput(template);
+            inputRef.current?.focus();
+          }}
+          onDeletePrompt={deletePromptFromLibrary}
+          onSaveNewPrompt={() => {
+            setShowPromptLibrary(false);
+            setShowSavePromptModal(true);
+          }}
+          input={input}
+        />
 
         {/* Team Workspaces Modal */}
         {showWorkspaces && (
@@ -3488,6 +3859,7 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onSearch={setSearchQuery}
+          onOpenPromptLibrary={openPromptLibrary}
           conversations={conversations}
           onSelectConversation={(conv) => {
             selectConversation(conv);
@@ -3500,7 +3872,7 @@ function App() {
 }
 
 // Command Palette Component
-function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, conversations, onSelectConversation }) {
+function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, onOpenPromptLibrary, conversations, onSelectConversation }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
@@ -3508,6 +3880,7 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
   // Available commands
   const allCommands = [
     { id: 'new-chat', name: 'New Chat', description: 'Start a new conversation', icon: 'plus', action: onNewChat, category: 'Actions' },
+    { id: 'prompt-library', name: 'Prompt Library', description: 'Browse saved prompts', icon: 'bookmark', action: () => { onOpenPromptLibrary(); onClose(); }, category: 'Actions' },
     { id: 'settings', name: 'Open Settings', description: 'Open application settings', icon: 'settings', action: onOpenSettings, category: 'Actions' },
     { id: 'toggle-sidebar', name: 'Toggle Sidebar', description: 'Show or hide the sidebar', icon: 'sidebar', action: onToggleSidebar, category: 'Actions' },
     { id: 'search-conversations', name: 'Search Conversations', description: 'Search through all conversations', icon: 'search', action: () => { onSearch(''); onClose(); }, category: 'Navigation' },
@@ -3592,6 +3965,8 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
         return <Icons.Menu />;
       case 'chat':
         return <Icons.Chat />;
+      case 'bookmark':
+        return <Icons.Bookmark />;
       default:
         return null;
     }

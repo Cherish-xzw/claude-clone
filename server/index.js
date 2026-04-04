@@ -32,9 +32,9 @@ app.post('/api/chat', async (req, res) => {
   console.log('=== CHAT ENDPOINT CALLED ===');
   console.log('Body:', JSON.stringify(req.body));
   try {
-    const { content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096 } = req.body;
+    const { content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096, system_prompt } = req.body;
 
-    const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant.";
+    const systemPrompt = system_prompt || custom_instructions || "You are Claude, a helpful AI assistant.";
 
     // Build user message content with images if present
     let userMessageContent;
@@ -197,7 +197,7 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 app.post('/api/messages/stream', async (req, res) => {
   console.log('=== Stream request received ===');
   try {
-    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096, thinking_enabled = false } = req.body;
+    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096, thinking_enabled = false, system_prompt } = req.body;
 
     // Set up SSE headers FIRST (before API call)
     res.setHeader('Content-Type', 'text/event-stream');
@@ -214,8 +214,8 @@ app.post('/api/messages/stream', async (req, res) => {
       `).all(conversation_id);
     }
 
-    // Build messages array
-    const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant. Respond clearly and concisely.";
+    // Build messages array - use system_prompt if provided, otherwise custom_instructions, otherwise default
+    const systemPrompt = system_prompt || custom_instructions || "You are Claude, a helpful AI assistant. Respond clearly and concisely.";
 
     // Build user message content with images if present
     let userMessageContent;
