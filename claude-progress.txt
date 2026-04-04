@@ -625,3 +625,25 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Current Status: 157 passing, 105 remaining
 - Next: Implement other remaining features
 
+2026-04-04 Session (continued):
+- Implemented Search across all conversations feature:
+  * Enhanced Command Palette to search messages across all conversations
+  * Added API call to /api/search/messages?q=query
+  * Added message search results section with conversation title and snippet
+  * Added search term highlighting with yellow background
+  * Added debounced search (300ms) for better performance
+  * Added loading spinner while searching
+  * Added keyboard navigation support for message results
+  * Clicking message result navigates to that conversation
+- Implemented Conversation cost estimation feature:
+  * Added pricing information to MODELS configuration
+  * Added calculateMessageCost function for cost calculation
+  * Added formatCost function for display formatting
+  * Added totalConversationCost calculation using useMemo
+  * Display cost per message in token usage section
+  * Display total conversation cost in chat header
+  * Cost is calculated based on model pricing (input/output per million tokens)
+- Committed changes: 6d6ade7 (search), 1429d41 (cost estimation)
+- Current Status: 159 passing, 102 remaining
+- Next: Continue implementing remaining features
+
