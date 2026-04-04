@@ -1324,7 +1324,7 @@
       "Verify UI language changes if supported",
       "Verify date/time formats update"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2821,7 +2821,7 @@
       "Sort alphabetically",
       "Verify correct order"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

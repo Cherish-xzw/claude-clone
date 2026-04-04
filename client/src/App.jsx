@@ -537,9 +537,35 @@ function TypingIndicator() {
   );
 }
 
+// Get language-specific labels
+const getLanguageLabels = (lang) => {
+  const labels = {
+    en: { today: 'Today', yesterday: 'Yesterday', daysAgo: 'days ago' },
+    zh: { today: '今天', yesterday: '昨天', daysAgo: '天前' },
+    es: { today: 'Hoy', yesterday: 'Ayer', daysAgo: 'días atrás' },
+    fr: { today: "Aujourd'hui", yesterday: 'Hier', daysAgo: "jours d'accord" },
+    de: { today: 'Heute', yesterday: 'Gestern', daysAgo: 'Tagen' },
+    ja: { today: '今日', yesterday: '昨日', daysAgo: '日前' },
+    ko: { today: '오늘', yesterday: '어제', daysAgo: '일 전' },
+    pt: { today: 'Hoje', yesterday: 'Ontem', daysAgo: 'dias atrás' },
+    ru: { today: 'Сегодня', yesterday: 'Вчера', daysAgo: 'дней назад' },
+    ar: { today: 'اليوم', yesterday: 'أمس', daysAgo: 'أيام مضت' },
+  };
+  return labels[lang] || labels.en;
+};
+
+// Helper to get saved language
+const getSavedLanguage = () => {
+  const saved = localStorage.getItem('app_language');
+  return saved ? JSON.parse(saved) : 'en';
+};
+
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, folders }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, folders, language }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
+  // Use language prop if provided, otherwise fallback to localStorage
+  const currentLang = language || getSavedLanguage();
+  const langLabels = getLanguageLabels(currentLang);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -548,10 +574,18 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
     const diff = now - date;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
+    if (days === 0) return langLabels.today;
+    if (days === 1) return langLabels.yesterday;
+    if (days < 7) return `${days} ${langLabels.daysAgo}`;
+    // Format date based on language
+    const localeMap = {
+      en: 'en-US', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR',
+      de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', pt: 'pt-BR',
+      ru: 'ru-RU', ar: 'ar-SA'
+    };
+    return date.toLocaleDateString(localeMap[currentLang] || 'en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
   };
 
   return (
@@ -1073,7 +1107,7 @@ function UsageDashboard() {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1244,6 +1278,26 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <option value="medium">Medium</option>
                     <option value="large">Large</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Language</label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="en">English</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                    <option value="ko">한국어 (Korean)</option>
+                    <option value="pt">Português (Portuguese)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Select your preferred language for date/time formatting</p>
                 </div>
               </div>
             )}
@@ -1894,6 +1948,7 @@ function App() {
   const [theme, setTheme] = useState(() => loadSetting('app_theme', 'system'));
   const [highContrast, setHighContrast] = useState(() => loadSetting('app_highContrast', false));
   const [reducedMotion, setReducedMotion] = useState(() => loadSetting('app_reducedMotion', false));
+  const [language, setLanguage] = useState(() => loadSetting('app_language', 'en'));
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -1925,6 +1980,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [filterModel, setFilterModel] = useState('');
+  const [conversationSort, setConversationSort] = useState('newest'); // newest, oldest, alphabetical
   const [abortController, setAbortController] = useState(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
@@ -2022,6 +2078,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('app_maxTokens', JSON.stringify(maxTokens));
   }, [maxTokens]);
+
+  useEffect(() => {
+    localStorage.setItem('app_language', JSON.stringify(language));
+  }, [language]);
 
   // Save sidebar width to localStorage
   useEffect(() => {
@@ -3220,12 +3280,35 @@ function App() {
   };
 
   // Filter conversations by search and archived status
-  const filteredConversations = conversations.filter(c =>
+  let filteredConversations = conversations.filter(c =>
     (showArchived ? c.is_archived : !c.is_archived) &&
     c.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
     (!filterProject || c.project_id === filterProject || (c.project_id === null && filterProject === 'none')) &&
     (!filterModel || c.model === filterModel)
   );
+
+  // Sort conversations based on selected option
+  filteredConversations = [...filteredConversations].sort((a, b) => {
+    // Pinned conversations always come first (unless sorting alphabetically)
+    if (conversationSort !== 'alphabetical') {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+    }
+
+    const dateA = new Date(a.updated_at || a.created_at);
+    const dateB = new Date(b.updated_at || b.created_at);
+
+    switch (conversationSort) {
+      case 'oldest':
+        return dateA.getTime() - dateB.getTime();
+      case 'newest':
+        return dateB.getTime() - dateA.getTime();
+      case 'alphabetical':
+        return (a.title || '').localeCompare(b.title || '');
+      default:
+        return dateB.getTime() - dateA.getTime(); // Default to newest
+    }
+  });
 
   // Group conversations by date - uses local time for grouping
   // Pinned conversations appear at the top in a separate "Pinned" section
@@ -3419,6 +3502,23 @@ function App() {
                   <option key={model.id} value={model.id}>{model.name}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="mt-2 flex items-center gap-2">
+              <label htmlFor="sort-conversations" className="sr-only">Sort by</label>
+              <select
+                id="sort-conversations"
+                value={conversationSort}
+                onChange={e => setConversationSort(e.target.value)}
+                className="px-2 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Sort conversations"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">Alphabetical</option>
+              </select>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Sort</span>
             </div>
 
             {/* Folders Section */}
@@ -4375,7 +4475,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
