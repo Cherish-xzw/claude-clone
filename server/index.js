@@ -27,6 +27,32 @@ app.post('/api/test', (req, res) => {
   res.json({ success: true, body: req.body });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const startTime = Date.now();
+  try {
+    // Check database connectivity
+    db.prepare('SELECT 1').get();
+    const responseTime = Date.now() - startTime;
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      responseTime: responseTime,
+      database: 'connected',
+      version: '1.0.0'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
+});
+
 // Simple non-streaming chat endpoint
 app.post('/api/chat', async (req, res) => {
   console.log('=== CHAT ENDPOINT CALLED ===');
@@ -95,6 +121,18 @@ try {
   }
 } catch (error) {
   console.error('Migration error:', error);
+}
+
+// Add usage_count column to prompt_library if it doesn't exist
+try {
+  const promptColumns = db.prepare("PRAGMA table_info(prompt_library)").all();
+  const hasUsageCountColumn = promptColumns.some(col => col.name === 'usage_count');
+  if (!hasUsageCountColumn) {
+    db.exec("ALTER TABLE prompt_library ADD COLUMN usage_count INTEGER DEFAULT 0");
+    console.log('Added usage_count column to prompt_library table');
+  }
+} catch (error) {
+  console.error('Prompt library migration error:', error);
 }
 
 // Initialize Anthropic client
@@ -998,6 +1036,21 @@ app.get('/api/prompts/categories', (req, res) => {
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// POST /api/prompts/library/:id/use - Increment usage count for a prompt
+app.post('/api/prompts/library/:id/use', (req, res) => {
+  try {
+    db.prepare('UPDATE prompt_library SET usage_count = usage_count + 1 WHERE id = ?').run(req.params.id);
+    const prompt = db.prepare('SELECT * FROM prompt_library WHERE id = ?').get(req.params.id);
+    if (!prompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    res.json(prompt);
+  } catch (error) {
+    console.error('Error incrementing prompt usage:', error);
+    res.status(500).json({ error: 'Failed to increment usage' });
   }
 });
 

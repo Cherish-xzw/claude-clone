@@ -2231,7 +2231,7 @@
       "Verify conversation is displayed correctly",
       "Verify no edit options available"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2244,7 +2244,7 @@
       "Clear category filter",
       "Verify all prompts shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2296,7 +2296,7 @@
       "Return to prompt library",
       "Verify usage count incremented"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2321,7 +2321,7 @@
       "Verify totals per model are shown",
       "Verify percentages or charts shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2333,7 +2333,7 @@
       "Verify cost estimate shown",
       "Verify matches overall usage data"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2474,7 +2474,7 @@
       "Verify response indicates API status",
       "Verify response time is reasonable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2498,7 +2498,7 @@
       "Close lightbox",
       "Verify return to conversation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

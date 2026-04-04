@@ -1905,11 +1905,32 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
   const [editDescription, setEditDescription] = useState('');
   const [editTemplate, setEditTemplate] = useState('');
   const [editCategory, setEditCategory] = useState('General');
+  const [localPrompts, setLocalPrompts] = useState(prompts);
+
+  // Update local prompts when props change
+  useEffect(() => {
+    setLocalPrompts(prompts);
+  }, [prompts]);
+
+  // Increment usage count for a prompt
+  const incrementPromptUsage = async (promptId) => {
+    try {
+      const response = await fetch(`${API_BASE}/prompts/library/${promptId}/use`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const updatedPrompt = await response.json();
+        setLocalPrompts(prev => prev.map(p => p.id === promptId ? updatedPrompt : p));
+      }
+    } catch (error) {
+      console.error('Failed to increment prompt usage:', error);
+    }
+  };
 
   if (!isOpen) return null;
 
-  const categories = ['All', ...new Set(prompts.map(p => p.category || 'General'))];
-  const filteredPrompts = prompts.filter(p => {
+  const categories = ['All', ...new Set(localPrompts.map(p => p.category || 'General'))];
+  const filteredPrompts = localPrompts.filter(p => {
     const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
     const matchesSearch = searchQuery === '' ||
       p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1940,7 +1961,7 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
           </button>
         </div>
 
-        {prompts.length === 0 ? (
+        {localPrompts.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
             <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
               <Icons.Bookmark />
@@ -2031,6 +2052,9 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
                         <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs">
                           {prompt.category || 'General'}
                         </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400" title="Times used">
+                          ({prompt.usage_count || 0} uses)
+                        </span>
                       </div>
                       {prompt.description && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -2044,6 +2068,7 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => {
+                          incrementPromptUsage(prompt.id);
                           onSelectPrompt(prompt.prompt_template);
                           onClose();
                         }}
