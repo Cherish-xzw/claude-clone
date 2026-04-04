@@ -2337,6 +2337,26 @@ function App() {
     }
   };
 
+  // Handle logout - clears session and resets app state
+  const handleLogout = async () => {
+    try {
+      // Call logout API endpoint (if exists)
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+    } catch (error) {
+      // Ignore errors - continue with local logout
+    }
+    // Clear all local state
+    setConversations([]);
+    setCurrentConversation(null);
+    setMessages([]);
+    setInput('');
+    setShowUserProfile(false);
+    setFolders([]);
+    setSavedPrompts([]);
+    // Show alert notification
+    alert('Logged out successfully');
+  };
+
   // Open prompt library modal
   const openPromptLibrary = () => {
     loadSavedPrompts();
@@ -3443,7 +3463,10 @@ function App() {
                     </svg>
                     Change Password
                   </button>
-                  <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                       <polyline points="16 17 21 12 16 7"></polyline>

@@ -2088,7 +2088,7 @@
       "Verify redirect to login/home",
       "Verify session data is cleared"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
