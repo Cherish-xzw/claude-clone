@@ -115,3 +115,21 @@ Current Status: 100 passing, 162 remaining
   * Command Palette opens with Cmd+K and shows search/commands
   * All 100+ tests are marked as passing
 - Next step: Debug sendMessage crash - likely a React render error
+
+2026-04-04 Session (continued):
+- Debugged sendMessage functionality extensively:
+  * Fixed API response parsing for loadConversations (direct array)
+  * Fixed API response parsing for createConversation (direct object)
+  * Fixed API response parsing for selectConversation (direct array)
+  * Fixed backend ANTHROPIC_API_KEY environment variable
+  * Added ANTHROPIC_BASE_URL support
+  * Added /api/chat non-streaming fallback endpoint
+  * Fixed streaming endpoint headers (set before API call)
+  * Removed duplicate code causing syntax error
+- Issue discovered: POST requests from browser automation (Puppeteer) to
+  localhost:3001 are not completing - may be browser security restriction
+- GET requests work fine, direct URL navigation works
+- Committed fixes: ce1a351
+
+Current Status: 100 passing, 162 remaining
+Next: Investigate streaming/chat issue or implement new features
