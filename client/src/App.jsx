@@ -224,23 +224,6 @@ const Icons = {
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </svg>
   ),
-  Bookmark: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-    </svg>
-  ),
-  BookmarkFilled: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-    </svg>
-  ),
-  BookmarkPlus: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-      <line x1="12" y1="8" x2="12" y2="14"></line>
-      <line x1="9" y1="11" x2="15" y2="11"></line>
-    </svg>
-  ),
 };
 
 // Code block component with copy functionality
@@ -272,7 +255,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete }) {
   const isUser = message.role === 'user';
 
   return (
@@ -400,12 +383,20 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
             </div>
           )}
           {isUser && !isEditing && (
-            <button
-              onClick={() => onEdit && onEdit(message)}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              Edit
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit && onEdit(message)}
+                className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete && onDelete(message)}
+                className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -1216,15 +1207,6 @@ function App() {
   const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
   const [responseSuggestions, setResponseSuggestions] = useState([]); // Suggested follow-up prompts
-  const [showSearchModal, setShowSearchModal] = useState(false); // Search modal visibility
-  const [searchResults, setSearchResults] = useState({ conversations: [], messages: [] }); // Search results
-  const [searchLoading, setSearchLoading] = useState(false); // Search loading state
-  const [showSavePromptModal, setShowSavePromptModal] = useState(false); // Save prompt modal visibility
-  const [showPromptLibrary, setShowPromptLibrary] = useState(false); // Prompt library modal visibility
-  const [savedPrompts, setSavedPrompts] = useState([]); // Saved prompts from library
-  const [promptTitle, setPromptTitle] = useState(''); // Title for new prompt
-  const [promptDescription, setPromptDescription] = useState(''); // Description for new prompt
-  const [promptCategory, setPromptCategory] = useState('General'); // Category for new prompt
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1244,68 +1226,6 @@ function App() {
     loadConversations();
     loadFolders();
   }, []);
-
-  // Load saved prompts from library
-  const loadSavedPrompts = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/prompts/library`);
-      if (response.ok) {
-        const data = await response.json();
-        setSavedPrompts(Array.isArray(data) ? data : []);
-      }
-    } catch (error) {
-      console.error('Failed to load saved prompts:', error);
-    }
-  };
-
-  // Save prompt to library
-  const savePromptToLibrary = async () => {
-    if (!promptTitle.trim() || !input.trim()) return;
-    try {
-      const response = await fetch(`${API_BASE}/prompts/library`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: promptTitle.trim(),
-          description: promptDescription.trim(),
-          prompt_template: input.trim(),
-          category: promptCategory,
-        }),
-      });
-      if (response.ok) {
-        const newPrompt = await response.json();
-        setSavedPrompts(prev => [newPrompt, ...prev]);
-        setShowSavePromptModal(false);
-        setPromptTitle('');
-        setPromptDescription('');
-        setPromptCategory('General');
-        // Show success message
-        alert('Prompt saved to library!');
-      }
-    } catch (error) {
-      console.error('Failed to save prompt:', error);
-    }
-  };
-
-  // Delete prompt from library
-  const deletePromptFromLibrary = async (promptId) => {
-    try {
-      const response = await fetch(`${API_BASE}/prompts/library/${promptId}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        setSavedPrompts(prev => prev.filter(p => p.id !== promptId));
-      }
-    } catch (error) {
-      console.error('Failed to delete prompt:', error);
-    }
-  };
-
-  // Open prompt library modal
-  const openPromptLibrary = () => {
-    loadSavedPrompts();
-    setShowPromptLibrary(true);
-  };
 
   // Check for shared link in URL
   useEffect(() => {
@@ -1472,6 +1392,22 @@ function App() {
   const cancelEditMessage = () => {
     setEditingMessageId(null);
     setEditedMessageContent('');
+  };
+
+  // Delete message
+  const deleteMessage = async (message) => {
+    try {
+      await fetch(`${API_BASE}/messages/${message.id}`, {
+        method: 'DELETE',
+      });
+      // Remove message from local state
+      setMessages(prev => prev.filter(msg => msg.id !== message.id));
+      // Show toast
+      showToast('Message deleted', 'success');
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      showToast('Failed to delete message', 'error');
+    }
   };
 
   // Share conversation via link
@@ -2616,15 +2552,6 @@ function App() {
               Settings
             </button>
 
-            {/* Prompt Library Button */}
-            <button
-              onClick={openPromptLibrary}
-              className="mt-2 flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
-            >
-              <Icons.Bookmark />
-              Prompt Library
-            </button>
-
             {/* Team Workspaces Button */}
             <button
               onClick={() => setShowWorkspaces(true)}
@@ -2752,6 +2679,7 @@ function App() {
                       onEditedContentChange={setEditedMessageContent}
                       onSaveEdit={saveEditedMessage}
                       onCancelEdit={cancelEditMessage}
+                      onDelete={deleteMessage}
                       onImageClick={(imageData) => setLightboxImage(imageData)}
                       onOpenArtifact={() => {
                         if (artifacts.length > 0) {
@@ -2862,20 +2790,6 @@ function App() {
                 title={isRecordingVoice ? 'Stop recording' : 'Voice input (mock)'}
               >
                 {isRecordingVoice ? <Icons.MicOff /> : <Icons.Mic />}
-              </button>
-              {/* Save Prompt to Library Button */}
-              <button
-                onClick={() => {
-                  setPromptTitle('');
-                  setPromptDescription('');
-                  setPromptCategory('General');
-                  setShowSavePromptModal(true);
-                }}
-                disabled={!input.trim() || isLoading}
-                className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Save prompt to library"
-              >
-                <Icons.BookmarkPlus />
               </button>
               {isStreaming ? (
                 <button
@@ -3331,228 +3245,19 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onSearch={setSearchQuery}
-          onOpenPromptLibrary={openPromptLibrary}
           conversations={conversations}
           onSelectConversation={(conv) => {
             selectConversation(conv);
             setShowCommandPalette(false);
           }}
         />
-
-        {/* Save Prompt Modal */}
-        {showSavePromptModal && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowSavePromptModal(false)}
-          >
-            <div
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Save Prompt to Library</h3>
-                <button
-                  onClick={() => setShowSavePromptModal(false)}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-
-              {/* Prompt Preview */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Prompt</label>
-                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm max-h-32 overflow-auto">
-                  {input.length > 200 ? input.substring(0, 200) + '...' : input}
-                </div>
-              </div>
-
-              {/* Title */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Title</label>
-                <input
-                  type="text"
-                  value={promptTitle}
-                  onChange={e => setPromptTitle(e.target.value)}
-                  placeholder="Enter prompt title"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  autoFocus
-                />
-              </div>
-
-              {/* Description */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description (optional)</label>
-                <textarea
-                  value={promptDescription}
-                  onChange={e => setPromptDescription(e.target.value)}
-                  placeholder="Enter a description"
-                  rows={2}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                />
-              </div>
-
-              {/* Category */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Category</label>
-                <select
-                  value={promptCategory}
-                  onChange={e => setPromptCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="General">General</option>
-                  <option value="Coding">Coding</option>
-                  <option value="Writing">Writing</option>
-                  <option value="Analysis">Analysis</option>
-                  <option value="Brainstorming">Brainstorming</option>
-                  <option value="Education">Education</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              {/* Actions */}
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowSavePromptModal(false)}
-                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={savePromptToLibrary}
-                  disabled={!promptTitle.trim()}
-                  className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
-                >
-                  Save Prompt
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Prompt Library Modal */}
-        {showPromptLibrary && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowPromptLibrary(false)}
-          >
-            <div
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Prompt Library</h3>
-                <button
-                  onClick={() => setShowPromptLibrary(false)}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-
-              {savedPrompts.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
-                    <Icons.Bookmark />
-                  </div>
-                  <h4 className="text-lg font-medium mb-2">No saved prompts</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                    Save useful prompts from your conversations to access them quickly later.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setShowPromptLibrary(false);
-                      setShowSavePromptModal(true);
-                    }}
-                    disabled={!input.trim()}
-                    className="mt-4 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                  >
-                    Save Current Prompt
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Category Filter */}
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    {['All', ...new Set(savedPrompts.map(p => p.category || 'General'))].map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => {}}
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                          cat === 'All' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Prompts List */}
-                  <div className="flex-1 overflow-y-auto space-y-3">
-                    {savedPrompts.map(prompt => (
-                      <div
-                        key={prompt.id}
-                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-650 transition-colors group"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium truncate">{prompt.title}</h4>
-                              <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded-full">
-                                {prompt.category || 'General'}
-                              </span>
-                            </div>
-                            {prompt.description && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-1">
-                                {prompt.description}
-                              </p>
-                            )}
-                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                              {prompt.prompt_template}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => {
-                                setInput(prompt.prompt_template);
-                                setShowPromptLibrary(false);
-                                inputRef.current?.focus();
-                              }}
-                              className="p-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
-                              title="Use prompt"
-                            >
-                              <Icons.Send />
-                            </button>
-                            <button
-                              onClick={() => deletePromptFromLibrary(prompt.id)}
-                              className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
-                              title="Delete prompt"
-                            >
-                              <Icons.Trash />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </ThemeContext.Provider>
   );
 }
 
 // Command Palette Component
-function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, onOpenPromptLibrary, conversations, onSelectConversation }) {
+function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSidebar, onSearch, conversations, onSelectConversation }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
@@ -3563,7 +3268,6 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
     { id: 'settings', name: 'Open Settings', description: 'Open application settings', icon: 'settings', action: onOpenSettings, category: 'Actions' },
     { id: 'toggle-sidebar', name: 'Toggle Sidebar', description: 'Show or hide the sidebar', icon: 'sidebar', action: onToggleSidebar, category: 'Actions' },
     { id: 'search-conversations', name: 'Search Conversations', description: 'Search through all conversations', icon: 'search', action: () => { onSearch(''); onClose(); }, category: 'Navigation' },
-    { id: 'prompt-library', name: 'Open Prompt Library', description: 'View and use saved prompts', icon: 'bookmark', action: () => { onOpenPromptLibrary(); onClose(); }, category: 'Navigation' },
   ];
 
   // Add conversation commands
@@ -3645,8 +3349,6 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
         return <Icons.Menu />;
       case 'chat':
         return <Icons.Chat />;
-      case 'bookmark':
-        return <Icons.Bookmark />;
       default:
         return null;
     }

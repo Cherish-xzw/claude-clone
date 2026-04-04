@@ -1909,7 +1909,7 @@
       "Verify conversation still makes sense",
       "Verify deletion is reflected in UI"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
