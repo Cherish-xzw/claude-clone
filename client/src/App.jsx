@@ -207,6 +207,23 @@ const Icons = {
       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
     </svg>
   ),
+  Mic: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+      <line x1="12" y1="19" x2="12" y2="23"></line>
+      <line x1="8" y1="23" x2="16" y2="23"></line>
+    </svg>
+  ),
+  MicOff: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+      <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+      <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+      <line x1="12" y1="19" x2="12" y2="23"></line>
+      <line x1="8" y1="23" x2="16" y2="23"></line>
+    </svg>
+  ),
 };
 
 // Code block component with copy functionality
@@ -743,6 +760,7 @@ function App() {
   const [sharedView, setSharedView] = useState(null); // For shared conversation view
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedError, setSharedError] = useState(null);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1080,6 +1098,30 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to load folders:', error);
+    }
+  };
+
+  // Voice recording (mock) - simulates voice input with mock transcript
+  const toggleVoiceRecording = () => {
+    if (isRecordingVoice) {
+      // Stop recording - insert mock transcript
+      setIsRecordingVoice(false);
+      // Insert mock transcript into input
+      const mockTranscripts = [
+        "How do I create a React component?",
+        "What is the difference between useEffect and useLayoutEffect?",
+        "Can you explain closures in JavaScript?",
+        "How do I center a div in CSS?",
+        "What are the best practices for REST API design?",
+        "Explain async/await in JavaScript",
+        "How do I use useState properly in React?",
+        "What is the difference between null and undefined?"
+      ];
+      const randomTranscript = mockTranscripts[Math.floor(Math.random() * mockTranscripts.length)];
+      setInput(prev => prev ? prev + ' ' + randomTranscript : randomTranscript);
+    } else {
+      // Start recording
+      setIsRecordingVoice(true);
     }
   };
 
@@ -1804,6 +1846,15 @@ function App() {
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-end gap-3 max-w-4xl mx-auto">
               <div className="flex-1 relative">
+                {/* Show recording indicator */}
+                {isRecordingVoice && (
+                  <div className="absolute -top-8 left-0 right-0 flex items-center justify-center">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      Recording...
+                    </div>
+                  </div>
+                )}
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -1815,6 +1866,18 @@ function App() {
                   style={{ minHeight: '48px' }}
                 />
               </div>
+              {/* Voice Input Button */}
+              <button
+                onClick={toggleVoiceRecording}
+                className={`p-3 rounded-xl transition-colors ${
+                  isRecordingVoice
+                    ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                }`}
+                title={isRecordingVoice ? 'Stop recording' : 'Voice input (mock)'}
+              >
+                {isRecordingVoice ? <Icons.MicOff /> : <Icons.Mic />}
+              </button>
               {isStreaming ? (
                 <button
                   onClick={stopGeneration}

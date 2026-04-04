@@ -1287,7 +1287,7 @@
       "Click stop recording",
       "Verify mock transcript is inserted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
