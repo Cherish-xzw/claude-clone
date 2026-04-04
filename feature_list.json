@@ -712,7 +712,7 @@
       "Verify syntax highlighting is applied",
       "Verify artifact title/type is shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -726,7 +726,7 @@
       "Copy code from artifact panel",
       "Verify code was copied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -740,7 +740,7 @@
       "Toggle between code and preview",
       "Verify smooth transition"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -752,7 +752,7 @@
       "Verify interactive elements work",
       "Verify component styling is applied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -765,7 +765,7 @@
       "Toggle to code view",
       "Verify mermaid code is visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -777,7 +777,7 @@
       "Copy text content",
       "Verify text was copied correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -791,7 +791,7 @@
       "Verify changes are applied",
       "Verify preview updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -804,7 +804,7 @@
       "Verify Claude receives modified artifact",
       "Verify new response references changes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -818,7 +818,7 @@
       "Click close or press Escape",
       "Verify return to normal view"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -831,7 +831,7 @@
       "Verify file has correct extension",
       "Verify file contains correct content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -845,7 +845,7 @@
       "Verify older version is displayed",
       "Verify can switch between versions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

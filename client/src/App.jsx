@@ -255,7 +255,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact }) {
   const isUser = message.role === 'user';
 
   return (
@@ -372,6 +372,14 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
               >
                 Regenerate
               </button>
+              {hasArtifact && (
+                <button
+                  onClick={() => onOpenArtifact && onOpenArtifact()}
+                  className="text-xs text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 px-2 py-1 rounded hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                >
+                  Open Artifact
+                </button>
+              )}
             </div>
           )}
           {isUser && !isEditing && (
@@ -863,6 +871,228 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
   );
 }
 
+// Artifact Panel Component - displays artifacts in a side panel
+function ArtifactPanel({
+  artifact,
+  isOpen,
+  onClose,
+  onFullscreen,
+  isFullscreen,
+  versions,
+  onVersionChange,
+  onEdit,
+  onDownload,
+  onRePrompt,
+  artifactPanelTab,
+  setArtifactPanelTab
+}) {
+  const [copied, setCopied] = useState(false);
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
+  const iframeRef = useRef(null);
+  const [localTab, setLocalTab] = useState('code');
+  const activeTab = artifactPanelTab !== undefined ? artifactPanelTab : localTab;
+  const changeTab = setArtifactPanelTab || setLocalTab;
+
+  if (!isOpen || !artifact) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(artifact.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getLanguageDisplay = () => {
+    const displayNames = {
+      html: 'HTML',
+      svg: 'SVG',
+      react: 'React',
+      jsx: 'React',
+      tsx: 'React',
+      mermaid: 'Mermaid',
+      javascript: 'JavaScript',
+      typescript: 'TypeScript',
+      python: 'Python',
+      css: 'CSS',
+      json: 'JSON',
+      text: 'Text'
+    };
+    return displayNames[artifact.language] || artifact.language?.toUpperCase() || 'CODE';
+  };
+
+  const renderPreview = () => {
+    if (artifact.type === 'html') {
+      // Create a data URL for the HTML content
+      const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(artifact.content)}`;
+      return (
+        <iframe
+          ref={iframeRef}
+          src={dataUrl}
+          className="w-full h-full bg-white rounded-lg border border-gray-300 dark:border-gray-600"
+          title="HTML Preview"
+        />
+      );
+    }
+
+    if (artifact.type === 'svg') {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-300 dark:border-gray-600 overflow-auto">
+          <div dangerouslySetInnerHTML={{ __html: artifact.content }} />
+        </div>
+      );
+    }
+
+    if (artifact.type === 'mermaid') {
+      // For mermaid, we'll show a simplified preview or the code
+      return (
+        <div className="w-full h-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-300 dark:border-gray-600 overflow-auto">
+          <p className="text-sm text-gray-500 mb-2">Mermaid Diagram:</p>
+          <pre className="text-xs whitespace-pre-wrap">{artifact.content}</pre>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const renderCodeView = () => {
+    const lines = artifact.content.split('\n');
+
+    return (
+      <div className="relative h-full">
+        <div className="absolute top-2 right-2 flex gap-2 z-10">
+          <button
+            onClick={handleCopy}
+            className="p-2 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-1 text-xs transition-colors"
+          >
+            <Icons.Copy />
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div className="flex h-full overflow-auto">
+          {showLineNumbers && (
+            <div className="flex-shrink-0 py-4 pl-4 pr-2 text-right text-gray-500 dark:text-gray-400 select-none bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+              {lines.map((_, i) => (
+                <div key={i} className="text-xs leading-6">{i + 1}</div>
+              ))}
+            </div>
+          )}
+          <pre className="flex-1 p-4 overflow-auto bg-gray-50 dark:bg-gray-900">
+            <code className={`language-${artifact.language || 'text'} text-sm leading-6`}>
+              {artifact.content}
+            </code>
+          </pre>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'relative w-full h-full'} bg-white dark:bg-gray-800 flex flex-col`}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold text-sm truncate max-w-[200px]">{artifact.title}</h3>
+          <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+            {getLanguageDisplay()}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Version selector if available */}
+          {versions && versions.length > 1 && (
+            <select
+              onChange={(e) => onVersionChange && onVersionChange(versions[parseInt(e.target.value)])}
+              className="px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 border-0"
+            >
+              {versions.map((v, i) => (
+                <option key={i} value={i}>Version {i + 1}</option>
+              ))}
+            </select>
+          )}
+          <button
+            onClick={onFullscreen}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+          >
+            {isFullscreen ? <Icons.Minimize2 /> : <Icons.Maximize2 />}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Copy code"
+          >
+            <Icons.Copy />
+          </button>
+          <button
+            onClick={onDownload}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Download"
+          >
+            <Icons.Download />
+          </button>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="px-3 py-1 text-xs rounded bg-primary-500 hover:bg-primary-600 text-white transition-colors"
+            >
+              Edit
+            </button>
+          )}
+          {onRePrompt && (
+            <button
+              onClick={onRePrompt}
+              className="px-3 py-1 text-xs rounded border border-primary-500 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+            >
+              Re-prompt
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs for previewable artifacts */}
+      {(artifact.type === 'html' || artifact.type === 'svg' || artifact.type === 'mermaid') && (
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => changeTab('code')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 ${
+              activeTab === 'code'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Code
+          </button>
+          <button
+            onClick={() => changeTab('preview')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 ${
+              activeTab === 'preview'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        {activeTab === 'preview' && renderPreview()}
+        {activeTab === 'code' && renderCodeView()}
+      </div>
+    </div>
+  );
+}
+
 // Main App component
 function App() {
   // State
@@ -909,6 +1139,13 @@ function App() {
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
   const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
+  const [artifacts, setArtifacts] = useState([]); // Artifacts from Claude responses
+  const [activeArtifact, setActiveArtifact] = useState(null); // Currently active artifact
+  const [isArtifactPanelOpen, setIsArtifactPanelOpen] = useState(false); // Artifact panel visibility
+  const [artifactPanelTab, setArtifactPanelTab] = useState('code'); // 'code' or 'preview'
+  const [isArtifactFullscreen, setIsArtifactFullscreen] = useState(false); // Fullscreen mode
+  const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
+  const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1377,6 +1614,154 @@ function App() {
     }
   };
 
+  // Detect artifacts from message content
+  // Artifacts are typically code blocks with specific language tags that indicate
+  // they should be rendered as standalone artifacts
+  const detectArtifacts = (content) => {
+    const artifacts = [];
+
+    // Pattern to match artifact code blocks
+    // Format: ```artifact-type or ```language:artifact-identifier
+    const artifactBlockRegex = /```(?:(\w+):)?(?:artifact-)?identifier\s*([^\n]*)\n([\s\S]*?)```/g;
+
+    let match;
+    while ((match = artifactBlockRegex.exec(content)) !== null) {
+      const [, language, identifier, code] = match;
+      const artifactLanguage = language || identifier || 'text';
+      const artifactIdentifier = identifier || '';
+
+      // Create artifact object
+      const artifact = {
+        id: generateId(),
+        type: getArtifactType(artifactLanguage),
+        language: artifactLanguage,
+        identifier: artifactIdentifier.trim(),
+        title: generateArtifactTitle(artifactLanguage, artifactIdentifier),
+        content: code.trim(),
+        createdAt: Date.now()
+      };
+
+      artifacts.push(artifact);
+    }
+
+    // Also check for common patterns that indicate artifacts
+    // HTML files
+    const htmlRegex = /```html\s*\n([\s\S]*?)```/g;
+    while ((match = htmlRegex.exec(content)) !== null) {
+      // Check if it's not already detected as an artifact
+      if (!artifacts.some(a => a.content === match[1].trim())) {
+        artifacts.push({
+          id: generateId(),
+          type: 'html',
+          language: 'html',
+          identifier: '',
+          title: 'HTML Document',
+          content: match[1].trim(),
+          createdAt: Date.now()
+        });
+      }
+    }
+
+    // SVG files
+    const svgRegex = /```svg\s*\n([\s\S]*?)```/g;
+    while ((match = svgRegex.exec(content)) !== null) {
+      if (!artifacts.some(a => a.content === match[1].trim())) {
+        artifacts.push({
+          id: generateId(),
+          type: 'svg',
+          language: 'svg',
+          identifier: '',
+          title: 'SVG Graphic',
+          content: match[1].trim(),
+          createdAt: Date.now()
+        });
+      }
+    }
+
+    // React components
+    const reactRegex = /```react(?:\s+identifier\s+(\S+))?\s*\n([\s\S]*?)```/g;
+    while ((match = reactRegex.exec(content)) !== null) {
+      if (!artifacts.some(a => a.content === match[2].trim())) {
+        artifacts.push({
+          id: generateId(),
+          type: 'react',
+          language: 'jsx',
+          identifier: match[1] || '',
+          title: match[1] ? `${match[1]} Component` : 'React Component',
+          content: match[2].trim(),
+          createdAt: Date.now()
+        });
+      }
+    }
+
+    // Mermaid diagrams
+    const mermaidRegex = /```mermaid\s*\n([\s\S]*?)```/g;
+    while ((match = mermaidRegex.exec(content)) !== null) {
+      if (!artifacts.some(a => a.content === match[1].trim())) {
+        artifacts.push({
+          id: generateId(),
+          type: 'mermaid',
+          language: 'mermaid',
+          identifier: '',
+          title: 'Mermaid Diagram',
+          content: match[1].trim(),
+          createdAt: Date.now()
+        });
+      }
+    }
+
+    return artifacts;
+  };
+
+  // Determine artifact type from language
+  const getArtifactType = (language) => {
+    const htmlLanguages = ['html', 'htm'];
+    const svgLanguages = ['svg'];
+    const reactLanguages = ['react', 'jsx', 'tsx'];
+    const mermaidLanguages = ['mermaid'];
+    const codeLanguages = ['javascript', 'js', 'typescript', 'ts', 'python', 'py', 'css', 'json', 'bash', 'sh', 'sql', 'java', 'c', 'cpp', 'go', 'rust', 'ruby', 'php'];
+
+    if (htmlLanguages.includes(language.toLowerCase())) return 'html';
+    if (svgLanguages.includes(language.toLowerCase())) return 'svg';
+    if (reactLanguages.includes(language.toLowerCase())) return 'react';
+    if (mermaidLanguages.includes(language.toLowerCase())) return 'mermaid';
+
+    return 'code';
+  };
+
+  // Generate a human-readable title for artifacts
+  const generateArtifactTitle = (language, identifier) => {
+    const titles = {
+      html: 'HTML Document',
+      svg: 'SVG Graphic',
+      react: identifier ? `${identifier} Component` : 'React Component',
+      jsx: identifier ? `${identifier} Component` : 'React Component',
+      tsx: identifier ? `${identifier} Component` : 'React Component',
+      mermaid: 'Mermaid Diagram',
+      javascript: 'JavaScript Code',
+      js: 'JavaScript Code',
+      typescript: 'TypeScript Code',
+      ts: 'TypeScript Code',
+      python: 'Python Code',
+      py: 'Python Code',
+      css: 'CSS Styles',
+      json: 'JSON Data',
+      bash: 'Shell Script',
+      sh: 'Shell Script',
+      sql: 'SQL Query',
+      java: 'Java Code',
+      c: 'C Code',
+      cpp: 'C++ Code',
+      go: 'Go Code',
+      rust: 'Rust Code',
+      ruby: 'Ruby Code',
+      php: 'PHP Code',
+      text: 'Text Document'
+    };
+
+    return titles[language.toLowerCase()] || `${language} Code`;
+  };
+
   // Send message
   const sendMessage = async () => {
     try {
@@ -1555,6 +1940,27 @@ function App() {
           : msg
       ));
 
+      // Detect and extract artifacts from the response
+      const detectedArtifacts = detectArtifacts(responseText);
+      if (detectedArtifacts.length > 0) {
+        setArtifacts(prev => {
+          const newArtifacts = [...prev, ...detectedArtifacts];
+          // Auto-open the artifact panel if there's an artifact
+          if (newArtifacts.length > 0 && !isArtifactPanelOpen) {
+            setIsArtifactPanelOpen(true);
+            setActiveArtifact(newArtifacts[newArtifacts.length - 1]);
+          }
+          return newArtifacts;
+        });
+        // Update artifact versions
+        detectedArtifacts.forEach(artifact => {
+          setArtifactVersions(prev => ({
+            ...prev,
+            [artifact.id]: [{ content: artifact.content, timestamp: Date.now() }]
+          }));
+        });
+      }
+
       // Update conversation title if it's the first message
       if (messages.length === 0) {
         loadConversations();
@@ -1586,6 +1992,47 @@ function App() {
   const stopGeneration = () => {
     if (abortController) {
       abortController.abort();
+    }
+  };
+
+  // Save edited artifact
+  const saveEditedArtifact = () => {
+    if (!editingArtifact || !activeArtifact) return;
+
+    // Update the artifact content
+    setArtifacts(prev => prev.map(a =>
+      a.id === activeArtifact.id
+        ? { ...a, content: editingArtifact.content }
+        : a
+    ));
+
+    // Update the active artifact
+    setActiveArtifact(prev => ({
+      ...prev,
+      content: editingArtifact.content
+    }));
+
+    // Add new version to history
+    setArtifactVersions(prev => ({
+      ...prev,
+      [activeArtifact.id]: [
+        ...(prev[activeArtifact.id] || []),
+        { content: editingArtifact.content, timestamp: Date.now() }
+      ]
+    }));
+
+    setEditingArtifact(null);
+  };
+
+  // Delete artifact
+  const deleteArtifact = (artifactId) => {
+    setArtifacts(prev => prev.filter(a => a.id !== artifactId));
+    if (activeArtifact?.id === artifactId) {
+      const remaining = artifacts.filter(a => a.id !== artifactId);
+      setActiveArtifact(remaining.length > 0 ? remaining[remaining.length - 1] : null);
+      if (remaining.length === 0) {
+        setIsArtifactPanelOpen(false);
+      }
     }
   };
 
@@ -1950,9 +2397,10 @@ function App() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex-1 flex min-w-0">
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -2041,20 +2489,35 @@ function App() {
               </div>
             ) : (
               <>
-                {messages.map(message => (
-                  <Message
-                    key={message.id}
-                    message={message}
-                    onRegenerate={() => {}}
-                    onEdit={startEditMessage}
-                    isEditing={editingMessageId === message.id}
-                    editedContent={editingMessageId === message.id ? editedMessageContent : ''}
-                    onEditedContentChange={setEditedMessageContent}
-                    onSaveEdit={saveEditedMessage}
-                    onCancelEdit={cancelEditMessage}
-                    onImageClick={(imageData) => setLightboxImage(imageData)}
-                  />
-                ))}
+                {messages.map(message => {
+                  const messageIndex = messages.indexOf(message);
+                  const hasArtifact = artifacts.some(a => {
+                    // Check if this message's content contains an artifact
+                    // This is a simplified check - in production, you'd track this more precisely
+                    return false; // Artifacts are added after message is created
+                  });
+                  return (
+                    <Message
+                      key={message.id}
+                      message={message}
+                      onRegenerate={() => {}}
+                      onEdit={startEditMessage}
+                      isEditing={editingMessageId === message.id}
+                      editedContent={editingMessageId === message.id ? editedMessageContent : ''}
+                      onEditedContentChange={setEditedMessageContent}
+                      onSaveEdit={saveEditedMessage}
+                      onCancelEdit={cancelEditMessage}
+                      onImageClick={(imageData) => setLightboxImage(imageData)}
+                      onOpenArtifact={() => {
+                        if (artifacts.length > 0) {
+                          setActiveArtifact(artifacts[artifacts.length - 1]);
+                          setIsArtifactPanelOpen(true);
+                        }
+                      }}
+                      hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
+                    />
+                  );
+                })}
                 {isStreaming && <TypingIndicator />}
               </>
             )}
@@ -2154,6 +2617,45 @@ function App() {
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
               Press Enter to send, Shift+Enter for new line
             </p>
+          </div>
+          </div>
+
+          {/* Artifact Panel - slides in from right */}
+          <div className={`${isArtifactPanelOpen ? 'w-96' : 'w-0'} flex-shrink-0 border-l border-gray-200 dark:border-gray-700 transition-all duration-300 overflow-hidden ${isArtifactPanelOpen ? 'bg-white dark:bg-gray-800' : ''}`}>
+            {isArtifactPanelOpen && (
+              <ArtifactPanel
+                artifact={activeArtifact}
+                isOpen={isArtifactPanelOpen}
+                onClose={() => setIsArtifactPanelOpen(false)}
+                onFullscreen={() => setIsArtifactFullscreen(!isArtifactFullscreen)}
+                isFullscreen={isArtifactFullscreen}
+                versions={activeArtifact ? artifactVersions[activeArtifact.id] || [] : []}
+                onVersionChange={(version) => {
+                  if (activeArtifact) {
+                    setActiveArtifact({ ...activeArtifact, content: version.content });
+                  }
+                }}
+                onEdit={() => setEditingArtifact(activeArtifact)}
+                onDownload={() => {
+                  if (activeArtifact) {
+                    const blob = new Blob([activeArtifact.content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${activeArtifact.title || 'artifact'}.${activeArtifact.language || 'txt'}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }
+                }}
+                onRePrompt={() => {
+                  if (activeArtifact) {
+                    setInput(`Please update this ${activeArtifact.type} artifact:\n\n${activeArtifact.content}`);
+                  }
+                }}
+                artifactPanelTab={artifactPanelTab}
+                setArtifactPanelTab={setArtifactPanelTab}
+              />
+            )}
           </div>
         </div>
 
@@ -2411,6 +2913,54 @@ function App() {
               className="max-w-full max-h-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
+          </div>
+        )}
+
+        {/* Artifact Edit Modal */}
+        {editingArtifact && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingArtifact(null)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-3xl shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Edit Artifact</h3>
+                <button
+                  onClick={() => setEditingArtifact(null)}
+                  className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto mb-4">
+                <textarea
+                  value={editingArtifact.content}
+                  onChange={(e) => setEditingArtifact({ ...editingArtifact, content: e.target.value })}
+                  className="w-full h-64 p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Edit artifact content..."
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setEditingArtifact(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEditedArtifact}
+                  className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
