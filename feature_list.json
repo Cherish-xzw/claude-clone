@@ -3233,7 +3233,7 @@
       "Verify time is accurate",
       "Verify format is readable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

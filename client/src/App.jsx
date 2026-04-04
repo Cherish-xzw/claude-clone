@@ -583,15 +583,20 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
             )}
           </div>
           {/* Token usage display - show for messages with token info */}
-          {(message.inputTokens > 0 || message.outputTokens > 0) && (
-            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 flex gap-2">
+          {(message.inputTokens > 0 || message.outputTokens > 0 || message.responseTime) && (
+            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 flex gap-2 flex-wrap">
+              {message.responseTime && (
+                <span title="Response time">{message.responseTime}s</span>
+              )}
               {message.inputTokens > 0 && (
                 <span title="Input tokens">↑ {message.inputTokens}</span>
               )}
               {message.outputTokens > 0 && (
                 <span title="Output tokens">↓ {message.outputTokens}</span>
               )}
-              <span>tokens</span>
+              {(message.inputTokens > 0 || message.outputTokens > 0) && (
+                <span>tokens</span>
+              )}
               {messageCost > 0 && (
                 <span className="text-primary-500/70 dark:text-primary-400/70" title="Estimated cost">
                   · {formatCost(messageCost)}
@@ -3838,6 +3843,8 @@ function App() {
       // Add streaming message placeholder
       const assistantMessageId = generateId();
       console.log('sendMessage: Adding placeholder');
+      // Record response start time for timing display
+      const responseStartTime = Date.now();
       setMessages(prev => [...prev, {
         id: assistantMessageId,
         role: 'assistant',
@@ -3980,9 +3987,12 @@ function App() {
 
       // Mark streaming complete and update with final response
       console.log('sendMessage: Complete with response:', responseText.substring(0, 50));
+      // Calculate response time
+      const responseTimeMs = Date.now() - responseStartTime;
+      const responseTimeSec = (responseTimeMs / 1000).toFixed(1);
       setMessages(prev => prev.map(msg =>
         msg.id === assistantMessageId
-          ? { ...msg, content: responseText, isStreaming: false }
+          ? { ...msg, content: responseText, isStreaming: false, responseTime: responseTimeSec }
           : msg
       ));
 
