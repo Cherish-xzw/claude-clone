@@ -1826,6 +1826,11 @@ function App() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem('sidebarWidth');
+    return saved ? parseInt(saved, 10) : 288; // Default 288px (w-72)
+  });
+  const [isResizing, setIsResizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [filterModel, setFilterModel] = useState('');
@@ -1897,6 +1902,39 @@ function App() {
       document.body.classList.remove('reduced-motion');
     }
   }, [reducedMotion]);
+
+  // Save sidebar width to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarWidth', sidebarWidth.toString());
+  }, [sidebarWidth]);
+
+  // Handle mouse events for sidebar resizing
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      const newWidth = Math.max(200, Math.min(500, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // Load conversations on mount
   useEffect(() => {
@@ -3179,7 +3217,7 @@ function App() {
         style={reducedMotion ? { '--tw-transition-duration': '0ms', transitionDuration: '0ms' } : {}}
       >
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden ${reducedMotion ? '!transition-none' : ''}`}>
+        <div style={{ width: sidebarOpen ? sidebarWidth : 0 }} className={`flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden ${reducedMotion ? '!transition-none' : ''}`}>
           <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
             <button
@@ -3533,6 +3571,18 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Sidebar Resize Handle */}
+        {sidebarOpen && (
+          <div
+            className="w-1 flex-shrink-0 cursor-col-resize hover:bg-primary-500/50 active:bg-primary-500 transition-colors"
+            onMouseDown={() => setIsResizing(true)}
+            title="Drag to resize sidebar"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+          />
+        )}
 
         {/* Main Chat Area */}
         <div className="flex-1 flex min-w-0">

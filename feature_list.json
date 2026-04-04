@@ -1427,7 +1427,7 @@
       "Release resize handle",
       "Verify new size is maintained"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
