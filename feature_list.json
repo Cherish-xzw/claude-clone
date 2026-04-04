@@ -2346,7 +2346,7 @@
       "Modify template as needed",
       "Save custom instruction"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

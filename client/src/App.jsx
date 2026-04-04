@@ -1528,7 +1528,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1672,6 +1672,61 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
                   />
                   <p className="text-xs text-gray-500 mt-1">This system prompt is saved for this conversation only. Each conversation can have its own custom system prompt.</p>
+                </div>
+                {/* Custom Instruction Templates Section */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                  <h4 className="font-semibold text-lg mb-3">Custom Instructions</h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className="font-medium text-sm">Instruction Templates</h5>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Save and reuse custom instruction sets</p>
+                      </div>
+                      <button
+                        onClick={openCustomInstructionModal}
+                        className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-sm rounded-lg transition-colors"
+                      >
+                        Manage Templates
+                      </button>
+                    </div>
+                    {/* Template Selector */}
+                    {customInstructionTemplates.length > 0 && (
+                      <div className="mt-3">
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-2">Apply a template:</label>
+                        <div className="flex flex-wrap gap-2">
+                          {customInstructionTemplates.slice(0, 4).map(template => (
+                            <button
+                              key={template.id}
+                              onClick={() => selectInstructionTemplate(template)}
+                              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                                selectedInstructionTemplate?.id === template.id
+                                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500'
+                              }`}
+                            >
+                              {template.name}
+                            </button>
+                          ))}
+                          {customInstructionTemplates.length > 4 && (
+                            <span className="px-3 py-1.5 text-xs text-gray-500">
+                              +{customInstructionTemplates.length - 4} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {/* Current Custom Instructions */}
+                    <div className="mt-3">
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-2">Current instructions:</label>
+                      <textarea
+                        value={globalCustomInstructions}
+                        onChange={(e) => setGlobalCustomInstructions(e.target.value)}
+                        placeholder="Enter custom instructions for Claude..."
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -2871,6 +2926,22 @@ function App() {
     return saved ? JSON.parse(saved) : { enabled: false, monthlyTokenLimit: 1000000, dailyCostLimit: 10, warningThreshold: 80 };
   }); // Usage limits configuration
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false); // Markdown preview toggle
+  const [customInstructionTemplates, setCustomInstructionTemplates] = useState(() => {
+    const saved = localStorage.getItem('customInstructionTemplates');
+    return saved ? JSON.parse(saved) : [
+      { id: 'default-coding', name: 'Coding Assistant', instructions: 'You are an expert programming assistant. Focus on writing clean, efficient, and well-documented code. Provide code examples with explanations.' },
+      { id: 'default-writing', name: 'Writing Assistant', instructions: 'You are a skilled writing assistant. Help with creative writing, editing, and content creation. Provide constructive feedback on clarity, style, and structure.' },
+      { id: 'default-research', name: 'Research Helper', instructions: 'You are a research assistant. Help analyze information, summarize complex topics, and present findings clearly. Cite sources when possible.' }
+    ];
+  }); // User-defined custom instruction templates
+  const [showCustomInstructionModal, setShowCustomInstructionModal] = useState(false); // Custom instruction modal
+  const [selectedInstructionTemplate, setSelectedInstructionTemplate] = useState(null); // Selected template
+  const [editingInstructionTemplate, setEditingInstructionTemplate] = useState(null); // Template being edited
+  const [newTemplateName, setNewTemplateName] = useState(''); // Name for new template
+  const [newTemplateInstructions, setNewTemplateInstructions] = useState(''); // Instructions for new template
+  const [globalCustomInstructions, setGlobalCustomInstructions] = useState(() => {
+    return localStorage.getItem('globalCustomInstructions') || '';
+  }); // Global custom instructions
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -2887,6 +2958,64 @@ function App() {
   // Remove toast manually
   const removeToast = (id) => {
     setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  // Custom instruction template management functions
+  const openCustomInstructionModal = () => {
+    setEditingInstructionTemplate(null);
+    setNewTemplateName('');
+    setNewTemplateInstructions('');
+    setShowCustomInstructionModal(true);
+  };
+
+  const editTemplate = (template) => {
+    setEditingInstructionTemplate(template);
+    setNewTemplateName(template.name);
+    setNewTemplateInstructions(template.instructions);
+    setShowCustomInstructionModal(true);
+  };
+
+  const deleteTemplate = (templateId) => {
+    setCustomInstructionTemplates(prev => prev.filter(t => t.id !== templateId));
+    showToast('Template deleted', 'success');
+  };
+
+  const saveTemplate = () => {
+    if (!newTemplateName.trim() || !newTemplateInstructions.trim()) {
+      showToast('Please fill in both name and instructions', 'error');
+      return;
+    }
+
+    if (editingInstructionTemplate) {
+      // Update existing template
+      setCustomInstructionTemplates(prev =>
+        prev.map(t => t.id === editingInstructionTemplate.id
+          ? { ...t, name: newTemplateName.trim(), instructions: newTemplateInstructions.trim() }
+          : t
+        )
+      );
+      showToast('Template updated', 'success');
+    } else {
+      // Create new template
+      const newTemplate = {
+        id: `custom-${Date.now()}`,
+        name: newTemplateName.trim(),
+        instructions: newTemplateInstructions.trim()
+      };
+      setCustomInstructionTemplates(prev => [...prev, newTemplate]);
+      showToast('Template created', 'success');
+    }
+
+    setShowCustomInstructionModal(false);
+    setEditingInstructionTemplate(null);
+    setNewTemplateName('');
+    setNewTemplateInstructions('');
+  };
+
+  const selectInstructionTemplate = (template) => {
+    setSelectedInstructionTemplate(template);
+    setGlobalCustomInstructions(template.instructions);
+    showToast(`Template "${template.name}" applied`, 'success');
   };
 
   // Apply theme
@@ -2945,6 +3074,16 @@ function App() {
   useEffect(() => {
     localStorage.setItem('usageLimits', JSON.stringify(usageLimits));
   }, [usageLimits]);
+
+  // Save custom instruction templates to localStorage
+  useEffect(() => {
+    localStorage.setItem('customInstructionTemplates', JSON.stringify(customInstructionTemplates));
+  }, [customInstructionTemplates]);
+
+  // Save global custom instructions to localStorage
+  useEffect(() => {
+    localStorage.setItem('globalCustomInstructions', globalCustomInstructions);
+  }, [globalCustomInstructions]);
 
   // Auto-save draft message to localStorage
   useEffect(() => {
@@ -5799,10 +5938,131 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
+
+        {/* Custom Instruction Templates Modal */}
+        {showCustomInstructionModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowCustomInstructionModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[85vh] overflow-hidden flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Custom Instruction Templates</h3>
+                <button
+                  onClick={() => setShowCustomInstructionModal(false)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Template List */}
+              <div className="flex-1 overflow-y-auto mb-4">
+                <h4 className="font-medium text-sm mb-2">Saved Templates ({customInstructionTemplates.length})</h4>
+                {customInstructionTemplates.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">No templates saved yet. Create one below.</p>
+                ) : (
+                  <div className="space-y-2 mb-4">
+                    {customInstructionTemplates.map(template => (
+                      <div
+                        key={template.id}
+                        className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-sm">{template.name}</h5>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{template.instructions}</p>
+                          </div>
+                          <div className="flex items-center gap-2 ml-2">
+                            <button
+                              onClick={() => editTemplate(template)}
+                              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-primary-500"
+                              title="Edit template"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => deleteTemplate(template.id)}
+                              className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500"
+                              title="Delete template"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Create/Edit Template Form */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h4 className="font-medium text-sm mb-3">
+                  {editingInstructionTemplate ? 'Edit Template' : 'Create New Template'}
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Template Name</label>
+                    <input
+                      type="text"
+                      value={newTemplateName}
+                      onChange={(e) => setNewTemplateName(e.target.value)}
+                      placeholder="e.g., Code Reviewer, Writing Assistant"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Custom Instructions</label>
+                    <textarea
+                      value={newTemplateInstructions}
+                      onChange={(e) => setNewTemplateInstructions(e.target.value)}
+                      placeholder="Enter the custom instructions for this template..."
+                      rows={4}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    {editingInstructionTemplate && (
+                      <button
+                        onClick={() => {
+                          setEditingInstructionTemplate(null);
+                          setNewTemplateName('');
+                          setNewTemplateInstructions('');
+                        }}
+                        className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        Cancel Edit
+                      </button>
+                    )}
+                    <button
+                      onClick={saveTemplate}
+                      className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm rounded-lg transition-colors"
+                    >
+                      {editingInstructionTemplate ? 'Update Template' : 'Save Template'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Save Prompt Modal */}
         <SavePromptModal
