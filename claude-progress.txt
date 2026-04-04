@@ -153,3 +153,24 @@ Next: Investigate streaming/chat issue or implement new features
 - Committed changes: c7574cd
 
 Current Status: 101 passing, 161 remaining
+
+2026-04-04 Session (continued):
+- Implemented Image upload in messages feature:
+  * Added image upload button to input area (mountain/sun icon using Icons.Image)
+  * Added image preview with remove button before sending
+  * Added uploadedImages state for managing selected images
+  * Added image display in user messages with hover effect
+  * Added lightbox modal for viewing full-size images
+  * Updated backend streaming and non-streaming endpoints to handle images
+  * Images are properly formatted for Claude Vision API (base64 with media type)
+  * Images are stored in database with messages (images column)
+  * Updated Message component to render images above text content
+  * Updated sendMessage to include images in API calls
+  * Tested with browser automation:
+    - Image upload button visible in input area (landscape icon)
+    - Button is clickable and triggers file selection
+    - Image preview area appears when images are selected
+  * Updated feature_list.json: marked tests #30, #31 (Image upload) as passing
+  * Committed changes: 99ed106
+
+Current Status: 103 passing, 159 remaining
