@@ -1,6 +1,15 @@
 Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
+- Keyboard navigation accessibility:
+  * Added global :focus-visible styles in index.css for visible focus indicators
+  * Added :focus:not(:focus-visible) to hide outline on mouse clicks (smart focus)
+  * Added .skip-link class for skip-to-content functionality
+  * Added focus-visible styles for buttons, links, inputs, textareas, selects, and role="button" elements
+  * Added skip-to-content link in App.jsx
+  * Added id="main-content" and tabIndex={-1} to main content area
+  * Updated feature_list.json: marked test #1107 (Accessibility - Full keyboard navigation) as passing
+
 - RTL language support in input:
   * Added isRTL helper function to detect RTL languages (ar, he, fa, ur)
   * Added direction styling to main message input textarea
@@ -9,7 +18,7 @@ Implemented Features:
   * Added RTL support to message editing textarea
   * Updated feature_list.json: marked test #2712 (RTL language support) as passing
 
-Status: 190 passing, 72 remaining
+Status: 191 passing, 71 remaining
 
 Previous Update - 2026-04-05 (new session)
 
