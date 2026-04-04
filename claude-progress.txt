@@ -358,3 +358,24 @@ Next: Implement more remaining features
 
 Current Status: 134 passing, 128 remaining
 Next: Continue implementing remaining features (language preferences, mobile responsiveness, etc.)
+
+2026-04-04 Session (continued):
+- Implemented Conversation timestamps display feature:
+  * Updated formatDate function in ConversationItem component
+  * Today's conversations now show time (e.g., "10:30 AM") instead of just "Today"
+  * Yesterday shows "Yesterday" as before
+  * Older conversations show date as before
+- Implemented Feature tour highlights feature:
+  * Added FeatureTour component with welcome modal
+  * 5-step tour: New Chat, Search, Model Selector, Input Area, Settings
+  * Progress indicator with step dots
+  * Previous/Next/Skip navigation buttons
+  * Added "Start Feature Tour" button on welcome screen
+  * Added "Restart Feature Tour" button in Settings > About
+  * Added data-tour attributes to UI elements for tour targeting
+- Updated feature_list.json: marked 2 tests as passing:
+  * Conversation timestamps display
+  * Feature tour highlights
+- Committed changes: cd2b2f6
+
+Current Status: 136 passing, 126 remaining
