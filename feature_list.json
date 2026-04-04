@@ -2921,7 +2921,7 @@
       "Navigate to app",
       "Verify session is remembered"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

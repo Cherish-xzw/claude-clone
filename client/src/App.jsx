@@ -2574,6 +2574,10 @@ function LoginPage({ onLogin, onNavigateToRegister, theme }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Load remember preference from localStorage
+    return localStorage.getItem('rememberMe') === 'true';
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -2609,8 +2613,13 @@ function LoginPage({ onLogin, onNavigateToRegister, theme }) {
 
       // For demo, accept any valid-looking credentials
       if (emailRegex.test(email) && password.length >= 6) {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
+        // Use localStorage for persistent session (remember me checked)
+        // Use sessionStorage for session-only (remember me unchecked)
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem('isLoggedIn', 'true');
+        storage.setItem('userEmail', email);
+        // Always store remember preference in localStorage for the checkbox state
+        localStorage.setItem('rememberMe', rememberMe.toString());
         onLogin({ name: email.split('@')[0], email, avatar: null });
       } else {
         setError('Invalid email or password');
@@ -2702,6 +2711,20 @@ function LoginPage({ onLogin, onNavigateToRegister, theme }) {
                 )}
               </button>
             </div>
+          </div>
+
+          {/* Remember Me Checkbox */}
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-primary-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="remember-me" className={`ml-2 text-sm cursor-pointer ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Remember me
+            </label>
           </div>
 
           {/* Error Message */}
@@ -2813,7 +2836,18 @@ function App() {
   const [showArchived, setShowArchived] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [userProfile, setUserProfile] = useState({ name: 'Demo User', avatar: null });
+  const [userProfile, setUserProfile] = useState(() => {
+    // Restore user profile from localStorage if exists
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      try {
+        return JSON.parse(savedProfile);
+      } catch {
+        return { name: 'Demo User', avatar: null };
+      }
+    }
+    return { name: 'Demo User', avatar: null };
+  });
   const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => loadSetting('soundEffectsEnabled', true));
   const [folders, setFolders] = useState([]);
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -2825,8 +2859,8 @@ function App() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showLoginPage, setShowLoginPage] = useState(() => {
-    // Check if user is logged in from localStorage
-    const savedLoginState = localStorage.getItem('isLoggedIn');
+    // Check if user is logged in from localStorage (persistent) or sessionStorage (session-only)
+    const savedLoginState = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
     return savedLoginState !== 'true';
   });
   const [loginEmail, setLoginEmail] = useState('');
@@ -3793,16 +3827,18 @@ function App() {
     setShowUserProfile(false);
     setFolders([]);
     setSavedPrompts([]);
+    // Clear both localStorage and sessionStorage login state
+    localStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('isLoggedIn');
     // Show login page
     setShowLoginPage(true);
-    localStorage.setItem('isLoggedIn', 'false');
   };
 
   // Handle successful login
   const handleLogin = (userData) => {
     setUserProfile({ name: userData.name || userData.email?.split('@')[0] || 'User', email: userData.email, avatar: userData.avatar });
     setShowLoginPage(false);
-    localStorage.setItem('isLoggedIn', 'true');
+    // Login state is set in LoginPage based on remember me preference
     localStorage.setItem('userProfile', JSON.stringify({ name: userData.name, email: userData.email, avatar: userData.avatar }));
   };
 
