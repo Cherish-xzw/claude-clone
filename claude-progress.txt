@@ -1,4 +1,15 @@
-Progress Update - 2026-04-05 (session continued - 5)
+Progress Update - 2026-04-05 (session continued - 6)
+
+Implemented Features:
+
+- Logout keyboard shortcut:
+  * Added keyboard event handler for Cmd/Ctrl+Shift+Q to trigger logout
+  * Added shortcut display in KeyboardShortcutsModal
+  * Updated feature_list.json: marked test "Logout keyboard shortcut" as passing
+
+Status: 206 passing, 55 remaining (was 205 passing, 56 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 5)
 
 Implemented Features:
 
