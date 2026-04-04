@@ -1964,7 +1964,7 @@
       "Change project color",
       "Verify color change is reflected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

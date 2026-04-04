@@ -2501,8 +2501,24 @@ function App() {
   const [folders, setFolders] = useState([]);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderDescription, setNewFolderDescription] = useState('');
+  const [newFolderColor, setNewFolderColor] = useState('#CC785C');
+  const [isEditingFolder, setIsEditingFolder] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  // Project color options
+  const folderColors = [
+    { id: 'default', color: '#CC785C', name: 'Default (Orange)' },
+    { id: 'blue', color: '#3B82F6', name: 'Blue' },
+    { id: 'green', color: '#10B981', name: 'Green' },
+    { id: 'purple', color: '#8B5CF6', name: 'Purple' },
+    { id: 'red', color: '#EF4444', name: 'Red' },
+    { id: 'yellow', color: '#F59E0B', name: 'Yellow' },
+    { id: 'pink', color: '#EC4899', name: 'Pink' },
+    { id: 'gray', color: '#6B7280', name: 'Gray' },
+  ];
   const [expandedFolders, setExpandedFolders] = useState([]);
 
   // Project templates
@@ -3496,6 +3512,48 @@ function App() {
     }
   };
 
+  // Open edit folder modal
+  const openEditFolderModal = (folder) => {
+    setIsEditingFolder(true);
+    setEditingFolderId(folder.id);
+    setNewFolderName(folder.name || '');
+    setNewFolderDescription(folder.description || '');
+    setNewFolderColor(folder.color || '#CC785C');
+    setSelectedTemplate(null);
+    setShowTemplates(false);
+    setShowFolderModal(true);
+  };
+
+  // Update folder (edit mode)
+  const updateFolder = async () => {
+    if (!newFolderName.trim() || !editingFolderId) return;
+    try {
+      const response = await fetch(`${API_BASE}/projects/${editingFolderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newFolderName.trim(),
+          description: newFolderDescription.trim(),
+          color: newFolderColor
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const updatedFolder = data.project || data;
+        setFolders(prev => prev.map(f => f.id === editingFolderId ? { ...f, ...updatedFolder } : f));
+        setNewFolderName('');
+        setNewFolderDescription('');
+        setNewFolderColor('#CC785C');
+        setSelectedTemplate(null);
+        setIsEditingFolder(false);
+        setEditingFolderId(null);
+        setShowFolderModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to update folder:', error);
+    }
+  };
+
   // Move conversation to folder
   const moveConversationToFolder = (conversationId, folderId) => {
     try {
@@ -4296,7 +4354,7 @@ function App() {
                   );
                   const isExpanded = expandedFolders.includes(folder.id);
                   return (
-                    <div key={folder.id} className="mb-2">
+                    <div key={folder.id} className="mb-2 group">
                       <div
                         className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
                         onClick={() => toggleFolder(folder.id)}
@@ -4304,9 +4362,27 @@ function App() {
                         <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
                           <Icons.ChevronRight />
                         </span>
+                        {folder.color && (
+                          <span
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: folder.color }}
+                            title="Project color"
+                          />
+                        )}
                         <Icons.Folder />
                         <span className="text-sm font-medium flex-1">{folder.name}</span>
                         <span className="text-xs text-gray-500">{folderConversations.length}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditFolderModal(folder);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+                          title="Edit project settings"
+                          aria-label="Edit project settings"
+                        >
+                          <Icons.Settings />
+                        </button>
                       </div>
                       {isExpanded && folderConversations.length > 0 && (
                         <div className="ml-4 mt-1">
@@ -5002,16 +5078,16 @@ function App() {
         {showFolderModal && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => { setShowFolderModal(false); setShowTemplates(false); setSelectedTemplate(null); setNewFolderName(''); }}
+            onClick={() => { setShowFolderModal(false); setShowTemplates(false); setSelectedTemplate(null); setNewFolderName(''); setNewFolderDescription(''); setNewFolderColor('#CC785C'); setIsEditingFolder(false); setEditingFolderId(null); }}
           >
             <div
               className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-xl max-h-[85vh] overflow-hidden flex flex-col"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="text-lg font-semibold mb-4">Create New Project</h3>
+              <h3 className="text-lg font-semibold mb-4">{isEditingFolder ? 'Edit Project' : 'Create New Project'}</h3>
 
-              {/* Tab buttons for Name/Template */}
-              {!showTemplates && (
+              {/* Tab buttons for Name/Template (only in create mode) */}
+              {!isEditingFolder && !showTemplates && (
                 <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => setShowTemplates(true)}
@@ -5023,7 +5099,7 @@ function App() {
               )}
 
               {/* Templates View */}
-              {showTemplates ? (
+              {!isEditingFolder && showTemplates ? (
                 <div className="flex flex-col max-h-[60vh]">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-sm">Choose a Template</h4>
@@ -5074,12 +5150,48 @@ function App() {
                       type="text"
                       value={newFolderName}
                       onChange={e => setNewFolderName(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && createFolder()}
+                      onKeyDown={e => e.key === 'Enter' && (isEditingFolder ? updateFolder() : createFolder())}
                       placeholder="Enter project name"
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       autoFocus
                     />
                   </div>
+
+                  {/* Description Field */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                      Description {isEditingFolder ? '' : '(optional)'}
+                    </label>
+                    <textarea
+                      value={newFolderDescription}
+                      onChange={e => setNewFolderDescription(e.target.value)}
+                      placeholder="Enter project description"
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                    />
+                  </div>
+
+                  {/* Color Picker */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                      Color {isEditingFolder ? '' : '(optional)'}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {folderColors.map(colorOption => (
+                        <button
+                          key={colorOption.id}
+                          onClick={() => setNewFolderColor(colorOption.color)}
+                          className={`w-8 h-8 rounded-full transition-transform ${
+                            newFolderColor === colorOption.color ? 'ring-2 ring-offset-2 ring-primary-500 scale-110' : 'hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: colorOption.color }}
+                          title={colorOption.name}
+                          aria-label={colorOption.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   {selectedTemplate && (
                     <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
@@ -5105,17 +5217,21 @@ function App() {
                     setShowTemplates(false);
                     setSelectedTemplate(null);
                     setNewFolderName('');
+                    setNewFolderDescription('');
+                    setNewFolderColor('#CC785C');
+                    setIsEditingFolder(false);
+                    setEditingFolderId(null);
                   }}
                   className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={createFolder}
+                  onClick={isEditingFolder ? updateFolder : createFolder}
                   disabled={!newFolderName.trim()}
                   className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create
+                  {isEditingFolder ? 'Save Changes' : 'Create'}
                 </button>
               </div>
             </div>
