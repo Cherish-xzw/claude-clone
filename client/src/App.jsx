@@ -2513,6 +2513,190 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
   );
 }
 
+// Login Page Component
+function LoginPage({ onLogin, onNavigateToRegister, theme }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Simulate API call for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // For demo, accept any valid-looking credentials
+      if (emailRegex.test(email) && password.length >= 6) {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userEmail', email);
+        onLogin({ name: email.split('@')[0], email, avatar: null });
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`w-full max-w-md p-8 rounded-2xl shadow-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        {/* Logo/Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-500">
+              <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
+              <path d="M12 2a10 10 0 0 1 10 10"/>
+              <circle cx="12" cy="12" r="6"/>
+            </svg>
+          </div>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome Back</h1>
+          <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            Sign in to continue to Claude
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Input */}
+          <div>
+            <label htmlFor="login-email" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Email address
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                isDark
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+              } ${error && !email ? 'border-red-500' : ''}`}
+              aria-describedby={error ? 'login-error' : undefined}
+            />
+          </div>
+
+          {/* Password Input */}
+          <div>
+            <label htmlFor="login-password" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className={`w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                  isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                } ${error && !password ? 'border-red-500' : ''}`}
+                aria-describedby={error ? 'login-error' : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+                  isDark ? 'text-gray-400' : 'text-gray-500'
+                }`}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div id="login-error" className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              loading
+                ? 'bg-primary-400 cursor-not-allowed'
+                : 'bg-primary-500 hover:bg-primary-600'
+            } text-white`}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Sign in'
+            )}
+          </button>
+
+          {/* Demo Credentials */}
+          <div className={`mt-4 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <p className={`text-xs text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Demo: Enter any email and password (6+ chars) to login
+            </p>
+          </div>
+        </form>
+
+        {/* Footer Links */}
+        <div className="mt-6 text-center">
+          <a href="#" className={`text-sm hover:underline ${isDark ? 'text-primary-400' : 'text-primary-500'}`}>
+            Forgot password?
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Helper function to load setting from localStorage
 const loadSetting = (key, defaultValue) => {
   const saved = localStorage.getItem(key);
@@ -2584,6 +2768,16 @@ function App() {
   const [editingFolderId, setEditingFolderId] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showLoginPage, setShowLoginPage] = useState(() => {
+    // Check if user is logged in from localStorage
+    const savedLoginState = localStorage.getItem('isLoggedIn');
+    return savedLoginState !== 'true';
+  });
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Project color options
   const folderColors = [
@@ -3454,8 +3648,17 @@ function App() {
     setShowUserProfile(false);
     setFolders([]);
     setSavedPrompts([]);
-    // Show alert notification
-    alert('Logged out successfully');
+    // Show login page
+    setShowLoginPage(true);
+    localStorage.setItem('isLoggedIn', 'false');
+  };
+
+  // Handle successful login
+  const handleLogin = (userData) => {
+    setUserProfile({ name: userData.name || userData.email?.split('@')[0] || 'User', email: userData.email, avatar: userData.avatar });
+    setShowLoginPage(false);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userProfile', JSON.stringify({ name: userData.name, email: userData.email, avatar: userData.avatar }));
   };
 
   // Open prompt library modal
@@ -4322,6 +4525,11 @@ function App() {
         </div>
       );
     }
+  }
+
+  // Show login page if not logged in
+  if (showLoginPage) {
+    return <LoginPage onLogin={handleLogin} onNavigateToRegister={() => {}} theme={theme} />;
   }
 
   return (

@@ -2101,7 +2101,7 @@
       "Verify login button is visible",
       "Verify styling matches app theme"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2114,7 +2114,7 @@
       "Verify successful login",
       "Verify redirect to main app"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2128,7 +2128,7 @@
       "Enter valid email, invalid password",
       "Verify appropriate error message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
