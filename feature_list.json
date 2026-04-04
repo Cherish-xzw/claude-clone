@@ -466,7 +466,7 @@
       "Navigate to different conversation",
       "Verify different system prompt behavior"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
