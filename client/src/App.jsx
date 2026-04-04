@@ -16,7 +16,7 @@ function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// API Base URL
+// API Base URL - use direct URL for API calls
 const API_BASE = 'http://localhost:3001/api';
 
 // Models configuration
@@ -813,7 +813,8 @@ function App() {
       const response = await fetch(`${API_BASE}/conversations`);
       if (response.ok) {
         const data = await response.json();
-        setConversations(data.conversations || []);
+        // Backend returns array directly, not wrapped in { conversations: [...] }
+        setConversations(Array.isArray(data) ? data : (data.conversations || []));
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
@@ -823,17 +824,24 @@ function App() {
   // Create new conversation
   const createConversation = async () => {
     try {
+      console.log('createConversation: Starting');
       const response = await fetch(`${API_BASE}/conversations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: selectedModel }),
       });
+      console.log('createConversation: Response status:', response.status);
       if (response.ok) {
-        const data = await response.json();
-        const conversation = data.conversation;
-        setConversations(prev => [conversation, ...prev]);
-        setCurrentConversation(conversation);
+        const conversation = await response.json();
+        console.log('createConversation: Got conversation:', conversation?.id);
+        // Backend returns conversation directly, not wrapped in { conversation: {...} }
+        const conv = conversation.conversation || conversation;
+        setConversations(prev => [conv, ...prev]);
+        setCurrentConversation(conv);
         setMessages([]);
+        return conv;
+      } else {
+        console.error('createConversation: Failed with status', response.status);
       }
     } catch (error) {
       console.error('Failed to create conversation:', error);
@@ -1136,7 +1144,8 @@ function App() {
       const response = await fetch(`${API_BASE}/conversations/${conversation.id}/messages`);
       if (response.ok) {
         const data = await response.json();
-        setMessages(data.messages || []);
+        // Backend returns array directly, not wrapped in { messages: [...] }
+        setMessages(Array.isArray(data) ? data : (data.messages || []));
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
@@ -1178,9 +1187,9 @@ function App() {
       setIsLoading(true);
       setIsStreaming(true);
 
-      // Create abort controller
-      const controller = new AbortController();
-      setAbortController(controller);
+      // Create abort controller for this request
+      const requestController = new AbortController();
+      setAbortController(requestController);
 
       // Add streaming message placeholder
       const assistantMessageId = generateId();
@@ -1193,50 +1202,96 @@ function App() {
         created_at: new Date().toISOString(),
       }]);
 
-      console.log('sendMessage: Fetching');
-      // Stream response
-      const response = await fetch(`${API_BASE}/messages/stream`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversation_id: conversationId,
-          content: userMessage.content,
-          model: selectedModel,
-          temperature: temperature,
-          top_p: topP,
-        }),
-        signal: controller.signal,
-      });
+      console.log('sendMessage: Fetching response');
 
-      console.log('sendMessage: Response received', response.status);
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+      let responseText = '';
+      let useStreaming = true;
+
+      try {
+        // Try streaming endpoint first
+        console.log('sendMessage: Trying streaming endpoint...');
+        const timeoutId = setTimeout(() => {
+          console.log('sendMessage: Request timeout - aborting');
+          requestController.abort();
+        }, 60000);
+
+        let response;
+        try {
+          response = await fetch(`${API_BASE}/messages/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversation_id: conversationId,
+              content: userMessage.content,
+              model: selectedModel,
+              temperature: temperature,
+              top_p: topP,
+            }),
+            signal: requestController.signal,
+          });
+          clearTimeout(timeoutId);
+          console.log('sendMessage: Streaming response received', response.status);
+        } catch (err) {
+          clearTimeout(timeoutId);
+          console.log('sendMessage: Streaming fetch error:', err.name, err.message);
+          useStreaming = false;
+        }
+
+        if (useStreaming && response && response.ok) {
+          console.log('sendMessage: Reading stream');
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            try {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value);
+              responseText += chunk;
+
+              setMessages(prev => prev.map(msg =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: responseText }
+                  : msg
+              ));
+            } catch (readError) {
+              console.log('Stream read error:', readError);
+              break;
+            }
+          }
+        } else {
+          // Fall back to non-streaming endpoint
+          console.log('sendMessage: Falling back to non-streaming endpoint...');
+          const chatResponse = await fetch(`${API_BASE}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: userMessage.content,
+              model: selectedModel,
+              temperature: temperature,
+              top_p: topP,
+            }),
+          });
+
+          if (chatResponse.ok) {
+            const data = await chatResponse.json();
+            responseText = data.response || '';
+            console.log('sendMessage: Non-streaming response:', responseText.substring(0, 100));
+          } else {
+            throw new Error('Non-streaming endpoint also failed');
+          }
+        }
+      } catch (error) {
+        console.log('sendMessage: All endpoints failed');
+        throw error;
       }
 
-      console.log('sendMessage: Reading stream');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        fullContent += chunk;
-
-        setMessages(prev => prev.map(msg =>
-          msg.id === assistantMessageId
-            ? { ...msg, content: fullContent }
-            : msg
-        ));
-      }
-
-      // Mark streaming complete
-      console.log('sendMessage: Complete');
+      // Mark streaming complete and update with final response
+      console.log('sendMessage: Complete with response:', responseText.substring(0, 50));
       setMessages(prev => prev.map(msg =>
         msg.id === assistantMessageId
-          ? { ...msg, isStreaming: false }
+          ? { ...msg, content: responseText, isStreaming: false }
           : msg
       ));
 

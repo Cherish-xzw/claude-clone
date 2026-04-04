@@ -20,13 +20,47 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Test endpoint to check connectivity
+app.post('/api/test', (req, res) => {
+  console.log('=== TEST ENDPOINT CALLED ===');
+  console.log('Body:', req.body);
+  res.json({ success: true, body: req.body });
+});
+
+// Simple non-streaming chat endpoint
+app.post('/api/chat', async (req, res) => {
+  console.log('=== CHAT ENDPOINT CALLED ===');
+  console.log('Body:', JSON.stringify(req.body));
+  try {
+    const { content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+
+    const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant.";
+
+    const response = await anthropic.messages.create({
+      model: model,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: content }],
+      temperature: parseFloat(temperature),
+      top_p: parseFloat(top_p),
+    });
+
+    console.log('Claude response:', response.content[0].text.substring(0, 100));
+    res.json({ response: response.content[0].text });
+  } catch (error) {
+    console.error('Chat error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Initialize database
 const dbPath = path.join(__dirname, 'data', 'claude-clone.db');
 const db = new Database(dbPath);
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
-  apiKey: process.env.VITE_ANTHROPIC_API_KEY || '',
+  apiKey: process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY || '',
+  baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
 });
 
 // Generate unique ID
@@ -139,8 +173,14 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 
 // POST /api/messages/stream - Stream message response (SSE)
 app.post('/api/messages/stream', async (req, res) => {
+  console.log('=== Stream request received ===');
   try {
     const { conversation_id, content, model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+
+    // Set up SSE headers FIRST (before API call)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
     // Get conversation messages for context
     let conversationMessages = [];
@@ -166,10 +206,7 @@ app.post('/api/messages/stream', async (req, res) => {
       }
     ];
 
-    // Set up SSE
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    console.log('Calling Anthropic API...');
 
     // Send message to Claude with streaming
     const stream = await anthropic.messages.stream({
@@ -185,6 +222,8 @@ app.post('/api/messages/stream', async (req, res) => {
       }
     });
 
+    console.log('Stream started');
+
     let fullContent = '';
 
     // Process stream chunks
@@ -196,6 +235,8 @@ app.post('/api/messages/stream', async (req, res) => {
         }
       }
     }
+
+    console.log('Stream complete, saving to DB...');
 
     // Save message to database
     if (conversation_id) {
@@ -223,6 +264,7 @@ app.post('/api/messages/stream', async (req, res) => {
     }
 
     res.end();
+    console.log('=== Stream request complete ===');
   } catch (error) {
     console.error('Error streaming message:', error);
     if (!res.headersSent) {
