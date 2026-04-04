@@ -1,4 +1,20 @@
-Progress Update - 2026-04-05 (session continued - 3)
+Progress Update - 2026-04-05 (session continued - 4)
+
+Implemented Features:
+
+- Export usage data:
+  * Added exportFormat state to UsageDashboard component
+  * Implemented exportUsageData function supporting JSON and CSV formats
+  * JSON export includes all usage data: today, monthly, by-model, and daily
+  * CSV export converts data to formatted rows with Category/Metric/Value columns
+  * Added export format selector (JSON/CSV dropdown)
+  * Added Export button with download icon
+  * Shows success toast after export
+  * Updated feature_list.json: marked test #2303 (Export usage data) as passing
+
+Status: 202 passing, 59 remaining (was 201 passing, 60 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 3)
 
 Implemented Features:
 
