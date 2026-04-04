@@ -1350,7 +1350,7 @@
       "Verify workspace details shown",
       "Verify UI indicates mock/non-functional"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
