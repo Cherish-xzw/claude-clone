@@ -573,21 +573,21 @@ app.post('/api/conversations/:id/share', (req, res) => {
     const shareToken = generateId();
     const { expires_in_days = 30 } = req.body;
 
-    // Calculate expiration date
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expires_in_days);
-
-    // Check if share already exists
-    const existingShare = db.prepare('SELECT * FROM shared_conversations WHERE conversation_id = ?').get(req.params.id);
-    if (existingShare) {
-      return res.json(existingShare);
+    // Calculate expiration date (null if no expiration)
+    let expiresAt = null;
+    if (expires_in_days > 0) {
+      expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + expires_in_days);
     }
+
+    // Delete existing share if any (to allow changing expiration)
+    db.prepare('DELETE FROM shared_conversations WHERE conversation_id = ?').run(req.params.id);
 
     const id = generateId();
     db.prepare(`
       INSERT INTO shared_conversations (id, conversation_id, share_token, expires_at)
       VALUES (?, ?, ?, ?)
-    `).run(id, req.params.id, shareToken, expiresAt.toISOString());
+    `).run(id, req.params.id, shareToken, expiresAt ? expiresAt.toISOString() : null);
 
     const share = db.prepare('SELECT * FROM shared_conversations WHERE id = ?').get(id);
     res.json(share);
@@ -606,8 +606,8 @@ app.get('/api/share/:token', (req, res) => {
       return res.status(404).json({ error: 'Share link not found' });
     }
 
-    // Check if expired
-    if (new Date(share.expires_at) < new Date()) {
+    // Check if expired (null expires_at means never expires)
+    if (share.expires_at && new Date(share.expires_at) < new Date()) {
       return res.status(410).json({ error: 'Share link has expired' });
     }
 

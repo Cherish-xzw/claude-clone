@@ -905,6 +905,7 @@ function App() {
   const [sharedView, setSharedView] = useState(null); // For shared conversation view
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedError, setSharedError] = useState(null);
+  const [shareExpiration, setShareExpiration] = useState(30); // days, 0 = no expiration
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
   const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
@@ -1097,10 +1098,15 @@ function App() {
   // Share conversation via link
   const shareConversation = async (conversation) => {
     try {
+      // Reset share state for new share
+      setShareExpiration(30);
+      setShareLink('');
+      setShareData(null);
+
       const response = await fetch(`${API_BASE}/conversations/${conversation.id}/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expires_in_days: 30 }),
+        body: JSON.stringify({ expires_in_days: shareExpiration || 0 }),
       });
       const data = await response.json();
       if (data.share_token) {
@@ -2270,33 +2276,70 @@ function App() {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Anyone with this link can view this conversation (read-only).
               </p>
-              <div className="flex items-center gap-2 mb-4">
-                <input
-                  type="text"
-                  value={shareLink}
-                  readOnly
-                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
-                  onClick={e => e.target.select()}
-                />
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(shareLink);
-                      alert('Link copied to clipboard!');
-                    } catch (err) {
-                      alert('Failed to copy link');
-                    }
-                  }}
-                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
-                >
-                  Copy
-                </button>
+
+              {/* Expiration Settings */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Link Expiration</label>
+                <div className="flex gap-2 mb-3">
+                  <select
+                    value={shareExpiration}
+                    onChange={(e) => setShareExpiration(parseInt(e.target.value))}
+                    className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                  >
+                    <option value={0}>Never expires</option>
+                    <option value={7}>7 days</option>
+                    <option value={30}>30 days</option>
+                    <option value={90}>90 days</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      if (selectedConversation) {
+                        shareConversation(selectedConversation);
+                      }
+                    }}
+                    className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                  >
+                    Create New Link
+                  </button>
+                </div>
               </div>
-              {shareData?.expires_at && (
+
+              {/* Share Link Display */}
+              {shareLink && (
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={shareLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    onClick={e => e.target.select()}
+                  />
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(shareLink);
+                        alert('Link copied to clipboard!');
+                      } catch (err) {
+                        alert('Failed to copy link');
+                      }
+                    }}
+                    className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                  >
+                    Copy
+                  </button>
+                </div>
+              )}
+
+              {shareData?.expires_at ? (
                 <p className="text-xs text-gray-500 mb-4">
                   Expires: {new Date(shareData.expires_at).toLocaleDateString()}
                 </p>
-              )}
+              ) : shareExpiration === 0 ? (
+                <p className="text-xs text-gray-500 mb-4">
+                  This link never expires
+                </p>
+              ) : null}
+
               <div className="flex justify-between items-center">
                 <button
                   onClick={revokeShare}

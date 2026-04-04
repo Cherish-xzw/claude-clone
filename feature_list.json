@@ -888,7 +888,7 @@
       "Wait for expiration (or mock time)",
       "Verify expired link shows error"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -902,7 +902,7 @@
       "Attempt to access old link",
       "Verify link no longer works"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
