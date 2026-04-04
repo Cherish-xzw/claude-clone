@@ -316,11 +316,11 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
   const messageCost = calculateMessageCost(message.inputTokens || 0, message.outputTokens || 0, model);
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+    <article className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`} role="article" aria-label={`${isUser ? 'Your' : 'Assistant'} message`}>
       <div className={`flex gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
           isUser ? 'bg-primary-500 text-white' : highContrast ? 'bg-gray-300 border-2 border-black' : 'bg-gray-200 dark:bg-gray-700'
-        }`}>
+        }`} role="img" aria-label={isUser ? 'You' : 'Assistant'}>
           {isUser ? <Icons.User /> : <Icons.Bot />}
         </div>
         <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
@@ -330,12 +330,14 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
               <button
                 onClick={() => setThinkingExpanded(!thinkingExpanded)}
                 className={`flex items-center gap-2 text-xs mb-1 ${highContrast ? 'text-black' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                aria-expanded={thinkingExpanded}
+                aria-controls="thinking-content"
               >
-                <span className={`transform transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span className={`transform transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`} aria-hidden="true">▶</span>
                 <span>Thinking ({(message.thinking || '').length} chars)</span>
               </button>
               {thinkingExpanded && (
-                <div className={`rounded-lg p-3 text-xs max-h-64 overflow-y-auto font-mono whitespace-pre-wrap ${highContrast ? 'bg-gray-200 border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                <div id="thinking-content" className={`rounded-lg p-3 text-xs max-h-64 overflow-y-auto font-mono whitespace-pre-wrap ${highContrast ? 'bg-gray-200 border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}`} role="region" aria-label="Thinking content">
                   {message.thinking}
                 </div>
               )}
@@ -343,12 +345,13 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
           )}
           {/* Display images if present */}
           {message.images && message.images.length > 0 && (
-            <div className={`flex flex-wrap gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className={`flex flex-wrap gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`} role="list" aria-label="Attached images">
               {message.images.map((image, index) => (
                 <div
                   key={image.id || index}
                   className="relative group cursor-pointer"
                   onClick={() => onImageClick && onImageClick(image.data)}
+                  role="listitem"
                 >
                   <img
                     src={image.data}
@@ -358,7 +361,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                     }`}
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                    <Icons.Maximize2 className="opacity-0 group-hover:opacity-100 text-white transition-opacity" />
+                    <Icons.Maximize2 className="opacity-0 group-hover:opacity-100 text-white transition-opacity" aria-hidden="true" />
                   </div>
                 </div>
               ))}
@@ -550,23 +553,32 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
   };
 
   return (
-    <div className="relative">
+    <div className="relative" role="listitem">
       <div
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
         className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
           isActive
             ? 'bg-gray-200 dark:bg-gray-700'
             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
+        aria-current={isActive ? 'page' : undefined}
       >
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate flex items-center gap-1">
             {conversation.is_pinned ? (
-              <span className="text-primary-500"><Icons.Pinned /></span>
+              <span className="text-primary-500" aria-hidden="true"><Icons.Pinned /></span>
             ) : null}
             {conversation.title || 'New Conversation'}
             {conversation.is_unread ? (
-              <span className="inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full" title="Unread"></span>
+              <span className="inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full" title="Unread" aria-label="Unread"></span>
             ) : null}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -580,6 +592,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title={conversation.is_unread ? 'Mark as read' : 'Mark as unread'}
+          aria-label={conversation.is_unread ? 'Mark as read' : 'Mark as unread'}
         >
           {conversation.is_unread ? <Icons.MailOpen /> : <Icons.Mail />}
         </button>
@@ -590,6 +603,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title={conversation.is_pinned ? 'Unpin' : 'Pin'}
+          aria-label={conversation.is_pinned ? 'Unpin conversation' : 'Pin conversation'}
         >
           {conversation.is_pinned ? <Icons.Pinned /> : <Icons.Pin />}
         </button>
@@ -600,6 +614,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title={conversation.is_archived ? 'Unarchive' : 'Archive'}
+          aria-label={conversation.is_archived ? 'Unarchive conversation' : 'Archive conversation'}
         >
           {conversation.is_archived ? <Icons.Archived /> : <Icons.Archive />}
         </button>
@@ -610,6 +625,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title="Duplicate"
+          aria-label="Duplicate conversation"
         >
           <Icons.Copy />
         </button>
@@ -620,6 +636,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title="Share"
+          aria-label="Share conversation"
         >
           <Icons.Share />
         </button>
@@ -630,6 +647,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title="Export"
+          aria-label="Export conversation"
         >
           <Icons.Download />
         </button>
@@ -640,6 +658,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
           title="Move to folder"
+          aria-label="Move to folder"
         >
           <Icons.Folder />
         </button>
@@ -649,6 +668,8 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
             onDelete(conversation);
           }}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          aria-label="Delete conversation"
+          title="Delete"
         >
           <Icons.Trash />
         </button>
@@ -3146,6 +3167,8 @@ function App() {
             <button
               onClick={createConversation}
               className={`flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium ${highContrast ? 'ring-2 ring-black' : ''}`}
+              aria-label="Start new chat"
+              title="Start a new conversation"
             >
               <Icons.Plus />
               New Chat
@@ -3155,6 +3178,8 @@ function App() {
             <button
               onClick={() => setShowFolderModal(true)}
               className={`mt-2 flex items-center gap-2 w-full px-4 py-2 ${highContrast ? 'bg-gray-300 hover:bg-gray-400 text-black border-2 border-black' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'} rounded-lg transition-colors text-sm`}
+              aria-label="Create new folder"
+              title="Create a new folder for organizing conversations"
             >
               <Icons.Folder />
               New Folder
@@ -3162,22 +3187,30 @@ function App() {
 
             {/* Search */}
             <div className="mt-4 relative">
-              <Icons.Search />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                <Icons.Search />
+              </span>
+              <label htmlFor="conversation-search" className="sr-only">Search conversations</label>
               <input
+                id="conversation-search"
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'}`}
+                aria-label="Search conversations"
               />
             </div>
 
             {/* Filter Dropdowns */}
             <div className="mt-2 flex gap-2">
+              <label htmlFor="filter-project" className="sr-only">Filter by project</label>
               <select
+                id="filter-project"
                 value={filterProject}
                 onChange={e => setFilterProject(e.target.value)}
                 className="flex-1 px-2 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Filter by project"
               >
                 <option value="">All Projects</option>
                 <option value="none">No Project</option>
@@ -3185,10 +3218,13 @@ function App() {
                   <option key={folder.id} value={folder.id}>{folder.name}</option>
                 ))}
               </select>
+              <label htmlFor="filter-model" className="sr-only">Filter by model</label>
               <select
+                id="filter-model"
                 value={filterModel}
                 onChange={e => setFilterModel(e.target.value)}
                 className="flex-1 px-2 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Filter by model"
               >
                 <option value="">All Models</option>
                 {MODELS.map(model => (
@@ -3489,8 +3525,10 @@ function App() {
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+                title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -3540,13 +3578,15 @@ function App() {
                 onModelChange={setSelectedModel}
               />
               {totalConversationCost > 0 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" aria-label={`Total cost: ${formatCost(totalConversationCost)}`}>
                   Total: {formatCost(totalConversationCost)}
                 </span>
               )}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {theme === 'dark' ? <Icons.Sun /> : <Icons.Moon />}
               </button>
@@ -3672,7 +3712,9 @@ function App() {
                     </div>
                   </div>
                 )}
+                <label htmlFor="message-input" className="sr-only">Type your message</label>
                 <textarea
+                  id="message-input"
                   ref={inputRef}
                   value={input}
                   onChange={e => setInput(e.target.value)}
@@ -3681,6 +3723,7 @@ function App() {
                   rows={1}
                   className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'}`}
                   style={{ minHeight: '48px' }}
+                  aria-label="Message input"
                 />
               </div>
               {/* Hidden file input for image upload */}
@@ -3697,6 +3740,7 @@ function App() {
                 htmlFor="image-upload"
                 className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
                 title="Attach image"
+                aria-label="Attach image"
               >
                 <Icons.Image />
               </label>
@@ -3709,6 +3753,8 @@ function App() {
                     : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                 }`}
                 title={isRecordingVoice ? 'Stop recording' : 'Voice input (mock)'}
+                aria-label={isRecordingVoice ? 'Stop voice recording' : 'Voice input (mock)'}
+                aria-pressed={isRecordingVoice}
               >
                 {isRecordingVoice ? <Icons.MicOff /> : <Icons.Mic />}
               </button>
@@ -3723,6 +3769,7 @@ function App() {
                 disabled={!input.trim() || isLoading}
                 className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Save prompt to library"
+                aria-label="Save prompt to library"
               >
                 <Icons.BookmarkPlus />
               </button>
@@ -3730,6 +3777,7 @@ function App() {
                 <button
                   onClick={stopGeneration}
                   className="p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
+                  aria-label="Stop generation"
                 >
                   <Icons.Stop />
                 </button>
@@ -3738,6 +3786,8 @@ function App() {
                   onClick={sendMessage}
                   disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
                   className="p-3 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+                  aria-label="Send message"
+                  aria-disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
                 >
                   <Icons.Send />
                 </button>

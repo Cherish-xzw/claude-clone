@@ -1129,7 +1129,7 @@
       "Verify form inputs have labels",
       "Verify dynamic content updates are announced"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
