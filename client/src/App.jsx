@@ -1037,6 +1037,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
       { keys: ['Cmd', '/'], description: 'Open keyboard shortcuts' },
       { keys: ['Cmd', 'Shift', 'L'], description: 'Toggle dark mode' },
       { keys: ['Cmd', 'Shift', 'F'], description: 'Toggle focus mode' },
+      { keys: ['Cmd', 'Shift', 'Q'], description: 'Logout' },
       { keys: ['Esc'], description: 'Close modal/palette' },
     ]},
     { category: 'Messages', items: [
@@ -3081,6 +3082,11 @@ function App() {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'F') {
         e.preventDefault();
         setFocusMode(prev => !prev);
+      }
+      // Logout shortcut: Cmd/Ctrl+Shift+Q
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'Q') {
+        e.preventDefault();
+        handleLogout();
       }
     };
     document.addEventListener('keydown', handleKeyDown);

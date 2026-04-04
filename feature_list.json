@@ -2807,7 +2807,7 @@
       "Verify logout action triggered",
       "Verify confirmation if required"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
