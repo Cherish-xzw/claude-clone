@@ -490,3 +490,15 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: 1e31f01
 - Current Status: 147 passing, 115 remaining
 - Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late evening):
+- Added Copy button to messages:
+  * Copy button on assistant messages (with Regenerate and Open Artifact)
+  * Copy button on user messages (with Edit and Delete)
+  * Uses navigator.clipboard.writeText to copy message content
+- Marked additional features as passing:
+  * View conversation history
+  * Copy entire message content
+- Committed changes: 2cf36a9
+- Current Status: 149 passing, 113 remaining
+- Next: Continue implementing remaining features
