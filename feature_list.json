@@ -1299,7 +1299,7 @@
       "Verify suggestion is used as input",
       "Verify new response is generated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1311,7 +1311,7 @@
       "Verify prompt is loaded",
       "Send prompt and verify relevance"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -1198,6 +1198,7 @@ function App() {
   const [isArtifactFullscreen, setIsArtifactFullscreen] = useState(false); // Fullscreen mode
   const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
+  const [responseSuggestions, setResponseSuggestions] = useState([]); // Suggested follow-up prompts
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -1298,6 +1299,7 @@ function App() {
         setConversations(prev => [conv, ...prev]);
         setCurrentConversation(conv);
         setMessages([]);
+        setResponseSuggestions([]); // Clear suggestions for new conversation
         return conv;
       } else {
         console.error('createConversation: Failed with status', response.status);
@@ -1597,6 +1599,54 @@ function App() {
     setUploadedImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  // Generate response suggestions based on conversation context
+  const generateSuggestions = () => {
+    const lastMessage = messages[messages.length - 1];
+    const userMessage = messages[messages.length - 2];
+    if (!lastMessage || lastMessage.role !== 'assistant') {
+      return [];
+    }
+
+    const content = lastMessage.content?.toLowerCase() || '';
+    const suggestions = [];
+
+    // Context-aware suggestions based on message content
+    if (content.includes('code') || content.includes('function') || content.includes('react')) {
+      suggestions.push(
+        "Can you show me a code example?",
+        "Explain this code step by step",
+        "How can I optimize this code?"
+      );
+    } else if (content.includes('error') || content.includes('bug') || content.includes('issue')) {
+      suggestions.push(
+        "How do I fix this error?",
+        "What's causing this problem?",
+        "Can you suggest a workaround?"
+      );
+    } else if (content.includes('explain') || content.includes('what is') || content.includes('how do')) {
+      suggestions.push(
+        "Give me a simpler explanation",
+        "Can you provide an example?",
+        "What are the pros and cons?"
+      );
+    } else if (content.includes('help') || content.includes('create') || content.includes('build')) {
+      suggestions.push(
+        "Can you help me get started?",
+        "What are the best practices?",
+        "Show me a complete example"
+      );
+    } else {
+      // Default suggestions
+      suggestions.push(
+        "Can you elaborate on that?",
+        "What are the next steps?",
+        "Can you provide more details?"
+      );
+    }
+
+    return suggestions.slice(0, 3);
+  };
+
   // Create folder
   const createFolder = async () => {
     if (!newFolderName.trim()) return;
@@ -1824,6 +1874,9 @@ function App() {
         return;
       }
 
+      // Clear response suggestions when starting a new message
+      setResponseSuggestions([]);
+
       // Store images to include in message and clear state
       const currentImages = [...uploadedImages];
       setUploadedImages([]);
@@ -2037,6 +2090,8 @@ function App() {
       setIsLoading(false);
       setIsStreaming(false);
       setAbortController(null);
+      // Generate response suggestions when streaming completes
+      setResponseSuggestions(generateSuggestions());
     }
   };
 
@@ -2612,6 +2667,27 @@ function App() {
                   );
                 })}
                 {isStreaming && <TypingIndicator />}
+
+                {/* Response Suggestions */}
+                {!isStreaming && messages.length > 0 && responseSuggestions.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Suggested follow-ups:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {responseSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setInput(suggestion);
+                            inputRef.current?.focus();
+                          }}
+                          className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-left border border-gray-200 dark:border-gray-700"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
             <div ref={messagesEndRef} />
