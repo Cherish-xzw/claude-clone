@@ -1,4 +1,18 @@
-Progress Update - 2026-04-05 (continued)
+Progress Update - 2026-04-05 (late evening)
+
+Implemented Features:
+- Markdown preview toggle:
+  * Added showMarkdownPreview state for toggle functionality
+  * Added Eye and EyeOff SVG icons for preview toggle button
+  * Added markdown preview toggle button in input area
+  * When enabled: shows rendered ReactMarkdown preview
+  * When disabled: shows raw markdown in monospace font
+  * Both states display in a styled panel below input
+  * Updated feature_list.json: marked test #2728 as passing
+
+Status: 180 passing, 82 remaining
+
+Previous Update - 2026-04-05 (continued)
 
 Implemented Features:
 - Usage limits and warnings:
