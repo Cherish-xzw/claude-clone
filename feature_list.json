@@ -3062,7 +3062,7 @@
       "Select command",
       "Verify command is executed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

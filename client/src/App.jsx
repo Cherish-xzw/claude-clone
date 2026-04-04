@@ -2808,6 +2808,31 @@ function App() {
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [slashCommandIndex, setSlashCommandIndex] = useState(0);
+  const [slashFilter, setSlashFilter] = useState('');
+
+  // Slash commands configuration
+  const slashCommands = [
+    { command: 'new', label: 'New Chat', description: 'Start a new conversation', icon: 'plus', action: () => handleNewChat() },
+    { command: 'clear', label: 'Clear Chat', description: 'Clear current messages', icon: 'trash', action: () => { setMessages([]); setInput(''); } },
+    { command: 'search', label: 'Search', description: 'Search conversations', icon: 'search', action: () => { setShowCommandPalette(true); setInput(''); } },
+    { command: 'settings', label: 'Settings', description: 'Open settings', icon: 'settings', action: () => { setShowSettings(true); setInput(''); } },
+    { command: 'export', label: 'Export Chat', description: 'Export current conversation', icon: 'download', action: () => { handleExportConversation('json'); setInput(''); } },
+    { command: 'model', label: 'Change Model', description: 'Switch AI model', icon: 'cpu', action: () => { setShowModelSelector(true); setInput(''); } },
+    { command: 'theme', label: 'Toggle Theme', description: 'Switch between light/dark mode', icon: 'moon', action: () => { setTheme(theme === 'dark' ? 'light' : 'dark'); setInput(''); } },
+    { command: 'focus', label: 'Focus Mode', description: 'Toggle focus mode', icon: 'maximize', action: () => { setFocusMode(prev => !prev); setInput(''); } },
+    { command: 'help', label: 'Show Help', description: 'Display keyboard shortcuts', icon: 'help', action: () => { setShowKeyboardShortcuts(true); setInput(''); } },
+    { command: 'pin', label: 'Pin Conversation', description: 'Pin current conversation', icon: 'pin', action: () => { if (currentConversation) togglePinConversation(currentConversation.id); setInput(''); } },
+    { command: 'archive', label: 'Archive Chat', description: 'Archive current conversation', icon: 'archive', action: () => { if (currentConversation) toggleArchiveConversation(currentConversation.id); setInput(''); } },
+    { command: 'prompt', label: 'Prompt Library', description: 'Open prompt library', icon: 'bookmark', action: () => { setShowPromptLibrary(true); setInput(''); } },
+  ];
+
+  // Filter slash commands based on input after "/"
+  const filteredSlashCommands = slashCommands.filter(cmd =>
+    cmd.command.includes(slashFilter.toLowerCase()) ||
+    cmd.label.toLowerCase().includes(slashFilter.toLowerCase())
+  );
 
   // Calculate total conversation cost
   const totalConversationCost = useMemo(() => {
@@ -4663,6 +4688,35 @@ function App() {
 
   // Handle keyboard input
   const handleKeyDown = (e) => {
+    // Slash command menu navigation
+    if (showSlashMenu) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSlashCommandIndex(prev => Math.min(prev + 1, filteredSlashCommands.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSlashCommandIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredSlashCommands[slashCommandIndex]) {
+          filteredSlashCommands[slashCommandIndex].action();
+          setShowSlashMenu(false);
+          setSlashFilter('');
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowSlashMenu(false);
+        setSlashFilter('');
+        setInput(prev => prev.replace(/^\/[^\s]*\s*/, ''));
+        return;
+      }
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -5486,14 +5540,109 @@ function App() {
                   id="message-input"
                   ref={inputRef}
                   value={input}
-                  onChange={e => setInput(e.target.value)}
+                  onChange={e => {
+                    const newValue = e.target.value;
+                    setInput(newValue);
+                    // Detect slash commands
+                    if (newValue.startsWith('/')) {
+                      const match = newValue.match(/^\/(\S*)/);
+                      if (match) {
+                        setSlashFilter(match[1]);
+                        setShowSlashMenu(true);
+                        setSlashCommandIndex(0);
+                      }
+                    } else {
+                      setShowSlashMenu(false);
+                      setSlashFilter('');
+                    }
+                  }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
+                  placeholder="Type '/' for commands..."
                   rows={1}
                   className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
                   style={{ minHeight: '48px', direction: (language === 'ar' || language === 'fa' || language === 'he' || language === 'ur') ? 'rtl' : 'ltr' }}
                   aria-label="Message input"
                 />
+                {/* Slash Commands Menu */}
+                {showSlashMenu && filteredSlashCommands.length > 0 && (
+                  <div className={`absolute z-50 mt-1 w-72 rounded-xl border shadow-lg overflow-hidden ${highContrast ? 'bg-white border-black' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                    <div className={`px-3 py-2 text-xs font-medium border-b ${highContrast ? 'border-black bg-gray-100' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'} text-gray-500 dark:text-gray-400`}>
+                      Commands
+                    </div>
+                    <div className="max-h-64 overflow-y-auto py-1">
+                      {filteredSlashCommands.map((cmd, idx) => (
+                        <button
+                          key={cmd.command}
+                          onClick={() => {
+                            cmd.action();
+                            setShowSlashMenu(false);
+                            setSlashFilter('');
+                          }}
+                          onMouseEnter={() => setSlashCommandIndex(idx)}
+                          className={`w-full px-3 py-2 flex items-center gap-3 text-left transition-colors ${
+                            idx === slashCommandIndex
+                              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+                            idx === slashCommandIndex
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                          }`}>
+                            {cmd.icon === 'plus' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            )}
+                            {cmd.icon === 'trash' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            )}
+                            {cmd.icon === 'search' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            )}
+                            {cmd.icon === 'settings' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            )}
+                            {cmd.icon === 'download' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            )}
+                            {cmd.icon === 'cpu' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                            )}
+                            {cmd.icon === 'moon' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                            )}
+                            {cmd.icon === 'maximize' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                            )}
+                            {cmd.icon === 'help' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            )}
+                            {cmd.icon === 'pin' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            )}
+                            {cmd.icon === 'archive' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                            )}
+                            {cmd.icon === 'bookmark' && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            )}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-medium truncate ${highContrast ? 'text-black' : 'text-gray-900 dark:text-gray-100'}`}>
+                              {cmd.label}
+                            </div>
+                            <div className={`text-xs truncate ${highContrast ? 'text-gray-700' : 'text-gray-500 dark:text-gray-400'}`}>
+                              {cmd.description}
+                            </div>
+                          </div>
+                          <span className={`text-xs ${highContrast ? 'text-gray-600' : 'text-gray-400 dark:text-gray-500'}`}>
+                            /{cmd.command}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {/* Markdown Preview Panel */}
                 {showMarkdownPreview && input.trim() && (
                   <div className={`mt-2 p-3 rounded-xl border ${highContrast ? 'bg-white border-black' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'}`}>
