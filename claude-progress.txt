@@ -1,4 +1,18 @@
-Progress Update - 2026-04-05 (session continued - 2)
+Progress Update - 2026-04-05 (session continued - 3)
+
+Implemented Features:
+
+- Response time display:
+  * Added responseStartTime tracking in sendMessage function
+  * Calculate response time in seconds when streaming completes
+  * Display response time in message component (e.g., "5.2s")
+  * Updated Message component to show response time with token info
+  * Format: X.Xs (one decimal place)
+  * Updated feature_list.json: marked test #3228 as passing
+
+Status: 201 passing, 60 remaining (was 200 passing, 61 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 2)
 
 Implemented Features:
 
