@@ -201,3 +201,15 @@ Current Status: 103 passing, 159 remaining
 - Committed changes: 713064a
 
 Current Status: 105 passing, 157 remaining
+
+2026-04-04 Session (continued):
+- Implemented Token usage display per message feature:
+  * Backend: Capture input/output tokens from Claude API streaming response
+  * Backend: Send token usage in SSE stream with marker for parsing
+  * Backend: Include token usage in non-streaming chat response
+  * Frontend: Parse token usage marker from streaming response
+  * Frontend: Display token usage (↑ input, ↓ output) below assistant messages
+- Updated feature_list.json: marked test #102 (Token usage display) as passing
+- Committed changes: a18b4e4
+
+Current Status: 106 passing, 156 remaining
