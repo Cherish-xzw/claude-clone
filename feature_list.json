@@ -2509,7 +2509,7 @@
       "Verify checked items show differently",
       "Verify task list is readable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -60,6 +60,34 @@
       .dark ::-webkit-scrollbar-thumb:hover {
         background: #777;
       }
+      /* Task list styling */
+      .markdown-content ul.contains-task-list {
+        list-style: none;
+        padding-left: 0;
+      }
+      .markdown-content li.task-list-item {
+        position: relative;
+        padding-left: 1.75em;
+      }
+      .markdown-content li.task-list-item input[type="checkbox"] {
+        position: absolute;
+        left: 0;
+        top: 0.35em;
+        width: 1em;
+        height: 1em;
+        margin: 0;
+        cursor: pointer;
+        accent-color: #CC785C;
+      }
+      .markdown-content li.task-list-item input[type="checkbox"]:checked + p,
+      .markdown-content li.task-list-item input[type="checkbox"][checked] + p {
+        text-decoration: line-through;
+        color: #888;
+      }
+      .dark .markdown-content li.task-list-item input[type="checkbox"]:checked + p,
+      .dark .markdown-content li.task-list-item input[type="checkbox"][checked] + p {
+        color: #666;
+      }
     </style>
   </head>
   <body>
