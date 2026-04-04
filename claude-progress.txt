@@ -225,3 +225,29 @@ Current Status: 106 passing, 156 remaining
 
 Current Status: 107 passing, 155 remaining
 Next: Continue implementing remaining features (artifacts, thinking mode, etc.)
+
+2026-04-04 Session (continued):
+- Verified Max tokens adjustment feature via code review:
+  * Settings UI has range slider (100-8192, step 100)
+  * State management: maxTokens state (default 4096)
+  * API integration: Sent to streaming and non-streaming endpoints
+  * Backend: Properly receives and uses max_tokens parameter
+- Updated feature_list.json: marked Max tokens adjustment test as passing
+- Committed changes: d32f8c5
+
+- Verified and marked "Revoke shared conversation link" test as passing:
+  * ShareModal has "Revoke Link" button
+  * revokeShare function calls backend DELETE endpoint
+- Committed changes: 9456962
+
+- Implemented share link expiration settings:
+  * Added shareExpiration state (0/7/30/90 days)
+  * ShareModal shows expiration dropdown
+  * "Create New Link" button to regenerate with new settings
+  * Backend handles null expires_at (never expires)
+  * GET endpoint checks null expires_at correctly
+- Updated feature_list.json: marked "Share conversation with expiration" as passing
+- Committed changes: a84860f
+
+Current Status: 109 passing, 153 remaining
+Next: Continue implementing remaining features
