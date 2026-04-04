@@ -1026,7 +1026,7 @@ function UsageDashboard() {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, systemPrompt, setSystemPrompt }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, systemPrompt, onSystemPromptChange }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1143,15 +1143,15 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                   </label>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">System Prompt Override</label>
+                  <label className="block text-sm font-medium mb-2">Conversation System Prompt</label>
                   <textarea
                     value={systemPrompt}
-                    onChange={(e) => setSystemPrompt(e.target.value)}
-                    placeholder="Enter a custom system prompt to override default behavior..."
+                    onChange={(e) => onSystemPromptChange(e.target.value)}
+                    placeholder="Enter a custom system prompt for this conversation..."
                     rows={4}
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-1">This will override the default system prompt for all messages in this conversation</p>
+                  <p className="text-xs text-gray-500 mt-1">This system prompt is saved for this conversation only. Each conversation can have its own custom system prompt.</p>
                 </div>
               </div>
             )}
@@ -2499,6 +2499,16 @@ function App() {
   const selectConversation = async (conversation) => {
     setCurrentConversation(conversation);
     try {
+      // Fetch full conversation data to get system_prompt
+      const convResponse = await fetch(`${API_BASE}/conversations/${conversation.id}`);
+      if (convResponse.ok) {
+        const convData = await convResponse.json();
+        // Set the conversation's system prompt if it exists
+        if (convData.system_prompt !== undefined) {
+          setSystemPrompt(convData.system_prompt || '');
+        }
+      }
+
       const response = await fetch(`${API_BASE}/conversations/${conversation.id}/messages`);
       if (response.ok) {
         const data = await response.json();
@@ -2508,6 +2518,30 @@ function App() {
     } catch (error) {
       console.error('Failed to load messages:', error);
     }
+  };
+
+  // Save conversation-specific system prompt to backend
+  const saveConversationSystemPrompt = async (prompt) => {
+    if (!currentConversation?.id) return;
+    try {
+      await fetch(`${API_BASE}/conversations/${currentConversation.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system_prompt: prompt })
+      });
+    } catch (error) {
+      console.error('Failed to save system prompt:', error);
+    }
+  };
+
+  // Handle system prompt change with debounce to save to backend
+  const handleSystemPromptChange = (newPrompt) => {
+    setSystemPrompt(newPrompt);
+    // Save to backend with a small delay to avoid too many requests
+    clearTimeout(window.systemPromptSaveTimeout);
+    window.systemPromptSaveTimeout = setTimeout(() => {
+      saveConversationSystemPrompt(newPrompt);
+    }, 500);
   };
 
   // Detect artifacts from message content
@@ -4044,7 +4078,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} systemPrompt={systemPrompt} setSystemPrompt={setSystemPrompt} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
