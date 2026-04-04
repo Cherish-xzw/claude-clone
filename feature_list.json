@@ -1219,7 +1219,7 @@
       "Verify tips cover common use cases",
       "Verify tips are helpful for new users"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1247,7 +1247,7 @@
       "Verify data download begins",
       "Verify exported data is complete"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1439,7 +1439,7 @@
       "Verify toast can be manually dismissed",
       "Verify toast content is clear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",

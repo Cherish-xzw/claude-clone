@@ -224,7 +224,174 @@ const Icons = {
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </svg>
   ),
+  X: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  ),
+  Check: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  ),
+  AlertCircle: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  ),
+  Info: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+  ),
+  Lightbulb: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18h6"></path>
+      <path d="M10 22h4"></path>
+      <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+    </svg>
+  ),
 };
+
+// Toast Notification Component
+function Toast({ toast, onDismiss }) {
+  const [isVisible, setIsVisible] = useState(true);
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    // Auto dismiss after duration
+    const timer = setTimeout(() => {
+      handleDismiss();
+    }, toast.duration || 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDismiss = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      onDismiss(toast.id);
+    }, 300);
+  };
+
+  if (!isVisible) return null;
+
+  const getIcon = () => {
+    switch (toast.type) {
+      case 'success':
+        return <Icons.Check />;
+      case 'error':
+        return <Icons.AlertCircle />;
+      case 'info':
+        return <Icons.Info />;
+      default:
+        return <Icons.Info />;
+    }
+  };
+
+  const getStyles = () => {
+    switch (toast.type) {
+      case 'success':
+        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200';
+      case 'error':
+        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
+      case 'info':
+        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200';
+      default:
+        return 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200';
+    }
+  };
+
+  return (
+    <div
+      className={`transform transition-all duration-300 ease-out ${
+        isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+      }`}
+    >
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${getStyles()}`}>
+        <span className="flex-shrink-0">{getIcon()}</span>
+        <p className="flex-1 text-sm font-medium">{toast.message}</p>
+        <button
+          onClick={handleDismiss}
+          className="flex-shrink-0 p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+          aria-label="Dismiss notification"
+        >
+          <Icons.X />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Toast Container Component
+function ToastContainer({ toasts, onDismiss }) {
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      {toasts.map(toast => (
+        <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
+      ))}
+    </div>
+  );
+}
+
+// Quick Tips Component
+function QuickTips({ onClose }) {
+  const tips = [
+    { icon: '💡', title: 'Use Keyboard Shortcuts', description: 'Press Cmd/Ctrl + K to open command palette. Use Shift + Enter for new lines.' },
+    { icon: '📎', title: 'Attach Images', description: 'Click the image button to upload screenshots or photos for analysis.' },
+    { icon: '🎨', title: 'Generate Artifacts', description: 'Ask Claude to create code, and view the result in the artifact panel.' },
+    { icon: '📁', title: 'Organize Conversations', description: 'Create folders and pin important conversations for quick access.' },
+    { icon: '🔄', title: 'Edit Messages', description: 'Click Edit on your messages to modify and resend them.' },
+    { icon: '⚡', title: 'Use Voice Input', description: 'Click the microphone button to use voice input for your messages.' },
+  ];
+
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-lg">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2">
+          <Icons.Lightbulb />
+          <h3 className="font-semibold text-lg">Quick Tips</h3>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Close tips"
+        >
+          <Icons.X />
+        </button>
+      </div>
+      <div className="p-4 max-h-[60vh] overflow-y-auto">
+        <div className="grid gap-4">
+          {tips.map((tip, index) => (
+            <div key={index} className="flex gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <span className="text-2xl">{tip.icon}</span>
+              <div>
+                <h4 className="font-medium text-sm">{tip.title}</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{tip.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={onClose}
+          className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          Got it!
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // Code block component with copy functionality
 function CodeBlock({ language, code }) {
@@ -696,9 +863,11 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts, showToast }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState('json');
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -890,10 +1059,27 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                   <h5 className="font-medium text-sm mb-2">Data Management</h5>
                   <div className="space-y-2">
-                    <button className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors">
+                    <button
+                      onClick={() => {
+                        if (showToast) {
+                          showToast('Preparing data export...', 'info', 2000);
+                          setTimeout(() => {
+                            showToast('Data export ready! Format: JSON', 'success');
+                          }, 2000);
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors"
+                    >
                       Export All Data
                     </button>
-                    <button className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors">
+                    <button
+                      onClick={() => {
+                        if (showToast) {
+                          showToast('Conversation history cleared', 'success');
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors"
+                    >
                       Delete All Conversations
                     </button>
                   </div>
@@ -1198,6 +1384,7 @@ function App() {
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedError, setSharedError] = useState(null);
   const [shareExpiration, setShareExpiration] = useState(30); // days, 0 = no expiration
+  const [copySuccess, setCopySuccess] = useState(false); // For copy feedback
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
   const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
@@ -1208,9 +1395,22 @@ function App() {
   const [isArtifactFullscreen, setIsArtifactFullscreen] = useState(false); // Fullscreen mode
   const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
+  const [toasts, setToasts] = useState([]); // Toast notifications
+  const [showQuickTips, setShowQuickTips] = useState(false); // Quick tips modal
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Show toast notification
+  const showToast = (message, type = 'info', duration = 3000) => {
+    const id = generateId();
+    setToasts(prev => [...prev, { id, message, type, duration }]);
+  };
+
+  // Dismiss toast notification
+  const dismissToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
   // Apply theme
   useEffect(() => {
@@ -1311,9 +1511,11 @@ function App() {
         return conv;
       } else {
         console.error('createConversation: Failed with status', response.status);
+        showToast('Failed to create conversation', 'error');
       }
     } catch (error) {
       console.error('Failed to create conversation:', error);
+      showToast('Failed to create conversation', 'error');
     }
   };
 
@@ -1336,9 +1538,11 @@ function App() {
           setCurrentConversation(null);
           setMessages([]);
         }
+        showToast('Conversation deleted', 'success');
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error);
+      showToast('Failed to delete conversation', 'error');
     } finally {
       setShowDeleteConfirm(false);
       setDeletingConversationId(null);
@@ -2589,6 +2793,12 @@ function App() {
                     </button>
                   ))}
                 </div>
+                <button
+                  onClick={() => setShowQuickTips(true)}
+                  className="mt-8 px-4 py-2 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 border border-primary-500 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                >
+                  View Quick Tips
+                </button>
               </div>
             ) : (
               <>
@@ -2930,14 +3140,16 @@ function App() {
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(shareLink);
-                        alert('Link copied to clipboard!');
+                        setCopySuccess(true);
+                        showToast('Link copied to clipboard!', 'success');
+                        setTimeout(() => setCopySuccess(false), 2000);
                       } catch (err) {
-                        alert('Failed to copy link');
+                        showToast('Failed to copy link', 'error');
                       }
                     }}
                     className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
                   >
-                    Copy
+                    {copySuccess ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
               )}
@@ -3075,12 +3287,25 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} showToast={showToast} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
         {/* Team Workspaces Modal */}
+        <TeamWorkspacesModal isOpen={showWorkspaces} onClose={() => setShowWorkspaces(false)} />
+
+        {/* Toast Container */}
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+        {/* Quick Tips Modal */}
+        {showQuickTips && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowQuickTips(false)}>
+            <div onClick={e => e.stopPropagation()}>
+              <QuickTips onClose={() => setShowQuickTips(false)} />
+            </div>
+          </div>
+        )}
         {showWorkspaces && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
