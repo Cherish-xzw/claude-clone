@@ -290,3 +290,45 @@ Next: Continue implementing remaining features
 
 Current Status: 120 passing, 142 remaining
 Next: Continue implementing remaining features
+
+2026-04-04 Session (continued):
+- Implemented Character count and token estimation feature:
+  * Added character count display showing "X chars"
+  * Added token estimation showing "~Y tokens"
+  * Counts only display when input has text
+  * Positioned on right side of bottom input bar
+- Updated feature_list.json: marked test #136 (Character count and token estimation) as passing
+- Committed changes: 690a402
+
+Current Status: 121 passing, 141 remaining
+Next: Implement more remaining features
+
+2026-04-04 Session (continued):
+- Implemented Search filter by project and model:
+  * Added filterProject and filterModel state variables
+  * Added project filter dropdown with all folders
+  * Added model filter dropdown with all models
+  * Updated filteredConversations to apply both filters
+  * Clear filters by selecting default options
+- Updated feature_list.json: marked tests #990 (Filter by project) and #1017 (Filter by model) as passing
+- Committed changes: b7cbb5f
+
+- Marked Welcome screen for new users as passing (already implemented with suggested prompts)
+- Marked Example prompts section as passing (same as welcome screen suggested prompts)
+- Committed changes: f02e246
+
+- Marked Multi-turn conversation context as passing (already implemented in backend)
+- Implemented Privacy settings tab with options and data management
+- Committed changes: 361d70d
+
+- Implemented Team workspaces mock UI with button and modal
+- Committed changes: 5b87060
+
+- Added Share with Team buttons to workspaces modal
+- Committed changes: b76b7fa
+
+- Implemented API key management in Settings modal
+- Committed changes: c69cef3
+
+Current Status: 131 passing, 131 remaining
+Next: Implement more remaining features
