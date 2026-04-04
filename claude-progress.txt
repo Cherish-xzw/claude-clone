@@ -576,3 +576,24 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Current Status: 154 passing, 108 remaining
 - Next: Continue implementing remaining features (ARIA labels, keyboard navigation, etc.)
 
+2026-04-04 Session (continued):
+- Implemented Prompt Library access feature:
+  * PromptLibraryModal component with category filtering
+  * SavePromptModal for saving prompts with title/description/category
+  * Prompt Library button in sidebar
+  * Save Prompt button in input area (bookmark icon)
+  * Integration with Command Palette (Cmd/Ctrl+K)
+  * "Use" button loads prompt into input field
+  * Backend already has prompt library API endpoints
+- Implemented System Prompt Override feature:
+  * Added textarea in Settings > General tab
+  * systemPrompt state management in App component
+  * Connected to both streaming and non-streaming API endpoints
+  * Backend uses system_prompt parameter if provided
+- Updated feature_list.json:
+  * Marked "Prompt library access" test as passing
+  * Marked "System prompt override" test as passing
+- Committed changes: 50f9e57
+- Current Status: 156 passing, 106 remaining
+- Next: Continue implementing remaining features (usage dashboards, API quota, etc.)
+
