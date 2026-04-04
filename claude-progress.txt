@@ -22,7 +22,7 @@ Implemented Features:
 
 Note: Puppeteer MCP server has issues with evaluate() returning undefined and selectors not finding elements. The app appears to be rendering (screenshot shows content) but browser automation is not working reliably.
 
-Status: 99 passing, 98 remaining
+Status: 164 passing, 98 remaining
 
 Progress Update - 2026-04-04
 
