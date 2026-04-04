@@ -1028,7 +1028,7 @@
       "Locate token count for assistant message",
       "Verify both input and output tokens shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

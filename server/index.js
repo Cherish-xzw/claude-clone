@@ -32,7 +32,7 @@ app.post('/api/chat', async (req, res) => {
   console.log('=== CHAT ENDPOINT CALLED ===');
   console.log('Body:', JSON.stringify(req.body));
   try {
-    const { content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+    const { content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096 } = req.body;
 
     const systemPrompt = custom_instructions || "You are Claude, a helpful AI assistant.";
 
@@ -56,7 +56,7 @@ app.post('/api/chat', async (req, res) => {
 
     const response = await anthropic.messages.create({
       model: model,
-      max_tokens: 1024,
+      max_tokens: parseInt(max_tokens),
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessageContent }],
       temperature: parseFloat(temperature),
@@ -64,7 +64,11 @@ app.post('/api/chat', async (req, res) => {
     });
 
     console.log('Claude response:', response.content[0].text.substring(0, 100));
-    res.json({ response: response.content[0].text });
+    res.json({
+      response: response.content[0].text,
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens
+    });
   } catch (error) {
     console.error('Chat error:', error);
     res.status(500).json({ error: error.message });
@@ -193,7 +197,7 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 app.post('/api/messages/stream', async (req, res) => {
   console.log('=== Stream request received ===');
   try {
-    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0 } = req.body;
+    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096 } = req.body;
 
     // Set up SSE headers FIRST (before API call)
     res.setHeader('Content-Type', 'text/event-stream');
@@ -281,7 +285,7 @@ app.post('/api/messages/stream', async (req, res) => {
     // Send message to Claude with streaming
     const stream = await anthropic.messages.stream({
       model: model,
-      max_tokens: 4096,
+      max_tokens: parseInt(max_tokens),
       system: systemPrompt,
       messages: messages,
       temperature: parseFloat(temperature),
@@ -295,6 +299,8 @@ app.post('/api/messages/stream', async (req, res) => {
     console.log('Stream started');
 
     let fullContent = '';
+    let inputTokens = 0;
+    let outputTokens = 0;
 
     // Process stream chunks
     for await (const event of stream) {
@@ -303,10 +309,24 @@ app.post('/api/messages/stream', async (req, res) => {
           fullContent += event.delta.text;
           res.write(event.delta.text);
         }
+      } else if (event.type === 'message_delta') {
+        // Capture token usage from message_delta event
+        if (event.usage) {
+          outputTokens = event.usage.output_tokens || 0;
+        }
+      } else if (event.type === 'message_start') {
+        // Capture input tokens from message_start event
+        if (event.message && event.message.usage) {
+          inputTokens = event.message.usage.input_tokens || 0;
+        }
       }
     }
 
+    // Send token usage at the end of stream
+    res.write(`\n\n[TABLET_TOKEN_USAGE:${JSON.stringify({ inputTokens, outputTokens })}]`);
+
     console.log('Stream complete, saving to DB...');
+    console.log(`Token usage - Input: ${inputTokens}, Output: ${outputTokens}`);
 
     // Save message to database
     if (conversation_id) {

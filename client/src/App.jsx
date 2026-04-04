@@ -352,6 +352,18 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
               </>
             )}
           </div>
+          {/* Token usage display - show for messages with token info */}
+          {(message.inputTokens > 0 || message.outputTokens > 0) && (
+            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 flex gap-2">
+              {message.inputTokens > 0 && (
+                <span title="Input tokens">↑ {message.inputTokens}</span>
+              )}
+              {message.outputTokens > 0 && (
+                <span title="Output tokens">↓ {message.outputTokens}</span>
+              )}
+              <span>tokens</span>
+            </div>
+          )}
           {!isUser && !message.isStreaming && !isEditing && (
             <div className="flex gap-2">
               <button
@@ -1413,6 +1425,8 @@ function App() {
         content: '',
         isStreaming: true,
         created_at: new Date().toISOString(),
+        inputTokens: 0,
+        outputTokens: 0,
       }]);
 
       console.log('sendMessage: Fetching response');
@@ -1456,6 +1470,7 @@ function App() {
           console.log('sendMessage: Reading stream');
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
+          let tokenUsage = { inputTokens: 0, outputTokens: 0 };
 
           while (true) {
             try {
@@ -1463,11 +1478,24 @@ function App() {
               if (done) break;
 
               const chunk = decoder.decode(value);
-              responseText += chunk;
+
+              // Check for token usage marker at the end
+              const tokenUsageMatch = chunk.match(/\[TABLET_TOKEN_USAGE:(\{[^}]+\})\]/);
+              if (tokenUsageMatch) {
+                try {
+                  tokenUsage = JSON.parse(tokenUsageMatch[1]);
+                  // Remove the token usage marker from the displayed text
+                  responseText = responseText.replace(/\[TABLET_TOKEN_USAGE:\{[^}]+\}\]$/, '');
+                } catch (e) {
+                  console.log('Failed to parse token usage:', e);
+                }
+              } else {
+                responseText += chunk;
+              }
 
               setMessages(prev => prev.map(msg =>
                 msg.id === assistantMessageId
-                  ? { ...msg, content: responseText }
+                  ? { ...msg, content: responseText, inputTokens: tokenUsage.inputTokens, outputTokens: tokenUsage.outputTokens }
                   : msg
               ));
             } catch (readError) {
@@ -1494,7 +1522,16 @@ function App() {
           if (chatResponse.ok) {
             const data = await chatResponse.json();
             responseText = data.response || '';
+            // Store token usage from non-streaming response
+            const tokenUsage = { inputTokens: data.inputTokens || 0, outputTokens: data.outputTokens || 0 };
             console.log('sendMessage: Non-streaming response:', responseText.substring(0, 100));
+            console.log('sendMessage: Token usage:', tokenUsage);
+            // Update message with token usage
+            setMessages(prev => prev.map(msg =>
+              msg.id === assistantMessageId
+                ? { ...msg, inputTokens: tokenUsage.inputTokens, outputTokens: tokenUsage.outputTokens }
+                : msg
+            ));
           } else {
             throw new Error('Non-streaming endpoint also failed');
           }
