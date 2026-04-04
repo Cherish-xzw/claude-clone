@@ -1110,6 +1110,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
   const [modelUsage, setModelUsage] = useState([]);
   const [todayUsage, setTodayUsage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exportFormat, setExportFormat] = useState('json');
 
   useEffect(() => {
     fetchUsageData();
@@ -1184,6 +1185,54 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
+  // Export usage data
+  const exportUsageData = () => {
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      today: todayUsage || {},
+      monthly: monthlyData || {},
+      byModel: modelUsage || [],
+      daily: dailyUsage || []
+    };
+
+    let content, filename, mimeType;
+
+    if (exportFormat === 'csv') {
+      // Convert to CSV format
+      const headers = ['Category', 'Metric', 'Value'];
+      const rows = [
+        ['Today', 'Input Tokens', todayUsage?.input_tokens || 0],
+        ['Today', 'Output Tokens', todayUsage?.output_tokens || 0],
+        ['Today', 'Messages', todayUsage?.message_count || 0],
+        ['Today', 'Cost', todayUsage?.cost || 0],
+        ['Monthly', 'Input Tokens', monthlyData?.totals?.input_tokens || 0],
+        ['Monthly', 'Output Tokens', monthlyData?.totals?.output_tokens || 0],
+        ['Monthly', 'Messages', monthlyData?.totals?.message_count || 0],
+        ['Monthly', 'Total Cost', monthlyData?.totals?.cost || 0],
+        ...modelUsage.map(m => ['Model', m.model, `${m.input_tokens}/${m.output_tokens}`]),
+        ...dailyUsage.map(d => ['Daily', d.date, d.message_count || 0])
+      ];
+      content = [headers, ...rows].map(row => row.join(',')).join('\n');
+      filename = `usage-export-${new Date().toISOString().split('T')[0]}.csv`;
+      mimeType = 'text/csv';
+    } else {
+      content = JSON.stringify(exportData, null, 2);
+      filename = `usage-export-${new Date().toISOString().split('T')[0]}.json`;
+      mimeType = 'application/json';
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Usage data exported as ${exportFormat.toUpperCase()}`, 'success');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -1194,7 +1243,30 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 
   return (
     <div className="space-y-6">
-      <h4 className="font-semibold text-lg">Usage Statistics</h4>
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-lg">Usage Statistics</h4>
+        <div className="flex items-center gap-2">
+          <select
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value)}
+            className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+          >
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+          </select>
+          <button
+            onClick={exportUsageData}
+            className="px-3 py-1.5 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
 
       {/* Today's Summary */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg p-4 text-white">

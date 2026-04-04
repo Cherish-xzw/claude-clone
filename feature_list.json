@@ -2309,7 +2309,7 @@
       "Verify exported data format is correct",
       "Verify data completeness"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
