@@ -813,3 +813,36 @@ Next: Continue investigating puppeteer issues or implement remaining features
 - Status: 164 passing, 98 remaining
 - Note: Puppeteer evaluate() consistently returns undefined - verified through code review
 - Next: Continue implementing remaining features (Daily usage dashboard, Usage limits, etc.)
+
+2026-04-04 Session (continued - late night):
+- Implemented LaTeX/math equation rendering feature:
+  * Added remark-math and rehype-katex npm dependencies
+  * Added KaTeX CSS CDN link to index.html
+  * Imported math plugins in App.jsx
+  * Added remarkMath and rehypeKatex to ReactMarkdown components
+  * Supports inline math ($...$) and block equations ($$...$$)
+- Updated feature_list.json: marked test #2015 (LaTeX/math equation rendering) as passing
+- Committed changes: d379a64
+- Status: 165 passing, 95 remaining
+- Note: App builds successfully with KaTeX support
+- Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late night):
+- Implemented Settings persistence across sessions:
+  * Added loadSetting helper function to read from localStorage
+  * Modified state initializations to load from localStorage
+  * Added useEffects to save settings to localStorage when they change
+  * Settings persist: theme, highContrast, reducedMotion, selectedModel, temperature, topP, maxTokens
+- Updated feature_list.json: marked test #2066 (Settings persistence) as passing
+- Committed changes: eb18c50
+- Status: 166 passing, 94 remaining
+- Next: Continue implementing remaining features
+
+2026-04-05 Session (early morning):
+- Committed daily usage dashboard (already implemented) - test passing
+- Committed API quota tracking - added quota section to Usage Dashboard
+- Marked Project selector dropdown as passing (already implemented)
+- Total commits: d07ea2c, 2e8b8f2
+- Status: 169 passing, 91 remaining
+- Features implemented this session: LaTeX rendering, Settings persistence, API quota tracking
+- Next: Continue implementing remaining features (Login page, Project settings, Focus mode, etc.)
