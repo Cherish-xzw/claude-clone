@@ -224,304 +224,7 @@ const Icons = {
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </svg>
   ),
-  X: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  ),
-  Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-  ),
-  AlertCircle: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="8" x2="12" y2="12"></line>
-      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-    </svg>
-  ),
-  Info: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-    </svg>
-  ),
-  Lightbulb: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 18h6"></path>
-      <path d="M10 22h4"></path>
-      <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
-    </svg>
-  ),
 };
-
-// Toast Notification Component
-function Toast({ toast, onDismiss }) {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isExiting, setIsExiting] = useState(false);
-
-  useEffect(() => {
-    // Auto dismiss after duration
-    const timer = setTimeout(() => {
-      handleDismiss();
-    }, toast.duration || 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleDismiss = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      onDismiss(toast.id);
-    }, 300);
-  };
-
-  if (!isVisible) return null;
-
-  const getIcon = () => {
-    switch (toast.type) {
-      case 'success':
-        return <Icons.Check />;
-      case 'error':
-        return <Icons.AlertCircle />;
-      case 'info':
-        return <Icons.Info />;
-      default:
-        return <Icons.Info />;
-    }
-  };
-
-  const getStyles = () => {
-    switch (toast.type) {
-      case 'success':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200';
-      case 'error':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
-      case 'info':
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200';
-      default:
-        return 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200';
-    }
-  };
-
-  return (
-    <div
-      className={`transform transition-all duration-300 ease-out ${
-        isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
-      }`}
-    >
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${getStyles()}`}>
-        <span className="flex-shrink-0">{getIcon()}</span>
-        <p className="flex-1 text-sm font-medium">{toast.message}</p>
-        <button
-          onClick={handleDismiss}
-          className="flex-shrink-0 p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-          aria-label="Dismiss notification"
-        >
-          <Icons.X />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Toast Container Component
-function ToastContainer({ toasts, onDismiss }) {
-  if (toasts.length === 0) return null;
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
-      {toasts.map(toast => (
-        <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
-      ))}
-    </div>
-  );
-}
-
-// Quick Tips Component
-function QuickTips({ onClose }) {
-  const tips = [
-    { icon: '💡', title: 'Use Keyboard Shortcuts', description: 'Press Cmd/Ctrl + K to open command palette. Use Shift + Enter for new lines.' },
-    { icon: '📎', title: 'Attach Images', description: 'Click the image button to upload screenshots or photos for analysis.' },
-    { icon: '🎨', title: 'Generate Artifacts', description: 'Ask Claude to create code, and view the result in the artifact panel.' },
-    { icon: '📁', title: 'Organize Conversations', description: 'Create folders and pin important conversations for quick access.' },
-    { icon: '🔄', title: 'Edit Messages', description: 'Click Edit on your messages to modify and resend them.' },
-    { icon: '⚡', title: 'Use Voice Input', description: 'Click the microphone button to use voice input for your messages.' },
-  ];
-
-  return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-lg">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <Icons.Lightbulb />
-          <h3 className="font-semibold text-lg">Quick Tips</h3>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Close tips"
-        >
-          <Icons.X />
-        </button>
-      </div>
-      <div className="p-4 max-h-[60vh] overflow-y-auto">
-        <div className="grid gap-4">
-          {tips.map((tip, index) => (
-            <div key={index} className="flex gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-              <span className="text-2xl">{tip.icon}</span>
-              <div>
-                <h4 className="font-medium text-sm">{tip.title}</h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{tip.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-        >
-          Got it!
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Feature Tour Component
-function FeatureTour({ onClose }) {
-  const tourSteps = [
-    {
-      target: '[data-tour="new-chat"]',
-      title: 'Start a New Chat',
-      description: 'Click here to start a new conversation. Each conversation maintains its own context.',
-      position: 'bottom'
-    },
-    {
-      target: '[data-tour="search"]',
-      title: 'Search Conversations',
-      description: 'Quickly find any conversation by searching through your history.',
-      position: 'bottom'
-    },
-    {
-      target: '[data-tour="model-selector"]',
-      title: 'Choose Your Model',
-      description: 'Select from different Claude models optimized for various tasks.',
-      position: 'bottom'
-    },
-    {
-      target: '[data-tour="input-area"]',
-      title: 'Type Your Message',
-      description: 'Enter your message here and press Enter or click Send. Use Shift+Enter for new lines.',
-      position: 'top'
-    },
-    {
-      target: '[data-tour="settings"]',
-      title: 'Customize Settings',
-      description: 'Access settings to customize theme, model parameters, and more.',
-      position: 'top'
-    }
-  ];
-
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const handleNext = () => {
-    if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      onClose();
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const step = tourSteps[currentStep];
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Icons.Bot />
-              Welcome to Claude Clone
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-1 rounded hover:bg-white/20 transition-colors"
-              aria-label="Skip tour"
-            >
-              <Icons.X />
-            </button>
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="flex gap-1 p-3 bg-gray-50 dark:bg-gray-800">
-          {tourSteps.map((_, index) => (
-            <div
-              key={index}
-              className={`h-1 flex-1 rounded-full transition-colors ${
-                index <= currentStep ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-              <span className="text-primary-600 dark:text-primary-400 font-semibold">
-                {currentStep + 1}
-              </span>
-            </div>
-            <h4 className="font-semibold text-lg">{step.title}</h4>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            {step.description}
-          </p>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-            >
-              Skip Tour
-            </button>
-            <div className="flex gap-2">
-              {currentStep > 0 && (
-                <button
-                  onClick={handlePrevious}
-                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Previous
-                </button>
-              )}
-              <button
-                onClick={handleNext}
-                className="px-4 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-              >
-                {currentStep < tourSteps.length - 1 ? 'Next' : 'Finish'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Code block component with copy functionality
 function CodeBlock({ language, code }) {
@@ -724,10 +427,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
     const diff = now - date;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) {
-      // Today: show time (e.g., "10:30 AM")
-      return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-    }
+    if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
     return date.toLocaleDateString();
@@ -996,11 +696,9 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts, showToast, onRestartTour }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState('json');
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -1017,7 +715,6 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'appearance', label: 'Appearance' },
-    { id: 'api', label: 'API' },
     { id: 'privacy', label: 'Privacy' },
     { id: 'about', label: 'About' },
   ];
@@ -1145,16 +842,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 </div>
               </div>
             )}
-            {activeTab === 'api' && (
-              <div className="space-y-6">
-                <h4 className="font-semibold text-lg">API Settings</h4>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Anthropic API Key</label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        defaultValue="sk-ant-api03-••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+            {activeTab === 'privacy' && (
               <div className="space-y-6">
                 <h4 className="font-semibold text-lg">Privacy Settings</h4>
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
@@ -1192,27 +880,10 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                   <h5 className="font-medium text-sm mb-2">Data Management</h5>
                   <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        if (showToast) {
-                          showToast('Preparing data export...', 'info', 2000);
-                          setTimeout(() => {
-                            showToast('Data export ready! Format: JSON', 'success');
-                          }, 2000);
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors"
-                    >
+                    <button className="w-full px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm text-left transition-colors">
                       Export All Data
                     </button>
-                    <button
-                      onClick={() => {
-                        if (showToast) {
-                          showToast('Conversation history cleared', 'success');
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors"
-                    >
+                    <button className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400 text-left transition-colors">
                       Delete All Conversations
                     </button>
                   </div>
@@ -1239,15 +910,6 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <Icons.Search />
                     Keyboard Shortcuts
                   </button>
-                  {onRestartTour && (
-                    <button
-                      onClick={() => { onClose(); onRestartTour(); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-lg text-sm text-primary-600 dark:text-primary-400 transition-colors w-full mt-2"
-                    >
-                      <Icons.Bot />
-                      Restart Feature Tour
-                    </button>
-                  )}
                 </div>
               </div>
             )}
@@ -1498,8 +1160,6 @@ function App() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile overlay menu
-  const [isMobile, setIsMobile] = useState(false); // Track if mobile viewport
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [filterModel, setFilterModel] = useState('');
@@ -1528,7 +1188,6 @@ function App() {
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedError, setSharedError] = useState(null);
   const [shareExpiration, setShareExpiration] = useState(30); // days, 0 = no expiration
-  const [copySuccess, setCopySuccess] = useState(false); // For copy feedback
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
   const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
@@ -1539,24 +1198,9 @@ function App() {
   const [isArtifactFullscreen, setIsArtifactFullscreen] = useState(false); // Fullscreen mode
   const [artifactVersions, setArtifactVersions] = useState({}); // Version history per artifact
   const [editingArtifact, setEditingArtifact] = useState(null); // Artifact being edited
-  const [toasts, setToasts] = useState([]); // Toast notifications
-  const [showQuickTips, setShowQuickTips] = useState(false); // Quick tips modal
-  const [showFeatureTour, setShowFeatureTour] = useState(false); // Feature tour
-  const [tourStep, setTourStep] = useState(0); // Current tour step
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-
-  // Show toast notification
-  const showToast = (message, type = 'info', duration = 3000) => {
-    const id = generateId();
-    setToasts(prev => [...prev, { id, message, type, duration }]);
-  };
-
-  // Dismiss toast notification
-  const dismissToast = (id) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
 
   // Apply theme
   useEffect(() => {
@@ -1622,25 +1266,6 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Mobile viewport detection
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setSidebarOpen(false); // Hide sidebar on mobile by default
-        setIsMobileMenuOpen(false);
-      } else {
-        setSidebarOpen(true);
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    checkMobile(); // Initial check
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   // Load conversations from API
   const loadConversations = async () => {
     try {
@@ -1676,11 +1301,9 @@ function App() {
         return conv;
       } else {
         console.error('createConversation: Failed with status', response.status);
-        showToast('Failed to create conversation', 'error');
       }
     } catch (error) {
       console.error('Failed to create conversation:', error);
-      showToast('Failed to create conversation', 'error');
     }
   };
 
@@ -1703,11 +1326,9 @@ function App() {
           setCurrentConversation(null);
           setMessages([]);
         }
-        showToast('Conversation deleted', 'success');
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error);
-      showToast('Failed to delete conversation', 'error');
     } finally {
       setShowDeleteConfirm(false);
       setDeletingConversationId(null);
@@ -2597,44 +2218,12 @@ function App() {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <div className="h-screen flex bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        {/* Mobile Overlay */}
-        {isMobile && isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Sidebar - Desktop: fixed width, Mobile: overlay slide-in */}
-        <div className={`
-          ${isMobile ? 'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300' : 'relative flex-shrink-0'}
-          ${isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : ''}
-          ${!isMobile ? (sidebarOpen ? 'w-72' : 'w-0') : ''}
-          bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-hidden
-        `}>
-          <div className="p-4 flex flex-col h-full w-72">
-            {/* Mobile Header with Close Button */}
-            <div className="flex items-center justify-between mb-4 md:hidden">
-              <span className="font-semibold text-sm">Menu</span>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                aria-label="Close menu"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-
+        {/* Sidebar */}
+        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 overflow-hidden`}>
+          <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
             <button
-              data-tour="new-chat"
-              onClick={() => {
-                createConversation();
-                setIsMobileMenuOpen(false);
-              }}
+              onClick={createConversation}
               className="flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium"
             >
               <Icons.Plus />
@@ -2654,7 +2243,6 @@ function App() {
             <div className="mt-4 relative">
               <Icons.Search />
               <input
-                data-tour="search"
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
@@ -2878,7 +2466,6 @@ function App() {
 
             {/* Settings Button */}
             <button
-              data-tour="settings"
               onClick={() => setShowSettings(true)}
               className="mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
             >
@@ -2908,17 +2495,9 @@ function App() {
             {/* Header */}
             <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              {/* Menu/Sidebar Toggle Button */}
               <button
-                onClick={() => {
-                  if (isMobile) {
-                    setIsMobileMenuOpen(true);
-                  } else {
-                    setSidebarOpen(!sidebarOpen);
-                  }
-                }}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                aria-label={isMobile ? "Open menu" : (sidebarOpen ? "Close sidebar" : "Open sidebar")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -2965,12 +2544,10 @@ function App() {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <div data-tour="model-selector">
-                <ModelSelector
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                />
-              </div>
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+              />
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -3001,20 +2578,6 @@ function App() {
                       {prompt}
                     </button>
                   ))}
-                </div>
-                <div className="mt-8 flex gap-3 flex-wrap justify-center">
-                  <button
-                    onClick={() => setShowFeatureTour(true)}
-                    className="px-4 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-full transition-colors"
-                  >
-                    Start Feature Tour
-                  </button>
-                  <button
-                    onClick={() => setShowQuickTips(true)}
-                    className="px-4 py-2 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 border border-primary-500 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                  >
-                    View Quick Tips
-                  </button>
                 </div>
               </div>
             ) : (
@@ -3055,7 +2618,7 @@ function App() {
           </div>
 
           {/* Input Area */}
-          <div data-tour="input-area" className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             {/* Image Upload Preview */}
             {uploadedImages.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3 max-w-4xl mx-auto">
@@ -3357,16 +2920,14 @@ function App() {
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(shareLink);
-                        setCopySuccess(true);
-                        showToast('Link copied to clipboard!', 'success');
-                        setTimeout(() => setCopySuccess(false), 2000);
+                        alert('Link copied to clipboard!');
                       } catch (err) {
-                        showToast('Failed to copy link', 'error');
+                        alert('Failed to copy link');
                       }
                     }}
                     className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
                   >
-                    {copySuccess ? 'Copied!' : 'Copy'}
+                    Copy
                   </button>
                 </div>
               )}
@@ -3504,30 +3065,12 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} showToast={showToast} onRestartTour={() => setShowFeatureTour(true)} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
         {/* Team Workspaces Modal */}
-        <TeamWorkspacesModal isOpen={showWorkspaces} onClose={() => setShowWorkspaces(false)} />
-
-        {/* Toast Container */}
-        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-        {/* Quick Tips Modal */}
-        {showQuickTips && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowQuickTips(false)}>
-            <div onClick={e => e.stopPropagation()}>
-              <QuickTips onClose={() => setShowQuickTips(false)} />
-            </div>
-          </div>
-        )}
-
-        {/* Feature Tour Modal */}
-        {showFeatureTour && (
-          <FeatureTour onClose={() => setShowFeatureTour(false)} />
-        )}
         {showWorkspaces && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
