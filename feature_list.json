@@ -3074,7 +3074,7 @@
       "Toggle back to raw",
       "Verify raw markdown shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

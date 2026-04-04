@@ -1,4 +1,18 @@
-Progress Update - 2026-04-05 (session continued - 9)
+Progress Update - 2026-04-05 (session continued - 10)
+
+Implemented Features:
+
+- Markdown preview in input (optional):
+  * Verified feature is already implemented in App.jsx
+  * showMarkdownPreview state controls visibility
+  * Toggle button shows eye/eye-off icons
+  * When enabled: renders markdown using ReactMarkdown
+  * When disabled: shows raw markdown in pre tag
+  * Updated feature_list.json: marked test "Markdown preview in input (optional)" as passing
+
+Status: 211 passing, 51 remaining (was 209 passing, 52 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 9)
 
 Implemented Features:
 
