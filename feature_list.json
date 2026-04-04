@@ -1950,7 +1950,7 @@
       "Verify project selection changes",
       "Verify conversations update accordingly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
