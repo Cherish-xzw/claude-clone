@@ -2000,7 +2000,7 @@
       "Verify borders are visible",
       "Verify table is scrollable if wide"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2026,7 +2026,7 @@
       "Remove attachment",
       "Verify preview is removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2039,7 +2039,7 @@
       "Type text in input",
       "Verify send button becomes active"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2051,7 +2051,7 @@
       "Verify smooth scrolling",
       "Verify headers stick when scrolling"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
