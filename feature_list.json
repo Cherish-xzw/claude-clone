@@ -1153,7 +1153,7 @@
       "Verify transitions are instant or minimal",
       "Verify functionality still works smoothly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -511,7 +511,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -1047,7 +1047,7 @@ function UsageDashboard() {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, systemPrompt, onSystemPromptChange }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1246,7 +1246,12 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                       <p className="text-xs text-gray-500 dark:text-gray-400">Minimize animations and transitions</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
+                      <input
+                        type="checkbox"
+                        checked={reducedMotion}
+                        onChange={(e) => setReducedMotion(e.target.checked)}
+                        className="sr-only peer"
+                      />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
                     </label>
                   </div>
@@ -1798,6 +1803,7 @@ function App() {
   // State
   const [theme, setTheme] = useState('system');
   const [highContrast, setHighContrast] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -1882,6 +1888,15 @@ function App() {
       root.classList.remove('dark');
     }
   }, [theme]);
+
+  // Apply reduced motion
+  useEffect(() => {
+    if (reducedMotion) {
+      document.body.classList.add('reduced-motion');
+    } else {
+      document.body.classList.remove('reduced-motion');
+    }
+  }, [reducedMotion]);
 
   // Load conversations on mount
   useEffect(() => {
@@ -3159,9 +3174,12 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div className={`h-screen flex ${highContrast ? 'bg-white text-black' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'}`}>
+      <div
+        className={`h-screen flex ${highContrast ? 'bg-white text-black' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'}`}
+        style={reducedMotion ? { '--tw-transition-duration': '0ms', transitionDuration: '0ms' } : {}}
+      >
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden`}>
+        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden ${reducedMotion ? '!transition-none' : ''}`}>
           <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
             <button
@@ -4151,7 +4169,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
