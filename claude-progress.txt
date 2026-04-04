@@ -514,3 +514,22 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Committed changes: 0842a34
 - Current Status: 151 passing, 111 remaining
 - Next: Continue implementing remaining features
+
+2026-04-04 Session (continued - late evening):
+- Implemented Thinking/reasoning mode toggle feature:
+  * Added thinkingEnabled state in App component
+  * Added Extended Thinking toggle in Settings > General tab
+  * Updated backend streaming endpoint to support thinking parameter
+  * Added thinking block configuration with budget_tokens
+  * Parse thinking content from Claude API streaming response
+  * Added collapsible thinking section in Message component
+  * Thinking is displayed above main content when enabled
+  * Verified with browser automation:
+    - Toggle appears in Settings modal
+    - Toggle can be switched on/off
+    - Thinking content displays in AI responses when enabled
+    - Thinking section is collapsible
+- Updated feature_list.json: marked Thinking/reasoning mode test as passing
+- Committed changes: 3de40cf
+- Current Status: 152 passing, 110 remaining
+- Next: Continue implementing remaining features
