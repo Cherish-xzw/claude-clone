@@ -987,7 +987,7 @@
       "Clear project filter",
       "Verify all projects are searched"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1014,7 +1014,7 @@
       "Verify results are filtered",
       "Verify only selected model's conversations appear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

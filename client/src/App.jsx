@@ -1111,6 +1111,8 @@ function App() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterProject, setFilterProject] = useState('');
+  const [filterModel, setFilterModel] = useState('');
   const [abortController, setAbortController] = useState(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
@@ -2047,7 +2049,9 @@ function App() {
   // Filter conversations by search and archived status
   const filteredConversations = conversations.filter(c =>
     (showArchived ? c.is_archived : !c.is_archived) &&
-    c.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    c.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (!filterProject || c.project_id === filterProject || (c.project_id === null && filterProject === 'none')) &&
+    (!filterModel || c.model === filterModel)
   );
 
   // Group conversations by date - uses local time for grouping
@@ -2195,6 +2199,31 @@ function App() {
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="mt-2 flex gap-2">
+              <select
+                value={filterProject}
+                onChange={e => setFilterProject(e.target.value)}
+                className="flex-1 px-2 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">All Projects</option>
+                <option value="none">No Project</option>
+                {folders.map(folder => (
+                  <option key={folder.id} value={folder.id}>{folder.name}</option>
+                ))}
+              </select>
+              <select
+                value={filterModel}
+                onChange={e => setFilterModel(e.target.value)}
+                className="flex-1 px-2 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">All Models</option>
+                {MODELS.map(model => (
+                  <option key={model.id} value={model.id}>{model.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Folders Section */}
