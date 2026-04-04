@@ -1897,9 +1897,14 @@ function SavePromptModal({ isOpen, onClose, promptTitle, setPromptTitle, promptD
 }
 
 // Prompt Library Modal
-function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDeletePrompt, onSaveNewPrompt, input }) {
+function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDeletePrompt, onSaveNewPrompt, onEditPrompt, input }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingPrompt, setEditingPrompt] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editTemplate, setEditTemplate] = useState('');
+  const [editCategory, setEditCategory] = useState('General');
 
   if (!isOpen) return null;
 
@@ -2048,6 +2053,22 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
                         <Icons.Send />
                       </button>
                       <button
+                        onClick={() => {
+                          setEditingPrompt(prompt);
+                          setEditTitle(prompt.title || '');
+                          setEditDescription(prompt.description || '');
+                          setEditTemplate(prompt.prompt_template || '');
+                          setEditCategory(prompt.category || 'General');
+                        }}
+                        className="p-2 rounded-lg bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors"
+                        title="Edit prompt"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button
                         onClick={() => onDeletePrompt(prompt.id)}
                         className="p-2 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
                         title="Delete prompt"
@@ -2063,6 +2084,106 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
               ))}
             </div>
           </>
+        )}
+
+        {/* Edit Prompt Modal */}
+        {editingPrompt && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+            onClick={() => setEditingPrompt(null)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Edit Prompt</h3>
+                <button
+                  onClick={() => setEditingPrompt(null)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  aria-label="Close"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus:border-primary-500 focus:outline-none transition-colors"
+                    placeholder="Enter prompt title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus:border-primary-500 focus:outline-none transition-colors"
+                    placeholder="Brief description (optional)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Template</label>
+                  <textarea
+                    value={editTemplate}
+                    onChange={(e) => setEditTemplate(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus:border-primary-500 focus:outline-none transition-colors min-h-[100px] font-mono text-sm"
+                    placeholder="Enter prompt template"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus:border-primary-500 focus:outline-none transition-colors"
+                  >
+                    <option value="General">General</option>
+                    <option value="Coding">Coding</option>
+                    <option value="Writing">Writing</option>
+                    <option value="Analysis">Analysis</option>
+                    <option value="Creative">Creative</option>
+                    <option value="Education">Education</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setEditingPrompt(null)}
+                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      onEditPrompt(editingPrompt.id, {
+                        title: editTitle,
+                        description: editDescription,
+                        prompt_template: editTemplate,
+                        category: editCategory,
+                      });
+                      setEditingPrompt(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -2761,6 +2882,23 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to delete prompt:', error);
+    }
+  };
+
+  // Update prompt in library
+  const updatePromptInLibrary = async (promptId, updates) => {
+    try {
+      const response = await fetch(`${API_BASE}/prompts/library/${promptId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (response.ok) {
+        const updatedPrompt = await response.json();
+        setSavedPrompts(prev => prev.map(p => p.id === promptId ? updatedPrompt : p));
+      }
+    } catch (error) {
+      console.error('Failed to update prompt:', error);
     }
   };
 
@@ -4706,6 +4844,7 @@ function App() {
             inputRef.current?.focus();
           }}
           onDeletePrompt={deletePromptFromLibrary}
+          onEditPrompt={updatePromptInLibrary}
           onSaveNewPrompt={() => {
             setShowPromptLibrary(false);
             setShowSavePromptModal(true);

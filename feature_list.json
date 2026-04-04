@@ -2270,7 +2270,7 @@
       "Save changes",
       "Verify changes are reflected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
