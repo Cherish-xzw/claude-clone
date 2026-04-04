@@ -332,7 +332,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                 className={`flex items-center gap-2 text-xs mb-1 ${highContrast ? 'text-black' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 <span className={`transform transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`}>▶</span>
-                <span>Thinking ({message.thinking.length} chars)</span>
+                <span>Thinking ({(message.thinking || '').length} chars)</span>
               </button>
               {thinkingExpanded && (
                 <div className={`rounded-lg p-3 text-xs max-h-64 overflow-y-auto font-mono whitespace-pre-wrap ${highContrast ? 'bg-gray-200 border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}`}>
