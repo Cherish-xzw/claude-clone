@@ -1141,7 +1141,7 @@
       "Verify text is more readable",
       "Verify interactive elements are clearly distinguished"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

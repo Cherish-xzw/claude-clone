@@ -11,6 +11,13 @@ function useTheme() {
   return useContext(ThemeContext);
 }
 
+// High Contrast Context
+const HighContrastContext = createContext();
+
+function useHighContrast() {
+  return useContext(HighContrastContext);
+}
+
 // Generate unique ID
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -255,7 +262,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
 
@@ -263,7 +270,7 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
       <div className={`flex gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700'
+          isUser ? 'bg-primary-500 text-white' : highContrast ? 'bg-gray-300 border-2 border-black' : 'bg-gray-200 dark:bg-gray-700'
         }`}>
           {isUser ? <Icons.User /> : <Icons.Bot />}
         </div>
@@ -273,13 +280,13 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
             <div className="mb-2 w-full">
               <button
                 onClick={() => setThinkingExpanded(!thinkingExpanded)}
-                className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-1"
+                className={`flex items-center gap-2 text-xs mb-1 ${highContrast ? 'text-black' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 <span className={`transform transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`}>▶</span>
                 <span>Thinking ({message.thinking.length} chars)</span>
               </button>
               {thinkingExpanded && (
-                <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-xs text-gray-600 dark:text-gray-400 max-h-64 overflow-y-auto font-mono whitespace-pre-wrap">
+                <div className={`rounded-lg p-3 text-xs max-h-64 overflow-y-auto font-mono whitespace-pre-wrap ${highContrast ? 'bg-gray-200 border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}`}>
                   {message.thinking}
                 </div>
               )}
@@ -308,17 +315,19 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
               ))}
             </div>
           )}
-          <div className={`px-4 py-3 rounded-2xl ${
+          <div className={`px-4 py-3 rounded-2xl border-2 ${
             isUser
-              ? 'bg-primary-500 text-white rounded-tr-sm'
-              : 'bg-gray-100 dark:bg-gray-800 rounded-tl-sm'
+              ? 'bg-primary-500 text-white rounded-tr-sm border-primary-600'
+              : highContrast
+                ? 'bg-gray-100 rounded-tl-sm border-2 border-black'
+                : 'bg-gray-100 dark:bg-gray-800 rounded-tl-sm'
           }`}>
             {isEditing ? (
               <div className="w-full">
                 <textarea
                   value={editedContent}
                   onChange={(e) => onEditedContentChange(e.target.value)}
-                  className="w-full min-h-[100px] bg-transparent border border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-black dark:text-white"
+                  className={`w-full min-h-[100px] rounded p-2 text-sm ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-transparent border border-gray-300 dark:border-gray-600 text-black dark:text-white'}`}
                   autoFocus
                 />
                 <div className="flex gap-2 mt-2">
@@ -749,7 +758,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -768,6 +777,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'appearance', label: 'Appearance' },
+    { id: 'accessibility', label: 'Accessibility' },
     { id: 'privacy', label: 'Privacy' },
     { id: 'about', label: 'About' },
   ];
@@ -907,6 +917,57 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <option value="medium">Medium</option>
                     <option value="large">Large</option>
                   </select>
+                </div>
+              </div>
+            )}
+            {activeTab === 'accessibility' && (
+              <div className="space-y-6">
+                <h4 className="font-semibold text-lg">Accessibility</h4>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">High Contrast Mode</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Increase contrast for better readability</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={highContrast}
+                        onChange={(e) => setHighContrast(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">Reduced Motion</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Minimize animations and transitions</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-sm">Screen Reader Support</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Optimized for assistive technologies</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Text Size</label>
+                  <div className="flex gap-2">
+                    <button className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm">Small</button>
+                    <button className="flex-1 px-3 py-2 bg-primary-500 text-white rounded-lg text-sm">Medium</button>
+                    <button className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm">Large</button>
+                    <button className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm">Extra Large</button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1214,6 +1275,7 @@ function ArtifactPanel({
 function App() {
   // State
   const [theme, setTheme] = useState('system');
+  const [highContrast, setHighContrast] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -2423,14 +2485,14 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div className="h-screen flex bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className={`h-screen flex ${highContrast ? 'bg-white text-black' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'}`}>
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 overflow-hidden`}>
+        <div className={`${sidebarOpen ? 'w-72' : 'w-0'} flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden`}>
           <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
             <button
               onClick={createConversation}
-              className="flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium"
+              className={`flex items-center gap-2 w-full px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors font-medium ${highContrast ? 'ring-2 ring-black' : ''}`}
             >
               <Icons.Plus />
               New Chat
@@ -2439,7 +2501,7 @@ function App() {
             {/* New Folder Button */}
             <button
               onClick={() => setShowFolderModal(true)}
-              className="mt-2 flex items-center gap-2 w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm"
+              className={`mt-2 flex items-center gap-2 w-full px-4 py-2 ${highContrast ? 'bg-gray-300 hover:bg-gray-400 text-black border-2 border-black' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'} rounded-lg transition-colors text-sm`}
             >
               <Icons.Folder />
               New Folder
@@ -2453,7 +2515,7 @@ function App() {
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'}`}
               />
             </div>
 
@@ -2815,14 +2877,14 @@ function App() {
           </header>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${highContrast ? 'bg-white' : ''}`}>
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${highContrast ? 'bg-gray-200' : 'bg-gray-100 dark:bg-gray-800'}`}>
                   <Icons.Bot />
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Start a conversation</h2>
-                <p className="text-gray-500 dark:text-gray-400 max-w-md">
+                <p className={`max-w-md ${highContrast ? 'text-gray-800' : 'text-gray-500 dark:text-gray-400'}`}>
                   Ask me anything - I'm here to help with coding, writing, analysis, math, and more.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2 justify-center">
@@ -2830,7 +2892,7 @@ function App() {
                     <button
                       key={prompt}
                       onClick={() => setInput(prompt)}
-                      className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      className={`px-4 py-2 text-sm rounded-full transition-colors ${highContrast ? 'bg-gray-200 hover:bg-gray-300 text-black border-2 border-black' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                     >
                       {prompt}
                     </button>
@@ -2868,6 +2930,7 @@ function App() {
                       }}
                       hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
                       showThinking={thinkingEnabled && message.role === 'assistant'}
+                      highContrast={highContrast}
                     />
                   );
                 })}
@@ -2938,7 +3001,7 @@ function App() {
                   onKeyDown={handleKeyDown}
                   placeholder="Type your message..."
                   rows={1}
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40"
+                  className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'}`}
                   style={{ minHeight: '48px' }}
                 />
               </div>
@@ -3346,7 +3409,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
