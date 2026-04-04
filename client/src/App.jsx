@@ -322,9 +322,12 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false }) {
+function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en' }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
+
+  // Check if language is RTL
+  const isRTL = ['ar', 'he', 'fa', 'ur'].includes(language);
 
   // Calculate message cost
   const messageCost = calculateMessageCost(message.inputTokens || 0, message.outputTokens || 0, model);
@@ -387,7 +390,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
               : highContrast
                 ? 'bg-gray-100 rounded-tl-sm border-2 border-black'
                 : 'bg-gray-100 dark:bg-gray-800 rounded-tl-sm'
-          }`}>
+          }`} dir={isUser && isRTL ? 'rtl' : 'ltr'}>
             {isEditing ? (
               <div className="w-full">
                 <textarea
@@ -395,6 +398,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                   onChange={(e) => onEditedContentChange(e.target.value)}
                   className={`w-full min-h-[100px] rounded p-2 text-sm ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-transparent border border-gray-300 dark:border-gray-600 text-black dark:text-white'}`}
                   autoFocus
+                  dir={isRTL ? 'rtl' : 'ltr'}
                 />
                 <div className="flex gap-2 mt-2">
                   <button
@@ -570,6 +574,12 @@ const getLanguageLabels = (lang) => {
 const getSavedLanguage = () => {
   const saved = localStorage.getItem('app_language');
   return saved ? JSON.parse(saved) : 'en';
+};
+
+// Check if language is RTL (right-to-left)
+const isRTL = (lang) => {
+  const rtlLanguages = ['ar', 'he', 'fa', 'ur'];
+  return rtlLanguages.includes(lang);
 };
 
 // Conversation item in sidebar
@@ -4301,6 +4311,7 @@ function App() {
                       hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
                       showThinking={thinkingEnabled && message.role === 'assistant'}
                       highContrast={highContrast}
+                      language={language}
                     />
                   );
                 })}
@@ -4373,8 +4384,8 @@ function App() {
                   onKeyDown={handleKeyDown}
                   placeholder="Type your message..."
                   rows={1}
-                  className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'}`}
-                  style={{ minHeight: '48px' }}
+                  className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
+                  style={{ minHeight: '48px', direction: (language === 'ar' || language === 'fa' || language === 'he' || language === 'ur') ? 'rtl' : 'ltr' }}
                   aria-label="Message input"
                 />
                 {/* Markdown Preview Panel */}
@@ -4401,7 +4412,7 @@ function App() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Raw Markdown</span>
                     </div>
-                    <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">{input}</pre>
+                    <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto" dir={language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'rtl' : 'ltr'}>{input}</pre>
                   </div>
                 )}
               </div>

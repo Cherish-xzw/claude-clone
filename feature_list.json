@@ -2709,7 +2709,7 @@
       "Send RTL message",
       "Verify message renders correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
