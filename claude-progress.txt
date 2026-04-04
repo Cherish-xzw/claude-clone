@@ -1,4 +1,20 @@
-Progress Update - 2026-04-05 (session continued - 12)
+Progress Update - 2026-04-05 (session continued - 13)
+
+Implemented Features:
+
+- Undo send message (within time limit):
+  * Added undoMessage and undoTimeout state for tracking last sent message
+  * Added undoSendMessage function to remove message and restore input
+  * Added 5-second undo window after sending a message
+  * Added blue banner UI with "Message sent" and "Undo" button
+  * Banner auto-dismisses after 5 seconds
+  * Restores message content and images when undo is clicked
+  * Shows toast notification "Message undone" on undo
+  * Updated feature_list.json: marked test "Undo send message (within time limit)" as passing
+
+Status: 214 passing, 48 remaining (was 213 passing, 49 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 12)
 
 Implemented Features:
 
