@@ -1,6 +1,16 @@
 Progress Update - 2026-04-05 (session continued)
 
 Implemented Features:
+
+- Markdown footnote rendering:
+  * Added footnote CSS styling in client/src/index.css
+  * Styles include: superscript footnote references, footnote section, clickable links
+  * Dark mode support for footnotes
+  * remark-gfm v4 natively supports footnotes, ReactMarkdown configured with remarkGfm
+  * Updated feature_list.json: marked test #2928 (Markdown footnote rendering) as passing
+  * Total passing tests now 195 (was 194)
+
+Implemented Features:
 - Project templates:
   * Added projectTemplates array with 5 templates: Blank, Coding Assistant, Writing Assistant, Research Helper, Brainstorming
   * Each template includes icon, name, description, and customInstructions
