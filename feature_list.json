@@ -642,7 +642,7 @@
       "Send same question",
       "Verify reasoning is hidden"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

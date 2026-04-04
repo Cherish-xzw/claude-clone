@@ -255,8 +255,9 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch }) {
+function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false }) {
   const isUser = message.role === 'user';
+  const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
@@ -267,6 +268,23 @@ function Message({ message, onRegenerate, onEdit, isEditing, editedContent, onEd
           {isUser ? <Icons.User /> : <Icons.Bot />}
         </div>
         <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
+          {/* Display thinking content if present and enabled */}
+          {showThinking && message.thinking && (
+            <div className="mb-2 w-full">
+              <button
+                onClick={() => setThinkingExpanded(!thinkingExpanded)}
+                className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-1"
+              >
+                <span className={`transform transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span>Thinking ({message.thinking.length} chars)</span>
+              </button>
+              {thinkingExpanded && (
+                <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-xs text-gray-600 dark:text-gray-400 max-h-64 overflow-y-auto font-mono whitespace-pre-wrap">
+                  {message.thinking}
+                </div>
+              )}
+            </div>
+          )}
           {/* Display images if present */}
           {message.images && message.images.length > 0 && (
             <div className={`flex flex-wrap gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -731,7 +749,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -829,6 +847,21 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     className="w-full"
                   />
                   <p className="text-xs text-gray-500 mt-1">Maximum tokens in response (higher = longer responses)</p>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-sm">Extended Thinking</h5>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Show Claude's reasoning process</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={thinkingEnabled}
+                      onChange={(e) => setThinkingEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                  </label>
                 </div>
               </div>
             )}
@@ -1217,6 +1250,7 @@ function App() {
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const [shareData, setShareData] = useState(null);
   const [shareLink, setShareLink] = useState('');
   const [sharedView, setSharedView] = useState(null); // For shared conversation view
@@ -2050,6 +2084,7 @@ function App() {
               temperature: temperature,
               top_p: topP,
               max_tokens: maxTokens,
+              thinking_enabled: thinkingEnabled,
             }),
             signal: requestController.signal,
           });
@@ -2066,13 +2101,27 @@ function App() {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let tokenUsage = { inputTokens: 0, outputTokens: 0 };
+          let thinkingContent = '';
 
           while (true) {
             try {
               const { done, value } = await reader.read();
               if (done) break;
 
-              const chunk = decoder.decode(value);
+              let chunk = decoder.decode(value);
+
+              // Check for thinking content marker
+              const thinkingMatch = chunk.match(/\[TABLET_THINKING:(\{[^}]+\})\]/);
+              if (thinkingMatch) {
+                try {
+                  const thinkingData = JSON.parse(thinkingMatch[1]);
+                  thinkingContent = thinkingData.thinking || '';
+                  // Remove the thinking marker from the displayed text
+                  chunk = chunk.replace(/\[TABLET_THINKING:\{[^}]+\}\]/, '');
+                } catch (e) {
+                  console.log('Failed to parse thinking:', e);
+                }
+              }
 
               // Check for token usage marker at the end
               const tokenUsageMatch = chunk.match(/\[TABLET_TOKEN_USAGE:(\{[^}]+\})\]/);
@@ -2081,6 +2130,7 @@ function App() {
                   tokenUsage = JSON.parse(tokenUsageMatch[1]);
                   // Remove the token usage marker from the displayed text
                   responseText = responseText.replace(/\[TABLET_TOKEN_USAGE:\{[^}]+\}\]$/, '');
+                  chunk = chunk.replace(/\[TABLET_TOKEN_USAGE:\{[^}]+\}\]/, '');
                 } catch (e) {
                   console.log('Failed to parse token usage:', e);
                 }
@@ -2090,7 +2140,7 @@ function App() {
 
               setMessages(prev => prev.map(msg =>
                 msg.id === assistantMessageId
-                  ? { ...msg, content: responseText, inputTokens: tokenUsage.inputTokens, outputTokens: tokenUsage.outputTokens }
+                  ? { ...msg, content: responseText, thinking: thinkingContent, inputTokens: tokenUsage.inputTokens, outputTokens: tokenUsage.outputTokens }
                   : msg
               ));
             } catch (readError) {
@@ -2764,6 +2814,7 @@ function App() {
                         }
                       }}
                       hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
+                      showThinking={thinkingEnabled && message.role === 'assistant'}
                     />
                   );
                 })}
@@ -3242,7 +3293,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />

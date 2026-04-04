@@ -197,7 +197,7 @@ app.get('/api/conversations/:id/messages', (req, res) => {
 app.post('/api/messages/stream', async (req, res) => {
   console.log('=== Stream request received ===');
   try {
-    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096 } = req.body;
+    const { conversation_id, content, images = [], model = 'claude-sonnet-4-5-20250929', custom_instructions = '', temperature = 0.7, top_p = 1.0, max_tokens = 4096, thinking_enabled = false } = req.body;
 
     // Set up SSE headers FIRST (before API call)
     res.setHeader('Content-Type', 'text/event-stream');
@@ -280,17 +280,28 @@ app.post('/api/messages/stream', async (req, res) => {
       }
     ];
 
-    console.log('Calling Anthropic API with images:', images.length);
+    console.log('Calling Anthropic API with images:', images.length, 'Thinking enabled:', thinking_enabled);
 
-    // Send message to Claude with streaming
-    const stream = await anthropic.messages.stream({
+    // Build API request options
+    const apiRequestOptions = {
       model: model,
       max_tokens: parseInt(max_tokens),
       system: systemPrompt,
       messages: messages,
       temperature: parseFloat(temperature),
       top_p: parseFloat(top_p),
-    }, {
+    };
+
+    // Add thinking block if enabled
+    if (thinking_enabled) {
+      apiRequestOptions.thinking = {
+        type: 'enabled',
+        budget_tokens: 10000
+      };
+    }
+
+    // Send message to Claude with streaming
+    const stream = await anthropic.messages.stream(apiRequestOptions, {
       fetchOptions: {
         signal: req.signal
       }
@@ -299,8 +310,10 @@ app.post('/api/messages/stream', async (req, res) => {
     console.log('Stream started');
 
     let fullContent = '';
+    let thinkingContent = '';
     let inputTokens = 0;
     let outputTokens = 0;
+    let thinkingComplete = false;
 
     // Process stream chunks
     for await (const event of stream) {
@@ -308,6 +321,19 @@ app.post('/api/messages/stream', async (req, res) => {
         if (event.delta.type === 'text_delta') {
           fullContent += event.delta.text;
           res.write(event.delta.text);
+        } else if (event.delta.type === 'thinking_delta') {
+          // Handle thinking content
+          thinkingContent += event.delta.thinking;
+          if (!thinkingComplete) {
+            // Mark thinking as complete before main content starts
+            res.write('\n\n[THINKING_END]\n\n');
+            thinkingComplete = true;
+          }
+        }
+      } else if (event.type === 'content_block_start') {
+        // If first content block is thinking, send marker
+        if (event.content_block.type === 'thinking' && !thinkingComplete) {
+          res.write('[THINKING_START]');
         }
       } else if (event.type === 'message_delta') {
         // Capture token usage from message_delta event
@@ -320,6 +346,11 @@ app.post('/api/messages/stream', async (req, res) => {
           inputTokens = event.message.usage.input_tokens || 0;
         }
       }
+    }
+
+    // If thinking was present, send it at the end before token usage
+    if (thinkingContent) {
+      res.write(`\n\n[TABLET_THINKING:${JSON.stringify({ thinking: thinkingContent })}]`);
     }
 
     // Send token usage at the end of stream
