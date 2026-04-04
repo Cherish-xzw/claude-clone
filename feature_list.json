@@ -2373,7 +2373,7 @@
       "Exit focus mode",
       "Verify normal view returns"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

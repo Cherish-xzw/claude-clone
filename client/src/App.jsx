@@ -782,6 +782,7 @@ function KeyboardShortcutsModal({ isOpen, onClose }) {
       { keys: ['Cmd', 'S'], description: 'Save conversation' },
       { keys: ['Cmd', '/'], description: 'Open keyboard shortcuts' },
       { keys: ['Cmd', 'Shift', 'L'], description: 'Toggle dark mode' },
+      { keys: ['Cmd', 'Shift', 'F'], description: 'Toggle focus mode' },
       { keys: ['Esc'], description: 'Close modal/palette' },
     ]},
     { category: 'Messages', items: [
@@ -1915,6 +1916,7 @@ function App() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [focusMode, setFocusMode] = useState(false); // Focus mode - hides sidebar for distraction-free chat
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebarWidth');
     return saved ? parseInt(saved, 10) : 288; // Default 288px (w-72)
@@ -2092,7 +2094,7 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Command palette keyboard shortcut (Cmd/Ctrl+K) and Keyboard Shortcuts (Cmd/Ctrl+/) and Dark Mode (Cmd/Ctrl+Shift+L)
+  // Command palette keyboard shortcut (Cmd/Ctrl+K) and Keyboard Shortcuts (Cmd/Ctrl+/) and Dark Mode (Cmd/Ctrl+Shift+L) and Focus Mode (Cmd/Ctrl+Shift+F)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -2106,6 +2108,10 @@ function App() {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
         setTheme(theme === 'dark' ? 'light' : 'dark');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'F') {
+        e.preventDefault();
+        setFocusMode(prev => !prev);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -3341,7 +3347,8 @@ function App() {
         className={`h-screen flex ${highContrast ? 'bg-white text-black' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'}`}
         style={reducedMotion ? { '--tw-transition-duration': '0ms', transitionDuration: '0ms' } : {}}
       >
-        {/* Sidebar */}
+        {/* Sidebar - Hidden in focus mode */}
+        {!focusMode && (
         <div style={{ width: sidebarOpen ? sidebarWidth : 0 }} className={`flex-shrink-0 ${highContrast ? 'bg-gray-100 border-black' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border-r transition-all duration-300 overflow-hidden ${reducedMotion ? '!transition-none' : ''}`}>
           <div className="p-4 flex flex-col h-full">
             {/* New Chat Button */}
@@ -3696,9 +3703,10 @@ function App() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Sidebar Resize Handle */}
-        {sidebarOpen && (
+        {/* Sidebar Resize Handle - Hidden in focus mode */}
+        {!focusMode && sidebarOpen && (
           <div
             className="w-1 flex-shrink-0 cursor-col-resize hover:bg-primary-500/50 active:bg-primary-500 transition-colors"
             onMouseDown={() => setIsResizing(true)}
@@ -3782,6 +3790,29 @@ function App() {
                 title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {theme === 'dark' ? <Icons.Sun /> : <Icons.Moon />}
+              </button>
+              {/* Focus Mode Toggle */}
+              <button
+                onClick={() => setFocusMode(!focusMode)}
+                className={`p-2 rounded-lg transition-colors ${focusMode ? 'bg-primary-500 text-white hover:bg-primary-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+                title={focusMode ? 'Exit focus mode' : 'Focus mode - hide sidebar'}
+              >
+                {focusMode ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="4 14 10 14 10 20"></polyline>
+                    <polyline points="20 10 14 10 14 4"></polyline>
+                    <line x1="14" y1="10" x2="21" y2="3"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                )}
               </button>
             </div>
           </header>
