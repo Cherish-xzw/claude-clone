@@ -931,7 +931,7 @@
       "Navigate to prompt library",
       "Verify saved prompt is listed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

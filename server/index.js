@@ -658,6 +658,298 @@ app.get('/api/conversations/:id/share', (req, res) => {
   }
 });
 
+// ============== SEARCH ==============
+
+// GET /api/search/conversations - Search conversations by title
+app.get('/api/search/conversations', (req, res) => {
+  try {
+    const { q = '', project_id, model, date_from, date_to } = req.query;
+
+    let query = `
+      SELECT * FROM conversations
+      WHERE is_deleted = 0
+      AND title LIKE ?
+    `;
+    const params = [`%${q}%`];
+
+    if (project_id) {
+      query += ` AND project_id = ?`;
+      params.push(project_id);
+    }
+
+    if (model) {
+      query += ` AND model = ?`;
+      params.push(model);
+    }
+
+    if (date_from) {
+      query += ` AND created_at >= ?`;
+      params.push(date_from);
+    }
+
+    if (date_to) {
+      query += ` AND created_at <= ?`;
+      params.push(date_to);
+    }
+
+    query += ` ORDER BY updated_at DESC LIMIT 50`;
+
+    const conversations = db.prepare(query).all(...params);
+    res.json(conversations);
+  } catch (error) {
+    console.error('Error searching conversations:', error);
+    res.status(500).json({ error: 'Failed to search conversations' });
+  }
+});
+
+// GET /api/search/messages - Search messages across all conversations
+app.get('/api/search/messages', (req, res) => {
+  try {
+    const { q = '', project_id, model, date_from, date_to } = req.query;
+
+    if (!q || q.length < 2) {
+      return res.json([]);
+    }
+
+    // Build query to search messages
+    let query = `
+      SELECT
+        m.*,
+        c.title as conversation_title,
+        c.model as conversation_model,
+        c.project_id
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE c.is_deleted = 0
+      AND m.content LIKE ?
+    `;
+    const params = [`%${q}%`];
+
+    if (project_id) {
+      query += ` AND c.project_id = ?`;
+      params.push(project_id);
+    }
+
+    if (model) {
+      query += ` AND c.model = ?`;
+      params.push(model);
+    }
+
+    if (date_from) {
+      query += ` AND m.created_at >= ?`;
+      params.push(date_from);
+    }
+
+    if (date_to) {
+      query += ` AND m.created_at <= ?`;
+      params.push(date_to);
+    }
+
+    query += ` ORDER BY m.created_at DESC LIMIT 100`;
+
+    const messages = db.prepare(query).all(...params);
+    res.json(messages);
+  } catch (error) {
+    console.error('Error searching messages:', error);
+    res.status(500).json({ error: 'Failed to search messages' });
+  }
+});
+
+// GET /api/search - Combined search (conversations and messages)
+app.get('/api/search', (req, res) => {
+  try {
+    const { q = '', type = 'all', project_id, model, date_from, date_to } = req.query;
+
+    const results = {
+      conversations: [],
+      messages: []
+    };
+
+    if (!q || q.length < 2) {
+      return res.json(results);
+    }
+
+    const likeQuery = `%${q}%`;
+
+    // Search conversations
+    if (type === 'all' || type === 'conversations') {
+      let convQuery = `
+        SELECT * FROM conversations
+        WHERE is_deleted = 0
+        AND title LIKE ?
+      `;
+      const convParams = [likeQuery];
+
+      if (project_id) {
+        convQuery += ` AND project_id = ?`;
+        convParams.push(project_id);
+      }
+
+      if (model) {
+        convQuery += ` AND model = ?`;
+        convParams.push(model);
+      }
+
+      if (date_from) {
+        convQuery += ` AND created_at >= ?`;
+        convParams.push(date_from);
+      }
+
+      if (date_to) {
+        convQuery += ` AND created_at <= ?`;
+        convParams.push(date_to);
+      }
+
+      convQuery += ` ORDER BY updated_at DESC LIMIT 20`;
+
+      results.conversations = db.prepare(convQuery).all(...convParams);
+    }
+
+    // Search messages
+    if (type === 'all' || type === 'messages') {
+      let msgQuery = `
+        SELECT
+          m.*,
+          c.title as conversation_title,
+          c.model as conversation_model,
+          c.project_id
+        FROM messages m
+        JOIN conversations c ON m.conversation_id = c.id
+        WHERE c.is_deleted = 0
+        AND m.content LIKE ?
+      `;
+      const msgParams = [likeQuery];
+
+      if (project_id) {
+        msgQuery += ` AND c.project_id = ?`;
+        msgParams.push(project_id);
+      }
+
+      if (model) {
+        msgQuery += ` AND c.model = ?`;
+        msgParams.push(model);
+      }
+
+      if (date_from) {
+        msgQuery += ` AND m.created_at >= ?`;
+        msgParams.push(date_from);
+      }
+
+      if (date_to) {
+        msgQuery += ` AND m.created_at <= ?`;
+        msgParams.push(date_to);
+      }
+
+      msgQuery += ` ORDER BY m.created_at DESC LIMIT 50`;
+
+      results.messages = db.prepare(msgQuery).all(...msgParams);
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error('Error searching:', error);
+    res.status(500).json({ error: 'Failed to search' });
+  }
+});
+
+// ============== PROMPT LIBRARY ==============
+
+// GET /api/prompts/library - List all saved prompts
+app.get('/api/prompts/library', (req, res) => {
+  try {
+    const prompts = db.prepare(`
+      SELECT * FROM prompt_library
+      ORDER BY created_at DESC
+    `).all();
+    res.json(prompts);
+  } catch (error) {
+    console.error('Error fetching prompts:', error);
+    res.status(500).json({ error: 'Failed to fetch prompts' });
+  }
+});
+
+// POST /api/prompts/library - Save a prompt to library
+app.post('/api/prompts/library', (req, res) => {
+  try {
+    const id = generateId();
+    const { title, description, prompt_template, category = 'General', tags = '[]' } = req.body;
+
+    db.prepare(`
+      INSERT INTO prompt_library (id, title, description, prompt_template, category, tags, user_id)
+      VALUES (?, ?, ?, ?, ?, ?, 'default')
+    `).run(id, title, description || '', prompt_template, category, tags);
+
+    const prompt = db.prepare('SELECT * FROM prompt_library WHERE id = ?').get(id);
+    res.json(prompt);
+  } catch (error) {
+    console.error('Error saving prompt:', error);
+    res.status(500).json({ error: 'Failed to save prompt' });
+  }
+});
+
+// GET /api/prompts/library/:id - Get single prompt
+app.get('/api/prompts/library/:id', (req, res) => {
+  try {
+    const prompt = db.prepare('SELECT * FROM prompt_library WHERE id = ?').get(req.params.id);
+    if (!prompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+    res.json(prompt);
+  } catch (error) {
+    console.error('Error fetching prompt:', error);
+    res.status(500).json({ error: 'Failed to fetch prompt' });
+  }
+});
+
+// PUT /api/prompts/library/:id - Update prompt
+app.put('/api/prompts/library/:id', (req, res) => {
+  try {
+    const { title, description, prompt_template, category, tags } = req.body;
+    const updates = [];
+    const values = [];
+
+    if (title !== undefined) { updates.push('title = ?'); values.push(title); }
+    if (description !== undefined) { updates.push('description = ?'); values.push(description); }
+    if (prompt_template !== undefined) { updates.push('prompt_template = ?'); values.push(prompt_template); }
+    if (category !== undefined) { updates.push('category = ?'); values.push(category); }
+    if (tags !== undefined) { updates.push('tags = ?'); values.push(tags); }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(req.params.id);
+
+    db.prepare(`UPDATE prompt_library SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    const prompt = db.prepare('SELECT * FROM prompt_library WHERE id = ?').get(req.params.id);
+    res.json(prompt);
+  } catch (error) {
+    console.error('Error updating prompt:', error);
+    res.status(500).json({ error: 'Failed to update prompt' });
+  }
+});
+
+// DELETE /api/prompts/library/:id - Delete prompt
+app.delete('/api/prompts/library/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM prompt_library WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    res.status(500).json({ error: 'Failed to delete prompt' });
+  }
+});
+
+// GET /api/prompts/categories - Get all categories
+app.get('/api/prompts/categories', (req, res) => {
+  try {
+    const categories = db.prepare(`
+      SELECT DISTINCT category FROM prompt_library ORDER BY category
+    `).all();
+    res.json(categories.map(c => c.category));
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
 // ============== HEALTH CHECK ==============
 
 app.get('/api/health', (req, res) => {
