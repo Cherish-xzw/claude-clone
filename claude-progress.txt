@@ -661,7 +661,7 @@ Current Status: Approximately 120 passing, 142 remaining (after restore)
 - Added Usage tab to Settings modal alongside General, Appearance, etc.
 - Updated feature_list.json: marked "Monthly usage dashboard" test as passing
 - Note: Browser automation testing was unreliable during this session
-- Committed changes: [pending]
+- Committed changes: 967e355
 
 Current Status: 160 passing, 101 remaining
 Next: Continue implementing remaining features (usage limits, quota warnings, etc.)
