@@ -3103,21 +3103,30 @@ function App() {
                     <h4 className="font-medium">Engineering Team</h4>
                     <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded-full">Mock</span>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">3 members</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">3 members</p>
+                  <button className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                    Share with Team
+                  </button>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">Design Team</h4>
                     <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded-full">Mock</span>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">2 members</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">2 members</p>
+                  <button className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                    Share with Team
+                  </button>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">Product Team</h4>
                     <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded-full">Mock</span>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">5 members</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">5 members</p>
+                  <button className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                    Share with Team
+                  </button>
                 </div>
               </div>
               <button className="mt-4 w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm">

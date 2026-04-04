@@ -1377,7 +1377,7 @@
       "Verify mock sharing modal appears",
       "Verify UI indicates feature is mock/incomplete"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
