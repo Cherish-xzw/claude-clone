@@ -1,4 +1,20 @@
-Progress Update - 2026-04-05 (session continued - 8)
+Progress Update - 2026-04-05 (session continued - 9)
+
+Implemented Features:
+
+- Batch export of all data:
+  * Added exportAllData function that fetches all conversations, messages, projects, and usage data
+  * Created Batch Export modal with JSON and CSV format options
+  * Added Export All Data button in Settings > Privacy tab with download icon
+  * JSON export includes summary (conversation/message/project counts), all conversations with messages, projects, and usage data
+  * CSV export provides flat format with conversations and messages
+  * Connected button to SettingsModal via onExportAllData prop
+  * Build verified successfully
+  * Updated feature_list.json: marked test "Batch export of all data" as passing
+
+Status: 209 passing, 52 remaining (was 208 passing, 53 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 8)
 
 Implemented Features:
 
