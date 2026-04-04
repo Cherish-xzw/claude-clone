@@ -2063,7 +2063,7 @@
       "Verify settings are persisted",
       "Verify all settings restored correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

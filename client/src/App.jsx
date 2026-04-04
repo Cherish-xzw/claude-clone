@@ -1800,12 +1800,25 @@ function PromptLibraryModal({ isOpen, onClose, prompts, onSelectPrompt, onDelete
   );
 }
 
+// Helper function to load setting from localStorage
+const loadSetting = (key, defaultValue) => {
+  const saved = localStorage.getItem(key);
+  if (saved !== null) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return saved;
+    }
+  }
+  return defaultValue;
+};
+
 // Main App component
 function App() {
-  // State
-  const [theme, setTheme] = useState('system');
-  const [highContrast, setHighContrast] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // State - load from localStorage
+  const [theme, setTheme] = useState(() => loadSetting('app_theme', 'system'));
+  const [highContrast, setHighContrast] = useState(() => loadSetting('app_highContrast', false));
+  const [reducedMotion, setReducedMotion] = useState(() => loadSetting('app_reducedMotion', false));
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -1820,10 +1833,10 @@ function App() {
   }, [messages, currentConversation, selectedModel]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('claude-sonnet-4-5-20250929');
-  const [temperature, setTemperature] = useState(0.7);
-  const [topP, setTopP] = useState(1.0);
-  const [maxTokens, setMaxTokens] = useState(4096);
+  const [selectedModel, setSelectedModel] = useState(() => loadSetting('app_selectedModel', 'claude-sonnet-4-5-20250929'));
+  const [temperature, setTemperature] = useState(() => loadSetting('app_temperature', 0.7));
+  const [topP, setTopP] = useState(() => loadSetting('app_topP', 1.0));
+  const [maxTokens, setMaxTokens] = useState(() => loadSetting('app_maxTokens', 4096));
   const [showSettings, setShowSettings] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
@@ -1904,6 +1917,35 @@ function App() {
       document.body.classList.remove('reduced-motion');
     }
   }, [reducedMotion]);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('app_theme', JSON.stringify(theme));
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('app_highContrast', JSON.stringify(highContrast));
+  }, [highContrast]);
+
+  useEffect(() => {
+    localStorage.setItem('app_reducedMotion', JSON.stringify(reducedMotion));
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    localStorage.setItem('app_selectedModel', JSON.stringify(selectedModel));
+  }, [selectedModel]);
+
+  useEffect(() => {
+    localStorage.setItem('app_temperature', JSON.stringify(temperature));
+  }, [temperature]);
+
+  useEffect(() => {
+    localStorage.setItem('app_topP', JSON.stringify(topP));
+  }, [topP]);
+
+  useEffect(() => {
+    localStorage.setItem('app_maxTokens', JSON.stringify(maxTokens));
+  }, [maxTokens]);
 
   // Save sidebar width to localStorage
   useEffect(() => {
