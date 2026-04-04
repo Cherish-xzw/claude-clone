@@ -2635,7 +2635,7 @@
       "Verify input field has message again",
       "Modify and resend if needed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

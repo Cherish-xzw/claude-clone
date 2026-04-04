@@ -3015,6 +3015,35 @@ function App() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const [undoMessage, setUndoMessage] = useState(null); // Stores last sent message for undo
+  const [undoTimeout, setUndoTimeout] = useState(null); // Timer reference for undo
+
+  // Undo last sent message (within time limit)
+  const undoSendMessage = () => {
+    if (!undoMessage) return;
+
+    // Remove the message from state
+    setMessages(prev => prev.filter(msg => msg.id !== undoMessage.id));
+
+    // Restore content to input
+    setInput(undoMessage.content);
+    if (undoMessage.images && undoMessage.images.length > 0) {
+      setUploadedImages(undoMessage.images);
+    }
+
+    // Clear undo state
+    if (undoTimeout) {
+      clearTimeout(undoTimeout);
+      setUndoTimeout(null);
+    }
+    setUndoMessage(null);
+
+    // Show toast
+    showToast('Message undone', 'info');
+
+    // Focus input
+    inputRef.current?.focus();
+  };
 
   // Show toast notification
   const showToast = (message, type = 'info') => {
@@ -4451,6 +4480,14 @@ function App() {
       // Play send sound
       soundPlayer.playSend();
 
+      // Set up undo message (5 second window)
+      setUndoMessage(userMessage);
+      const timer = setTimeout(() => {
+        setUndoMessage(null);
+        setUndoTimeout(null);
+      }, 5000);
+      setUndoTimeout(timer);
+
       // Create abort controller for this request
       const requestController = new AbortController();
       setAbortController(requestController);
@@ -5777,6 +5814,20 @@ function App() {
                 </button>
               )}
             </div>
+            {/* Undo Send Message Banner */}
+            {undoMessage && (
+              <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 mb-2">
+                <span className="text-sm text-blue-700 dark:text-blue-300">
+                  Message sent
+                </span>
+                <button
+                  onClick={undoSendMessage}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
+                >
+                  Undo
+                </button>
+              </div>
+            )}
             <div className="flex items-center justify-between mt-2 px-1">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Press Enter to send, Shift+Enter for new line, Ctrl/Cmd+V to paste image
