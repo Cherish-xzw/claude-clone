@@ -1,4 +1,17 @@
-Progress Update - 2026-04-05 (new session)
+Progress Update - 2026-04-05 (session continued)
+
+Implemented Features:
+- RTL language support in input:
+  * Added isRTL helper function to detect RTL languages (ar, he, fa, ur)
+  * Added direction styling to main message input textarea
+  * Added direction styling to raw markdown preview panel
+  * Added RTL support to user message bubbles (dir="rtl" for RTL messages)
+  * Added RTL support to message editing textarea
+  * Updated feature_list.json: marked test #2712 (RTL language support) as passing
+
+Status: 190 passing, 72 remaining
+
+Previous Update - 2026-04-05 (new session)
 
 Session Notes:
 - Puppeteer MCP tool has a known issue with React applications:
