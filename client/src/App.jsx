@@ -589,8 +589,94 @@ function ModelSelector({ selectedModel, onModelChange }) {
   );
 }
 
+// Keyboard Shortcuts Modal
+function KeyboardShortcutsModal({ isOpen, onClose }) {
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const shortcuts = [
+    { category: 'General', items: [
+      { keys: ['Cmd', 'K'], description: 'Open command palette' },
+      { keys: ['Cmd', 'N'], description: 'New conversation' },
+      { keys: ['Cmd', 'S'], description: 'Save conversation' },
+      { keys: ['Cmd', '/'], description: 'Open keyboard shortcuts' },
+      { keys: ['Esc'], description: 'Close modal/palette' },
+    ]},
+    { category: 'Messages', items: [
+      { keys: ['Enter'], description: 'Send message' },
+      { keys: ['Shift', 'Enter'], description: 'New line in message' },
+      { keys: ['Cmd', 'Enter'], description: 'Send message (alternative)' },
+    ]},
+    { category: 'Navigation', items: [
+      { keys: ['Cmd', '['], description: 'Previous conversation' },
+      { keys: ['Cmd', ']'], description: 'Next conversation' },
+      { keys: ['Cmd', 'B'], description: 'Toggle sidebar' },
+    ]},
+    { category: 'Editing', items: [
+      { keys: ['Cmd', 'Z'], description: 'Undo' },
+      { keys: ['Cmd', 'Shift', 'Z'], description: 'Redo' },
+      { keys: ['Cmd', 'A'], description: 'Select all' },
+    ]},
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-lg">Keyboard Shortcuts</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(80vh-60px)]">
+          {shortcuts.map((section, idx) => (
+            <div key={idx} className="mb-6 last:mb-0">
+              <h4 className="font-semibold text-sm text-gray-500 dark:text-gray-400 uppercase mb-3">{section.category}</h4>
+              <div className="space-y-2">
+                {section.items.map((shortcut, sIdx) => (
+                  <div key={sIdx} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{shortcut.description}</span>
+                    <div className="flex items-center gap-1">
+                      {shortcut.keys.map((key, kIdx) => (
+                        <span key={kIdx}>
+                          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono">
+                            {key}
+                          </kbd>
+                          {kIdx < shortcut.keys.length - 1 && <span className="text-gray-400 mx-0.5">+</span>}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, onOpenKeyboardShortcuts }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -675,6 +761,19 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                   />
                   <p className="text-xs text-gray-500 mt-1">Lower values limit response diversity</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Max Tokens: {maxTokens}</label>
+                  <input
+                    type="range"
+                    min="100"
+                    max="8192"
+                    step="100"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum tokens in response (higher = longer responses)</p>
+                </div>
               </div>
             )}
             {activeTab === 'appearance' && (
@@ -734,6 +833,15 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     Version 1.0.0
                   </p>
                 </div>
+                <div>
+                  <button
+                    onClick={onOpenKeyboardShortcuts}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm transition-colors w-full"
+                  >
+                    <Icons.Search />
+                    Keyboard Shortcuts
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -756,7 +864,9 @@ function App() {
   const [selectedModel, setSelectedModel] = useState('claude-sonnet-4-5-20250929');
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(1.0);
+  const [maxTokens, setMaxTokens] = useState(4096);
   const [showSettings, setShowSettings] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [abortController, setAbortController] = useState(null);
@@ -838,12 +948,16 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Command palette keyboard shortcut (Cmd/Ctrl+K)
+  // Command palette keyboard shortcut (Cmd/Ctrl+K) and Keyboard Shortcuts (Cmd/Ctrl+/)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setShowCommandPalette(prev => !prev);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        setShowKeyboardShortcuts(prev => !prev);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -1326,6 +1440,7 @@ function App() {
               model: selectedModel,
               temperature: temperature,
               top_p: topP,
+              max_tokens: maxTokens,
             }),
             signal: requestController.signal,
           });
@@ -1372,6 +1487,7 @@ function App() {
               model: selectedModel,
               temperature: temperature,
               top_p: topP,
+              max_tokens: maxTokens,
             }),
           });
 
@@ -2219,7 +2335,10 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} />
+
+        {/* Keyboard Shortcuts Modal */}
+        <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
         {/* Command Palette */}
         <CommandPalette

@@ -959,7 +959,7 @@
       "Close shortcuts reference",
       "Test a shortcut to verify it works"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1102,7 +1102,7 @@
       "Verify tab content switches",
       "Verify tab navigation works correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
