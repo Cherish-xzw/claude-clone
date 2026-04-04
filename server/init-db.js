@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS conversations (
     is_archived INTEGER DEFAULT 0,
     is_pinned INTEGER DEFAULT 0,
     is_deleted INTEGER DEFAULT 0,
+    is_unread INTEGER DEFAULT 0,
     settings TEXT DEFAULT '{}',
     token_count INTEGER DEFAULT 0,
     message_count INTEGER DEFAULT 0,

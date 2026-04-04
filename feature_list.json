@@ -2219,7 +2219,7 @@
       "Receive new message while viewing",
       "Verify conversation shows unread"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

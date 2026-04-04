@@ -248,6 +248,19 @@ const Icons = {
       <line x1="9" y1="11" x2="15" y2="11"></line>
     </svg>
   ),
+  Mail: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+  ),
+  MailOpen: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+      <path d="M2 6l10 7 10-7"></path>
+    </svg>
+  ),
 };
 
 // Code block component with copy functionality
@@ -496,7 +509,7 @@ function TypingIndicator() {
 }
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, folders }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onShare, onToggleUnread, folders }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
 
   const formatDate = (dateStr) => {
@@ -528,11 +541,24 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
               <span className="text-primary-500"><Icons.Pinned /></span>
             ) : null}
             {conversation.title || 'New Conversation'}
+            {conversation.is_unread ? (
+              <span className="inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full" title="Unread"></span>
+            ) : null}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {formatDate(conversation.updated_at)}
           </p>
         </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleUnread(conversation);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          title={conversation.is_unread ? 'Mark as read' : 'Mark as unread'}
+        >
+          {conversation.is_unread ? <Icons.MailOpen /> : <Icons.Mail />}
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -1750,6 +1776,27 @@ function App() {
     }
   };
 
+  // Toggle conversation read/unread status
+  const toggleConversationUnread = async (conversation) => {
+    try {
+      const newUnreadStatus = !conversation.is_unread;
+      const response = await fetch(`${API_BASE}/conversations/${conversation.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_unread: newUnreadStatus }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setConversations(prev => prev.map(c =>
+          c.id === conversation.id ? { ...c, is_unread: newUnreadStatus } : c
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to toggle unread status:', error);
+    }
+  };
+
   // Start editing a message
   const startEditMessage = (message) => {
     setEditingMessageId(message.id);
@@ -2894,6 +2941,7 @@ function App() {
                               onPin={pinConversation}
                               onArchive={archiveConversation}
                               onMoveToFolder={moveConversationToFolder}
+                              onToggleUnread={toggleConversationUnread}
                               folders={folders}
                             />
                           ))}
@@ -2923,6 +2971,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}
@@ -2944,6 +2993,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}
@@ -2965,6 +3015,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}
@@ -2986,6 +3037,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}
@@ -3007,6 +3059,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}
@@ -3028,6 +3081,7 @@ function App() {
                       onDuplicate={duplicateConversation}
                       onExport={exportConversation}
                       onShare={shareConversation}
+                      onToggleUnread={toggleConversationUnread}
                       folders={folders}
                     />
                   ))}

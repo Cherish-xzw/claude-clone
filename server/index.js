@@ -79,6 +79,18 @@ app.post('/api/chat', async (req, res) => {
 const dbPath = path.join(__dirname, 'data', 'claude-clone.db');
 const db = new Database(dbPath);
 
+// Add is_unread column if it doesn't exist (migration for existing databases)
+try {
+  const columns = db.prepare("PRAGMA table_info(conversations)").all();
+  const hasUnreadColumn = columns.some(col => col.name === 'is_unread');
+  if (!hasUnreadColumn) {
+    db.exec("ALTER TABLE conversations ADD COLUMN is_unread INTEGER DEFAULT 0");
+    console.log('Added is_unread column to conversations table');
+  }
+} catch (error) {
+  console.error('Migration error:', error);
+}
+
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY || '',
@@ -143,7 +155,7 @@ app.get('/api/conversations/:id', (req, res) => {
 // PUT /api/conversations/:id - Update conversation
 app.put('/api/conversations/:id', (req, res) => {
   try {
-    const { title, model, is_pinned, is_archived, is_deleted } = req.body;
+    const { title, model, is_pinned, is_archived, is_deleted, is_unread } = req.body;
     const updates = [];
     const values = [];
 
@@ -152,6 +164,7 @@ app.put('/api/conversations/:id', (req, res) => {
     if (is_pinned !== undefined) { updates.push('is_pinned = ?'); values.push(is_pinned ? 1 : 0); }
     if (is_archived !== undefined) { updates.push('is_archived = ?'); values.push(is_archived ? 1 : 0); }
     if (is_deleted !== undefined) { updates.push('is_deleted = ?'); values.push(is_deleted ? 1 : 0); }
+    if (is_unread !== undefined) { updates.push('is_unread = ?'); values.push(is_unread ? 1 : 0); }
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(req.params.id);
