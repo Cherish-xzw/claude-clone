@@ -616,12 +616,12 @@ app.get('/api/projects', (req, res) => {
 app.post('/api/projects', (req, res) => {
   try {
     const id = generateId();
-    const { name, description, color = '#CC785C', user_id = 'default' } = req.body;
+    const { name, description, color = '#CC785C', user_id = 'default', custom_instructions = '' } = req.body;
 
     db.prepare(`
-      INSERT INTO projects (id, name, description, color, user_id)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(id, name, description, color, user_id);
+      INSERT INTO projects (id, name, description, color, user_id, custom_instructions)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, name, description, color, user_id, custom_instructions);
 
     const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
     res.json(project);

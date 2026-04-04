@@ -1389,7 +1389,7 @@
       "Select a template",
       "Verify project is created with template content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
