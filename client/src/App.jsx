@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -865,13 +865,87 @@ const formatDateHelper = (dateStr, currentLang = 'en') => {
   });
 };
 
+// Conversation preview popup component - shows message content on hover
+function ConversationPreviewPopup({ conversationId, title, position, messages, isLoading, onClose }) {
+  if (!conversationId || !position) return null;
+
+  // Get up to 5 messages for preview
+  const previewMessages = messages.slice(0, 5);
+
+  // Calculate popup position - show to the right of the sidebar
+  const left = position.right + 10;
+  const top = Math.max(10, position.top - 50);
+
+  // Truncate message content for preview
+  const truncateText = (text, maxLength = 150) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  return (
+    <div
+      className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 w-80 max-h-96 overflow-hidden animate-fade-in"
+      style={{ left: `${left}px`, top: `${top}px` }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+        <p className="text-sm font-medium truncate flex-1">{title || 'Conversation Preview'}</p>
+        <button
+          onClick={onClose}
+          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500"
+          aria-label="Close preview"
+        >
+          <Icons.X />
+        </button>
+      </div>
+      <div className="p-2 space-y-2 max-h-72 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary-500 border-t-transparent"></div>
+          </div>
+        ) : previewMessages.length > 0 ? (
+          previewMessages.map((msg, index) => (
+            <div key={msg.id || index} className="text-xs">
+              <div className="flex items-start gap-2">
+                <span className={`font-medium shrink-0 ${msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`}>
+                  {msg.role === 'user' ? 'You:' : 'Claude:'}
+                </span>
+                <p className="text-gray-700 dark:text-gray-300 line-clamp-3 whitespace-pre-wrap">
+                  {truncateText(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content))}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No messages in this conversation</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, onMerge, folders, language, bulkSelectMode, isSelected, onToggleSelect }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, onMerge, folders, language, bulkSelectMode, isSelected, onToggleSelect, onHover, onLeave }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
+  const [itemRef, setItemRef] = useState(null);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
 
   const formatDate = (dateStr) => formatDateHelper(dateStr, currentLang);
+
+  const handleMouseEnter = () => {
+    if (itemRef && onHover) {
+      const rect = itemRef.getBoundingClientRect();
+      onHover(conversation.id, conversation.title || 'New Conversation', rect);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (onLeave) {
+      onLeave();
+    }
+  };
 
   return (
     <div className="relative" role="listitem">
@@ -886,6 +960,7 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
         />
       )}
       <div
+        ref={setItemRef}
         onClick={() => {
           if (bulkSelectMode) {
             onToggleSelect(conversation.id);
@@ -893,6 +968,8 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
             onClick();
           }
         }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -3300,6 +3377,14 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [folderTab, setFolderTab] = useState('details'); // 'details' | 'analytics' | 'knowledge'
   const [folderAnalytics, setFolderAnalytics] = useState(null);
+
+  // Conversation preview state
+  const [previewConversationId, setPreviewConversationId] = useState(null);
+  const [previewConversationTitle, setPreviewConversationTitle] = useState('');
+  const [previewPosition, setPreviewPosition] = useState(null);
+  const [previewMessages, setPreviewMessages] = useState([]);
+  const [hoverPreviewLoading, setHoverPreviewLoading] = useState(false);
+  const previewTimeoutRef = useRef(null);
   const [folderAnalyticsLoading, setFolderAnalyticsLoading] = useState(false);
   const [knowledgeBaseFiles, setKnowledgeBaseFiles] = useState([]);
   const [knowledgeBaseLoading, setKnowledgeBaseLoading] = useState(false);
@@ -5091,6 +5176,8 @@ function App() {
 
   // Select conversation - also updates URL
   const selectConversation = async (conversation) => {
+    // Close preview if open
+    handlePreviewLeave();
     // Update URL to reflect current conversation
     const newUrl = `/conversation/${conversation.id}`;
     window.history.pushState({ conversationId: conversation.id }, '', newUrl);
@@ -5119,6 +5206,48 @@ function App() {
       console.error('Failed to load messages:', error);
     }
   };
+
+  // Handle conversation preview hover
+  const handlePreviewHover = useCallback(async (conversationId, title, rect) => {
+    // Clear any existing timeout
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+    }
+
+    // Set preview state immediately for positioning
+    setPreviewConversationId(conversationId);
+    setPreviewConversationTitle(title);
+    setPreviewPosition(rect);
+    setPreviewMessages([]);
+    setHoverPreviewLoading(true);
+
+    // Add a small delay before fetching to prevent fetching on quick mouse movements
+    previewTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`);
+        if (response.ok) {
+          const data = await response.json();
+          const msgs = Array.isArray(data) ? data : (data.messages || []);
+          setPreviewMessages(msgs);
+        }
+      } catch (error) {
+        console.error('Failed to load preview messages:', error);
+      } finally {
+        setHoverPreviewLoading(false);
+      }
+    }, 200); // 200ms delay before fetching
+  }, []);
+
+  // Handle conversation preview leave
+  const handlePreviewLeave = useCallback(() => {
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+    }
+    setPreviewConversationId(null);
+    setPreviewPosition(null);
+    setPreviewMessages([]);
+    setHoverPreviewLoading(false);
+  }, []);
 
   // Save conversation-specific system prompt to backend
   const saveConversationSystemPrompt = async (prompt) => {
@@ -6322,6 +6451,8 @@ function App() {
                               bulkSelectMode={bulkSelectMode}
                               isSelected={selectedConversations.includes(conv.id)}
                               onToggleSelect={toggleConversationSelection}
+                              onHover={handlePreviewHover}
+                              onLeave={handlePreviewLeave}
                             />
                           ))}
                         </div>
@@ -6358,6 +6489,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6386,6 +6519,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6414,6 +6549,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6442,6 +6579,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6470,6 +6609,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6498,6 +6639,8 @@ function App() {
                       bulkSelectMode={bulkSelectMode}
                       isSelected={selectedConversations.includes(conv.id)}
                       onToggleSelect={toggleConversationSelection}
+                      onHover={handlePreviewHover}
+                      onLeave={handlePreviewLeave}
                     />
                   ))}
                 </div>
@@ -6650,6 +6793,16 @@ function App() {
           </div>
         </div>
         )}
+
+        {/* Conversation Preview Popup */}
+        <ConversationPreviewPopup
+          conversationId={previewConversationId}
+          title={previewConversationTitle}
+          position={previewPosition}
+          messages={previewMessages}
+          isLoading={hoverPreviewLoading}
+          onClose={handlePreviewLeave}
+        />
 
         {/* Sidebar Resize Handle - Hidden in focus mode */}
         {!focusMode && sidebarOpen && (

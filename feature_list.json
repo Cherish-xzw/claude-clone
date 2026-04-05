@@ -3309,7 +3309,7 @@
       "Click away",
       "Verify preview closes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
