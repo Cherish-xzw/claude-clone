@@ -3035,7 +3035,7 @@
       "Send message",
       "Verify bot responds appropriately"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

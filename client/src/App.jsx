@@ -860,7 +860,7 @@ const formatDateHelper = (dateStr, currentLang = 'en') => {
 };
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, onMerge, folders, language }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, onMerge, folders, language, bulkSelectMode, isSelected, onToggleSelect }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
@@ -869,21 +869,41 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
 
   return (
     <div className="relative" role="listitem">
+      {bulkSelectMode && (
+        <input
+          type="checkbox"
+          checked={isSelected || false}
+          onChange={() => onToggleSelect(conversation.id)}
+          className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500 cursor-pointer"
+          aria-label={`Select ${conversation.title || 'conversation'}`}
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
       <div
-        onClick={onClick}
+        onClick={() => {
+          if (bulkSelectMode) {
+            onToggleSelect(conversation.id);
+          } else {
+            onClick();
+          }
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            onClick();
+            if (bulkSelectMode) {
+              onToggleSelect(conversation.id);
+            } else {
+              onClick();
+            }
           }
         }}
         className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
           isActive
             ? 'bg-gray-200 dark:bg-gray-700'
             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
+        } ${bulkSelectMode ? 'flex-1' : ''}`}
         aria-current={isActive ? 'page' : undefined}
       >
         <div className="flex-1 min-w-0">
@@ -3107,6 +3127,22 @@ function App() {
   const [slashCommandIndex, setSlashCommandIndex] = useState(0);
   const [slashFilter, setSlashFilter] = useState('');
 
+  // Mention bot state
+  const [showMentionMenu, setShowMentionMenu] = useState(false);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const [mentionFilter, setMentionFilter] = useState('');
+
+  // Bot mention suggestions
+  const mentionSuggestions = [
+    { id: 'bot', label: 'Claude Bot', description: 'AI assistant', icon: 'bot' },
+  ];
+
+  // Filter mention suggestions based on input after "@"
+  const filteredMentions = mentionSuggestions.filter(m =>
+    m.label.toLowerCase().includes(mentionFilter.toLowerCase()) ||
+    m.description.toLowerCase().includes(mentionFilter.toLowerCase())
+  );
+
   // Slash commands configuration
   const slashCommands = [
     { command: 'new', label: 'New Chat', description: 'Start a new conversation', icon: 'plus', action: () => handleNewChat() },
@@ -3158,6 +3194,8 @@ function App() {
   const [filterProject, setFilterProject] = useState('');
   const [filterModel, setFilterModel] = useState('');
   const [conversationSort, setConversationSort] = useState('newest'); // newest, oldest, alphabetical
+  const [bulkSelectMode, setBulkSelectMode] = useState(false); // Bulk select mode for conversations
+  const [selectedConversations, setSelectedConversations] = useState([]); // Selected conversations for bulk actions
   const [abortController, setAbortController] = useState(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
@@ -3862,6 +3900,103 @@ function App() {
       setShowDeleteConfirm(false);
       setDeletingConversationId(null);
     }
+  };
+
+  // Bulk delete conversations
+  const bulkDeleteConversations = async () => {
+    if (selectedConversations.length === 0) return;
+    try {
+      // Delete all selected conversations
+      const deletePromises = selectedConversations.map(id =>
+        fetch(`${API_BASE}/conversations/${id}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+
+      // Update local state
+      setConversations(prev => prev.filter(c => !selectedConversations.includes(c.id)));
+      if (currentConversation && selectedConversations.includes(currentConversation.id)) {
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+
+      // Clear selection
+      setSelectedConversations([]);
+      setBulkSelectMode(false);
+    } catch (error) {
+      console.error('Failed to bulk delete conversations:', error);
+    }
+  };
+
+  // Bulk archive/unarchive conversations
+  const bulkArchiveConversations = async () => {
+    if (selectedConversations.length === 0) return;
+    try {
+      const archivePromises = selectedConversations.map(id =>
+        fetch(`${API_BASE}/conversations/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_archived: true }),
+        })
+      );
+      await Promise.all(archivePromises);
+
+      // Update local state
+      setConversations(prev => prev.map(c =>
+        selectedConversations.includes(c.id) ? { ...c, is_archived: true } : c
+      ));
+
+      // Clear selection
+      setSelectedConversations([]);
+      setBulkSelectMode(false);
+    } catch (error) {
+      console.error('Failed to bulk archive conversations:', error);
+    }
+  };
+
+  // Bulk pin/unpin conversations
+  const bulkPinConversations = async () => {
+    if (selectedConversations.length === 0) return;
+    try {
+      const pinPromises = selectedConversations.map(id =>
+        fetch(`${API_BASE}/conversations/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_pinned: true }),
+        })
+      );
+      await Promise.all(pinPromises);
+
+      // Update local state
+      setConversations(prev => prev.map(c =>
+        selectedConversations.includes(c.id) ? { ...c, is_pinned: true } : c
+      ));
+
+      // Clear selection
+      setSelectedConversations([]);
+      setBulkSelectMode(false);
+    } catch (error) {
+      console.error('Failed to bulk pin conversations:', error);
+    }
+  };
+
+  // Select/deselect conversation in bulk mode
+  const toggleConversationSelection = (conversationId) => {
+    setSelectedConversations(prev =>
+      prev.includes(conversationId)
+        ? prev.filter(id => id !== conversationId)
+        : [...prev, conversationId]
+    );
+  };
+
+  // Select all conversations
+  const selectAllConversations = () => {
+    const allIds = filteredConversations.map(c => c.id);
+    setSelectedConversations(allIds);
+  };
+
+  // Deselect all conversations
+  const deselectAllConversations = () => {
+    setSelectedConversations([]);
   };
 
   // Duplicate conversation
@@ -5605,6 +5740,37 @@ function App() {
         return;
       }
     }
+    // Mention menu navigation
+    if (showMentionMenu) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setMentionIndex(prev => Math.min(prev + 1, filteredMentions.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setMentionIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        if (filteredMentions[mentionIndex]) {
+          // Replace @filter with @label in input
+          const mention = filteredMentions[mentionIndex];
+          setInput(prev => prev.replace(/@\S*$/, `@${mention.label} `));
+          setShowMentionMenu(false);
+          setMentionFilter('');
+          inputRef.current?.focus();
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentionMenu(false);
+        setMentionFilter('');
+        return;
+      }
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -6641,15 +6807,26 @@ function App() {
                         setSlashFilter(match[1]);
                         setShowSlashMenu(true);
                         setSlashCommandIndex(0);
+                        setShowMentionMenu(false);
                       }
                     } else {
                       setShowSlashMenu(false);
                       setSlashFilter('');
                     }
+                    // Detect @ mentions
+                    const mentionMatch = newValue.match(/@(\S*)$/);
+                    if (mentionMatch) {
+                      setMentionFilter(mentionMatch[1]);
+                      setShowMentionMenu(true);
+                      setMentionIndex(0);
+                    } else {
+                      setShowMentionMenu(false);
+                      setMentionFilter('');
+                    }
                   }}
                   onKeyDown={handleKeyDown}
                   onPaste={handlePaste}
-                  placeholder="Type '/' for commands..."
+                  placeholder="Type '/' for commands, '@' to mention..."
                   rows={1}
                   className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
                   style={{ minHeight: '48px', maxHeight: '200px', overflowY: input.length > 2000 ? 'auto' : 'hidden', direction: (language === 'ar' || language === 'fa' || language === 'he' || language === 'ur') ? 'rtl' : 'ltr' }}
@@ -6736,6 +6913,55 @@ function App() {
                           </div>
                           <span className={`text-xs ${highContrast ? 'text-gray-600' : 'text-gray-400 dark:text-gray-500'}`}>
                             /{cmd.command}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Mention Menu */}
+                {showMentionMenu && filteredMentions.length > 0 && (
+                  <div className={`absolute z-50 mt-1 w-72 rounded-xl border shadow-lg overflow-hidden ${highContrast ? 'bg-white border-black' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                    <div className={`px-3 py-2 text-xs font-medium border-b ${highContrast ? 'border-black bg-gray-100' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'} text-gray-500 dark:text-gray-400`}>
+                      Mentions
+                    </div>
+                    <div className="max-h-64 overflow-y-auto py-1">
+                      {filteredMentions.map((mention, idx) => (
+                        <button
+                          key={mention.id}
+                          onClick={() => {
+                            setInput(prev => prev.replace(/@\S*$/, `@${mention.label} `));
+                            setShowMentionMenu(false);
+                            setMentionFilter('');
+                            inputRef.current?.focus();
+                          }}
+                          onMouseEnter={() => setMentionIndex(idx)}
+                          className={`w-full px-3 py-2 flex items-center gap-3 text-left transition-colors ${
+                            idx === mentionIndex
+                              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+                            idx === mentionIndex
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                          }`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-medium truncate ${highContrast ? 'text-black' : 'text-gray-900 dark:text-gray-100'}`}>
+                              {mention.label}
+                            </div>
+                            <div className={`text-xs truncate ${highContrast ? 'text-gray-700' : 'text-gray-500 dark:text-gray-400'}`}>
+                              {mention.description}
+                            </div>
+                          </div>
+                          <span className={`text-xs ${highContrast ? 'text-gray-600' : 'text-gray-400 dark:text-gray-500'}`}>
+                            @{mention.id}
                           </span>
                         </button>
                       ))}
