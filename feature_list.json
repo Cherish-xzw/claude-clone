@@ -2437,7 +2437,7 @@
       "Select and bulk archive",
       "Verify archive applied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3172,7 +3172,7 @@
       "Navigate away",
       "Verify favicon returns to default"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
