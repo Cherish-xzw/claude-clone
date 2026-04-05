@@ -1,4 +1,25 @@
-Progress Update - 2026-04-05 (session continued - 25)
+Progress Update - 2026-04-05 (session continued - 26)
+
+Implemented Features:
+
+- Attachment validation and error handling:
+  * Added file type validation in handleImageUpload
+  * Only image/* files are accepted, non-images show error toast
+  * Added 10MB size limit enforcement for attachments
+  * Oversized files show friendly error message
+  * Applied same validation to drag-and-drop uploads
+  * Added success toast notification for uploaded images
+  * Verified through browser automation testing
+
+- Verified existing attachment features:
+  * Multiple attachments in single message: PASS
+  * Attachment file type validation: PASS
+  * Attachment size limit handling: PASS
+  * All attachment tests marked as passing in feature_list.json
+
+Status: 231 passing, 31 remaining (was 228 passing, 34 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 25)
 
 Implemented Features:
 
