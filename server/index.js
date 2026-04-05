@@ -668,6 +668,85 @@ app.delete('/api/projects/:id', (req, res) => {
   }
 });
 
+// GET /api/projects/:id/analytics - Get project analytics
+app.get('/api/projects/:id/analytics', (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    // Get conversation count for this project
+    const conversationCount = db.prepare(`
+      SELECT COUNT(*) as count FROM conversations WHERE project_id = ?
+    `).get(projectId);
+
+    // Get total message count for this project's conversations
+    const messageStats = db.prepare(`
+      SELECT COUNT(*) as count FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE c.project_id = ?
+    `).get(projectId);
+
+    // Get token usage for this project's conversations
+    const tokenStats = db.prepare(`
+      SELECT
+        SUM(m.input_tokens) as input_tokens,
+        SUM(m.output_tokens) as output_tokens,
+        SUM(m.input_tokens + m.output_tokens) as total_tokens
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE c.project_id = ?
+    `).get(projectId);
+
+    // Get usage by model
+    const usageByModel = db.prepare(`
+      SELECT
+        c.model,
+        COUNT(DISTINCT c.id) as conversation_count,
+        COUNT(m.id) as message_count,
+        SUM(m.input_tokens) as input_tokens,
+        SUM(m.output_tokens) as output_tokens
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE c.project_id = ?
+      GROUP BY c.model
+    `).all(projectId);
+
+    // Get recent activity (messages in last 7 days)
+    const recentActivity = db.prepare(`
+      SELECT DATE(m.created_at) as date, COUNT(*) as message_count
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      WHERE c.project_id = ?
+      AND m.created_at >= datetime('now', '-7 days')
+      GROUP BY DATE(m.created_at)
+      ORDER BY date DESC
+    `).all(projectId);
+
+    // Calculate estimated cost
+    const pricing = {
+      input: 3.75,
+      output: 15
+    };
+    const estimatedCost = (
+      ((tokenStats?.input_tokens || 0) / 1000000 * pricing.input) +
+      ((tokenStats?.output_tokens || 0) / 1000000 * pricing.output)
+    );
+
+    res.json({
+      conversation_count: conversationCount?.count || 0,
+      message_count: messageStats?.count || 0,
+      input_tokens: tokenStats?.input_tokens || 0,
+      output_tokens: tokenStats?.output_tokens || 0,
+      total_tokens: tokenStats?.total_tokens || 0,
+      estimated_cost: estimatedCost,
+      usage_by_model: usageByModel,
+      recent_activity: recentActivity
+    });
+  } catch (error) {
+    console.error('Error fetching project analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch project analytics' });
+  }
+});
+
 // ============== ARTIFACTS ==============
 
 // GET /api/artifacts/:id - Get artifact

@@ -1401,7 +1401,7 @@
       "Verify conversation count shown",
       "Verify message count shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

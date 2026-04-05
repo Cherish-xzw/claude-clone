@@ -2952,6 +2952,9 @@ function App() {
   const [editingFolderId, setEditingFolderId] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [folderAnalyticsTab, setFolderAnalyticsTab] = useState(false);
+  const [folderAnalytics, setFolderAnalytics] = useState(null);
+  const [folderAnalyticsLoading, setFolderAnalyticsLoading] = useState(false);
   const [showLoginPage, setShowLoginPage] = useState(() => {
     // Check if user is logged in from localStorage (persistent) or sessionStorage (session-only)
     const savedLoginState = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
@@ -4275,7 +4278,15 @@ function App() {
     setNewFolderColor(folder.color || '#CC785C');
     setSelectedTemplate(null);
     setShowTemplates(false);
+    setFolderAnalyticsTab(false);
+    setFolderAnalytics(null);
     setShowFolderModal(true);
+
+    // Fetch project analytics
+    fetch(`${API_BASE}/projects/${folder.id}/analytics`)
+      .then(res => res.json())
+      .then(data => setFolderAnalytics(data))
+      .catch(err => console.error('Error fetching project analytics:', err));
   };
 
   // Update folder (edit mode)
@@ -6012,7 +6023,34 @@ function App() {
               className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-xl max-h-[85vh] overflow-hidden flex flex-col"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="text-lg font-semibold mb-4">{isEditingFolder ? 'Edit Project' : 'Create New Project'}</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{isEditingFolder ? 'Edit Project' : 'Create New Project'}</h3>
+                {/* Tab buttons for edit mode */}
+                {isEditingFolder && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setFolderAnalyticsTab(false)}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                        !folderAnalyticsTab
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() => setFolderAnalyticsTab(true)}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+                        folderAnalyticsTab
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <span>📊</span> Analytics
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Tab buttons for Name/Template (only in create mode) */}
               {!isEditingFolder && !showTemplates && (
@@ -6023,6 +6061,95 @@ function App() {
                   >
                     <span>📋</span> Use Template
                   </button>
+                </div>
+              )}
+
+              {/* Analytics Tab Content */}
+              {isEditingFolder && folderAnalyticsTab && (
+                <div className="flex-1 overflow-y-auto">
+                  <div className="space-y-4">
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{folderAnalytics?.conversation_count || 0}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Conversations</div>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">{folderAnalytics?.message_count || 0}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Messages</div>
+                      </div>
+                    </div>
+
+                    {/* Token Usage */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                      <h4 className="font-medium text-sm mb-3">Token Usage</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500 dark:text-gray-400">Input Tokens</span>
+                          <span className="font-medium">{(folderAnalytics?.input_tokens || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500 dark:text-gray-400">Output Tokens</span>
+                          <span className="font-medium">{(folderAnalytics?.output_tokens || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2">
+                          <span className="text-gray-500 dark:text-gray-400">Total Tokens</span>
+                          <span className="font-bold">{(folderAnalytics?.total_tokens || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500 dark:text-gray-400">Estimated Cost</span>
+                          <span className="font-medium text-primary-500">${(folderAnalytics?.estimated_cost || 0).toFixed(4)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    {folderAnalytics?.recent_activity && folderAnalytics.recent_activity.length > 0 && (
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h4 className="font-medium text-sm mb-3">Recent Activity (Last 7 Days)</h4>
+                        <div className="space-y-2">
+                          {folderAnalytics.recent_activity.map((day, idx) => (
+                            <div key={idx} className="flex justify-between text-sm">
+                              <span className="text-gray-500 dark:text-gray-400">{day.date}</span>
+                              <span className="font-medium">{day.message_count} messages</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Usage by Model */}
+                    {folderAnalytics?.usage_by_model && folderAnalytics.usage_by_model.length > 0 && (
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h4 className="font-medium text-sm mb-3">Usage by Model</h4>
+                        <div className="space-y-2">
+                          {folderAnalytics.usage_by_model.map((model, idx) => (
+                            <div key={idx} className="text-sm">
+                              <div className="flex justify-between mb-1">
+                                <span className="font-medium">{model.model || 'Default'}</span>
+                                <span className="text-gray-500 dark:text-gray-400">{model.message_count} messages</span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                                <div
+                                  className="bg-primary-500 h-1.5 rounded-full"
+                                  style={{ width: `${Math.min((model.message_count / (folderAnalytics?.message_count || 1)) * 100, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty state */}
+                    {(!folderAnalytics || (folderAnalytics?.conversation_count === 0 && folderAnalytics?.message_count === 0)) && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <div className="text-4xl mb-2">📊</div>
+                        <p>No analytics data yet</p>
+                        <p className="text-sm mt-1">Start a conversation in this project to see stats</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -6069,9 +6196,9 @@ function App() {
                     </div>
                   )}
                 </div>
-              ) : (
-                /* Normal Name Input View */
-                <div>
+              ) : !folderAnalyticsTab ? (
+                /* Details Tab - Normal Name Input View */
+                <div className="flex-1 overflow-y-auto">
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Project Name</label>
                     <input
@@ -6136,7 +6263,7 @@ function App() {
                     </div>
                   )}
                 </div>
-              )}
+              ) : null}
 
               <div className="flex justify-end gap-3 mt-4">
                 <button
