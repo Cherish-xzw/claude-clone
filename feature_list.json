@@ -3389,7 +3389,7 @@
       "Verify avatar is saved",
       "Verify avatar appears in app"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

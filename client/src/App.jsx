@@ -8163,6 +8163,50 @@ function App() {
               <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
 
               <div className="space-y-4">
+                {/* Avatar Upload */}
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                    {userProfile?.avatar ? (
+                      <img id="avatar-preview" src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span id="avatar-initial" className="text-2xl font-medium text-gray-500">{userProfile?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const preview = document.getElementById('avatar-preview');
+                            const initial = document.getElementById('avatar-initial');
+                            if (preview) {
+                              preview.src = event.target.result;
+                              preview.style.display = 'block';
+                            }
+                            if (initial) {
+                              initial.style.display = 'none';
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    >
+                      Upload Avatar
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
                   <input
@@ -8200,6 +8244,8 @@ function App() {
                   onClick={() => {
                     const newName = document.getElementById('change-name').value;
                     const newEmail = document.getElementById('change-email').value;
+                    const avatarPreview = document.getElementById('avatar-preview');
+                    const newAvatar = avatarPreview?.src || null;
 
                     if (!newName.trim()) {
                       alert('Please enter your name');
@@ -8211,8 +8257,8 @@ function App() {
                     }
 
                     // Update user profile
-                    setUserProfile(prev => ({ ...prev, name: newName, email: newEmail }));
-                    localStorage.setItem('userProfile', JSON.stringify({ name: newName, email: newEmail }));
+                    setUserProfile(prev => ({ ...prev, name: newName, email: newEmail, avatar: newAvatar }));
+                    localStorage.setItem('userProfile', JSON.stringify({ name: newName, email: newEmail, avatar: newAvatar }));
 
                     alert('Profile updated successfully! (Demo)');
                     setShowChangeEmail(false);
