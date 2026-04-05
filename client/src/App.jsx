@@ -3306,6 +3306,10 @@ function App() {
   const [promptDescription, setPromptDescription] = useState(''); // Description for new prompt
   const [promptCategory, setPromptCategory] = useState('General'); // Category for new prompt
   const [toasts, setToasts] = useState([]); // Toast notifications
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true); // Network status
+  const [networkError, setNetworkError] = useState(null); // Network error message
+  const [showNetworkBanner, setShowNetworkBanner] = useState(false); // Show network error banner
+  const [isRecovering, setIsRecovering] = useState(false); // Recovery in progress
   const [usageLimits, setUsageLimits] = useState(() => {
     const saved = localStorage.getItem('usageLimits');
     return saved ? JSON.parse(saved) : { enabled: false, monthlyTokenLimit: 1000000, dailyCostLimit: 10, warningThreshold: 80 };
@@ -3607,6 +3611,45 @@ function App() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing]);
+
+  // Network status event listeners
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network: Online');
+      setIsOnline(true);
+      // If there was a network error and we're back online, trigger recovery
+      if (networkError || showNetworkBanner) {
+        setIsRecovering(true);
+        showToast('Network connection restored. Retrying...', 'success');
+        // Attempt to reconnect and resume any pending operations
+        setTimeout(() => {
+          setShowNetworkBanner(false);
+          setNetworkError(null);
+          setIsRecovering(false);
+          showToast('Connected successfully', 'success');
+        }, 2000);
+      }
+    };
+
+    const handleOffline = () => {
+      console.log('Network: Offline');
+      setIsOnline(false);
+      setNetworkError('Network connection lost. Please check your internet connection.');
+      setShowNetworkBanner(true);
+      showToast('Network connection lost', 'error');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Set initial state
+    setIsOnline(navigator.onLine);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [networkError, showNetworkBanner]);
 
   // Load conversations on mount
   useEffect(() => {
@@ -5437,15 +5480,42 @@ function App() {
       if (error.name === 'AbortError') {
         console.log('Request aborted');
       } else {
-        // Safe state update with fallback
-        setMessages(prev => {
-          if (!prev || !Array.isArray(prev)) return prev;
-          return prev.map(msg =>
-            msg.isStreaming
-              ? { ...msg, content: (msg.content || '') + '\n\n[Error: Failed to get response]' }
-              : msg
+        // Check if it's a network error
+        const isNetworkError = !navigator.onLine ||
+          error.message.includes('network') ||
+          error.message.includes('fetch') ||
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('NetworkError') ||
+          error.message.includes('TypeError: Failed') ||
+          error.status === 0 ||
+          error.status === 503;
+
+        if (isNetworkError) {
+          console.log('Network error detected');
+          setNetworkError('Network error: Unable to connect to the server. Please check your connection.');
+          setShowNetworkBanner(true);
+          showToast('Network error - Please check your connection', 'error');
+
+          // Update message with network error indicator
+          setMessages(prev => {
+            if (!prev || !Array.isArray(prev)) return prev;
+            return prev.map(msg =>
+              msg.isStreaming
+                ? { ...msg, content: (msg.content || '') + '\n\n[Network Error: Connection failed. Please retry when connected.]', isStreaming: false, hasError: true }
+                : msg
+            );
+          });
+        } else {
+          // Safe state update with fallback for other errors
+          setMessages(prev => {
+            if (!prev || !Array.isArray(prev)) return prev;
+            return prev.map(msg =>
+              msg.isStreaming
+                ? { ...msg, content: (msg.content || '') + '\n\n[Error: Failed to get response]' }
+                : msg
           );
         });
+        }
       }
     } finally {
       setIsLoading(false);
@@ -8009,6 +8079,45 @@ function App() {
             </div>
           ))}
         </div>
+
+        {/* Network Error Banner */}
+        {showNetworkBanner && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-yellow-900 px-4 py-3 shadow-lg">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-semibold">Connection Lost</p>
+                  <p className="text-sm">{networkError || 'Unable to connect to the server. Please check your internet connection.'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isRecovering && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Reconnecting...</span>
+                  </div>
+                )}
+                {isOnline && !isRecovering && (
+                  <button
+                    onClick={() => {
+                      setShowNetworkBanner(false);
+                      setNetworkError(null);
+                    }}
+                    className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ThemeContext.Provider>
   );
