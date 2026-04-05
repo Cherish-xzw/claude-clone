@@ -3343,6 +3343,7 @@ function App() {
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState(''); // System prompt override
   const [shareData, setShareData] = useState(null);
@@ -6563,7 +6564,10 @@ function App() {
                     </svg>
                     Edit Profile
                   </button>
-                  <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <button
+                    onClick={() => setShowChangePassword(true)}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -8053,6 +8057,89 @@ function App() {
                   className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Change Password Modal */}
+        {showChangePassword && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowChangePassword(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Current Password</label>
+                  <input
+                    type="password"
+                    id="current-password"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    placeholder="Enter current password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">New Password</label>
+                  <input
+                    type="password"
+                    id="new-password"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    placeholder="Enter new password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Confirm New Password</label>
+                  <input
+                    type="password"
+                    id="confirm-password"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-3">
+                Note: This is a demo. Password change is simulated.
+              </p>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowChangePassword(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const current = document.getElementById('current-password').value;
+                    const newPass = document.getElementById('new-password').value;
+                    const confirm = document.getElementById('confirm-password').value;
+
+                    if (!current) {
+                      alert('Please enter your current password');
+                      return;
+                    }
+                    if (newPass.length < 6) {
+                      alert('New password must be at least 6 characters');
+                      return;
+                    }
+                    if (newPass !== confirm) {
+                      alert('New passwords do not match');
+                      return;
+                    }
+                    alert('Password changed successfully! (Demo)');
+                    setShowChangePassword(false);
+                  }}
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  Change Password
                 </button>
               </div>
             </div>

@@ -3363,7 +3363,7 @@
       "Submit",
       "Verify success message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
