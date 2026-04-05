@@ -488,7 +488,7 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
             </div>
           )}
           {/* Display images if present */}
-          {message.images && message.images.length > 0 && (
+          {Array.isArray(message.images) && message.images.length > 0 && (
             <div className={`flex flex-wrap gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`} role="list" aria-label="Attached images">
               {message.images.map((image, index) => (
                 <div
@@ -798,33 +798,49 @@ const isRTL = (lang) => {
   return rtlLanguages.includes(lang);
 };
 
+// Format date helper - module level for use in both ConversationItem and App
+const formatDateHelper = (dateStr, currentLang = 'en') => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now - date;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  const labels = {
+    en: { today: 'Today', yesterday: 'Yesterday', daysAgo: 'days ago' },
+    zh: { today: '今天', yesterday: '昨天', daysAgo: '天前' },
+    es: { today: 'Hoy', yesterday: 'Ayer', daysAgo: 'días atrás' },
+    fr: { today: "Aujourd'hui", yesterday: 'Hier', daysAgo: "jours atrás" },
+    de: { today: 'Heute', yesterday: 'Gestern', daysAgo: 'Tagen' },
+    ja: { today: '今日', yesterday: '昨日', daysAgo: '日前' },
+    ko: { today: '오늘', yesterday: '어제', daysAgo: '일 전' },
+    pt: { today: 'Hoje', yesterday: 'Ontem', daysAgo: 'dias atrás' },
+    ru: { today: 'Сегодня', yesterday: 'Вчера', daysAgo: 'дней назад' },
+    ar: { today: 'اليوم', yesterday: 'أمس', daysAgo: 'أيام' },
+  };
+  const langLabels = labels[currentLang] || labels.en;
+
+  if (days === 0) return langLabels.today;
+  if (days === 1) return langLabels.yesterday;
+  if (days < 7) return `${days} ${langLabels.daysAgo}`;
+  // Format date based on language
+  const localeMap = {
+    en: 'en-US', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR',
+    de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', pt: 'pt-BR',
+    ru: 'ru-RU', ar: 'ar-SA'
+  };
+  return date.toLocaleDateString(localeMap[currentLang] || 'en-US', {
+    year: 'numeric', month: 'short', day: 'numeric'
+  });
+};
+
 // Conversation item in sidebar
 function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, folders, language }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
-  const langLabels = getLanguageLabels(currentLang);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) return langLabels.today;
-    if (days === 1) return langLabels.yesterday;
-    if (days < 7) return `${days} ${langLabels.daysAgo}`;
-    // Format date based on language
-    const localeMap = {
-      en: 'en-US', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR',
-      de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', pt: 'pt-BR',
-      ru: 'ru-RU', ar: 'ar-SA'
-    };
-    return date.toLocaleDateString(localeMap[currentLang] || 'en-US', {
-      year: 'numeric', month: 'short', day: 'numeric'
-    });
-  };
+  const formatDate = (dateStr) => formatDateHelper(dateStr, currentLang);
 
   return (
     <div className="relative" role="listitem">
@@ -3028,6 +3044,9 @@ function App() {
     cmd.label.toLowerCase().includes(slashFilter.toLowerCase())
   );
 
+  // Model selection state - must be before totalConversationCost calculation
+  const [selectedModel, setSelectedModel] = useState(() => loadSetting('app_selectedModel', 'claude-sonnet-4-5-20250929'));
+
   // Calculate total conversation cost
   const totalConversationCost = useMemo(() => {
     const model = currentConversation?.model || selectedModel;
@@ -3037,7 +3056,6 @@ function App() {
   }, [messages, currentConversation, selectedModel]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(() => loadSetting('app_selectedModel', 'claude-sonnet-4-5-20250929'));
   const [temperature, setTemperature] = useState(() => loadSetting('app_temperature', 0.7));
   const [topP, setTopP] = useState(() => loadSetting('app_topP', 1.0));
   const [maxTokens, setMaxTokens] = useState(() => loadSetting('app_maxTokens', 4096));
@@ -5979,7 +5997,7 @@ function App() {
                   )}
                   {currentConversation.created_at && (
                     <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Created">
-                      {formatDate(currentConversation.created_at)}
+                      {formatDateHelper(currentConversation.created_at, language)}
                     </span>
                   )}
                 </div>

@@ -3270,7 +3270,7 @@
       "Wait for response",
       "Verify sending is re-enabled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
