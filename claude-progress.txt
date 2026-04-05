@@ -1,17 +1,24 @@
-Progress Update - 2026-04-05 (session continued - 20)
+Progress Update - 2026-04-05 (session continued - 21)
 
 Implemented Features:
 
-- URL reflects current conversation:
-  * Added BrowserRouter to main.jsx for React Router support
-  * Updated selectConversation to update URL using window.history.pushState
-  * Updated createConversation to update URL for new conversations (/conversation/{id})
-  * Added useEffect to load conversation from URL when app mounts
-  * Added handlePopState to support browser back/forward navigation
-  * Updated document.title based on current conversation
-  * Updated feature_list.json: marked test "URL reflects current conversation" as passing
+- Rich text formatting toolbar:
+  * Added formatting toolbar above message input area
+  * Implemented Bold button (wraps selected text with **)
+  * Implemented Italic button (wraps selected text with *)
+  * Implemented Strikethrough button (wraps with ~~)
+  * Implemented Inline code button (wraps with `)
+  * Implemented Link button (inserts [text](url))
+  * Implemented Bullet list button (adds - at line start)
+  * Implemented Numbered list button (adds 1. at line start)
+  * All functions handle both selected text and cursor position
+  * Toolbar styled consistently with app dark mode support
+  * Code verified through code review
+  * Updated feature_list.json: marked test "Rich text formatting toolbar" as passing
 
-Status: 222 passing, 40 remaining (was 221 passing, 41 remaining)
+Status: 223 passing, 39 remaining (was 222 passing, 40 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 20)
 
 Previous Progress Update - 2026-04-05 (session continued - 19)
 
