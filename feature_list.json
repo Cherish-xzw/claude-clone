@@ -3349,7 +3349,7 @@
       "Verify backup codes shown",
       "Verify mock confirmation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

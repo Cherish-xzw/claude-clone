@@ -3345,6 +3345,7 @@ function App() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState(''); // System prompt override
   const [shareData, setShareData] = useState(null);
@@ -6579,6 +6580,15 @@ function App() {
                     Change Password
                   </button>
                   <button
+                    onClick={() => setShowTwoFactorModal(true)}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    Two-Factor Auth
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
@@ -8266,6 +8276,80 @@ function App() {
                   className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Two-Factor Authentication Modal */}
+        {showTwoFactorModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowTwoFactorModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Two-Factor Authentication</h3>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Add an extra layer of security to your account by requiring a verification code in addition to your password.
+              </p>
+
+              {/* Mock QR Code */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
+                  <div className="text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto text-gray-400">
+                      <rect x="3" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="3" width="7" height="7"></rect>
+                      <rect x="3" y="14" width="7" height="7"></rect>
+                      <rect x="14" y="14" width="3" height="3"></rect>
+                      <rect x="18" y="14" width="3" height="3"></rect>
+                      <rect x="14" y="18" width="3" height="3"></rect>
+                      <rect x="18" y="18" width="3" height="3"></rect>
+                    </svg>
+                    <p className="text-xs text-gray-500 mt-2">(Mock QR Code)</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Scan this QR code with your authenticator app</p>
+              </div>
+
+              {/* Backup Codes */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium mb-2">Backup Codes</h4>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 font-mono text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <span>1234-5678-ABCD</span>
+                    <span>EFGH-9012-3456</span>
+                    <span>7890-IJKL-2345</span>
+                    <span>MNOP-6789-0123</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Save these codes in a safe place. They can be used to access your account if you lose your phone.</p>
+              </div>
+
+              <p className="text-xs text-gray-500 mb-4">
+                Note: This is a demo. 2FA setup is simulated.
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowTwoFactorModal(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    alert('Two-factor authentication enabled! (Demo)');
+                    setShowTwoFactorModal(false);
+                  }}
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  Enable 2FA
                 </button>
               </div>
             </div>
