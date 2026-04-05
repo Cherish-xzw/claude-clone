@@ -2972,7 +2972,7 @@
       "Verify all images sent",
       "Verify all images display"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2984,7 +2984,7 @@
       "Attach supported file type",
       "Verify file is accepted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2996,7 +2996,7 @@
       "Attach file within limit",
       "Verify file is accepted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

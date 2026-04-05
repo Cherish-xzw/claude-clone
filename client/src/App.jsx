@@ -4416,22 +4416,41 @@ function App() {
   };
 
   // Image upload handling
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB limit
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    let hasInvalidFiles = false;
+    let hasOversizedFiles = false;
+
     files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setUploadedImages(prev => [...prev, {
-            id: generateId(),
-            data: event.target.result, // Base64 data
-            name: file.name,
-            type: file.type
-          }]);
-        };
-        reader.readAsDataURL(file);
+      if (!file.type.startsWith('image/')) {
+        hasInvalidFiles = true;
+        return;
       }
+      if (file.size > MAX_IMAGE_SIZE) {
+        hasOversizedFiles = true;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedImages(prev => [...prev, {
+          id: generateId(),
+          data: event.target.result, // Base64 data
+          name: file.name,
+          type: file.type,
+          size: file.size
+        }]);
+        showToast(`Image "${file.name}" uploaded successfully`, 'success');
+      };
+      reader.readAsDataURL(file);
     });
+
+    if (hasInvalidFiles) {
+      showToast('Only image files are allowed (PNG, JPG, GIF, WebP, etc.)', 'error');
+    }
+    if (hasOversizedFiles) {
+      showToast('Image size exceeds 10MB limit', 'error');
+    }
     // Reset the file input
     e.target.value = '';
   };
@@ -4491,20 +4510,38 @@ function App() {
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
+    let hasInvalidFiles = false;
+    let hasOversizedFiles = false;
+
     files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setUploadedImages(prev => [...prev, {
-            id: generateId(),
-            data: event.target.result, // Base64 data
-            name: file.name,
-            type: file.type
-          }]);
-        };
-        reader.readAsDataURL(file);
+      if (!file.type.startsWith('image/')) {
+        hasInvalidFiles = true;
+        return;
       }
+      if (file.size > MAX_IMAGE_SIZE) {
+        hasOversizedFiles = true;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedImages(prev => [...prev, {
+          id: generateId(),
+          data: event.target.result, // Base64 data
+          name: file.name,
+          type: file.type,
+          size: file.size
+        }]);
+        showToast(`Image "${file.name}" uploaded successfully`, 'success');
+      };
+      reader.readAsDataURL(file);
     });
+
+    if (hasInvalidFiles) {
+      showToast('Only image files are allowed (PNG, JPG, GIF, WebP, etc.)', 'error');
+    }
+    if (hasOversizedFiles) {
+      showToast('Image size exceeds 10MB limit', 'error');
+    }
   };
 
   // Remove uploaded image
