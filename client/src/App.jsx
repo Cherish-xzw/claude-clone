@@ -3424,6 +3424,21 @@ function App() {
     loadFolders();
   }, []);
 
+  // Load conversation from URL when conversations are loaded
+  useEffect(() => {
+    if (conversations.length === 0) return;
+
+    const path = window.location.pathname;
+    const convMatch = path.match(/^\/conversation\/([a-zA-Z0-9]+)$/);
+    if (convMatch) {
+      const conversationId = convMatch[1];
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        selectConversation(conv);
+      }
+    }
+  }, [conversations]);
+
   // Update browser tab title based on current conversation
   useEffect(() => {
     if (currentConversation?.title) {
@@ -3466,6 +3481,47 @@ function App() {
         });
     }
   }, []);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = async (event) => {
+      const path = window.location.pathname;
+      const convMatch = path.match(/^\/conversation\/([a-zA-Z0-9]+)$/);
+
+      if (convMatch) {
+        const conversationId = convMatch[1];
+        const conv = conversations.find(c => c.id === conversationId);
+        if (conv) {
+          setCurrentConversation(conv);
+          // Fetch messages for the conversation
+          try {
+            const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`);
+            if (response.ok) {
+              const data = await response.json();
+              setMessages(Array.isArray(data) ? data : (data.messages || []));
+            }
+            const convResponse = await fetch(`${API_BASE}/conversations/${conversationId}`);
+            if (convResponse.ok) {
+              const convData = await convResponse.json();
+              if (convData.system_prompt !== undefined) {
+                setSystemPrompt(convData.system_prompt || '');
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load messages on navigation:', error);
+          }
+        }
+      } else if (path === '/' || path === '') {
+        // Return to home - clear current conversation
+        setCurrentConversation(null);
+        setMessages([]);
+        setSystemPrompt('');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [conversations]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -3534,6 +3590,10 @@ function App() {
         setCurrentConversation(conv);
         setMessages([]);
         setResponseSuggestions([]); // Clear suggestions for new conversation
+        // Update URL for new conversation
+        const newUrl = `/conversation/${conv.id}`;
+        window.history.pushState({ conversationId: conv.id }, '', newUrl);
+        document.title = 'New Chat - Claude';
         return conv;
       } else {
         console.error('createConversation: Failed with status', response.status);
@@ -4466,8 +4526,14 @@ function App() {
     );
   };
 
-  // Select conversation
+  // Select conversation - also updates URL
   const selectConversation = async (conversation) => {
+    // Update URL to reflect current conversation
+    const newUrl = `/conversation/${conversation.id}`;
+    window.history.pushState({ conversationId: conversation.id }, '', newUrl);
+    // Update document title
+    document.title = conversation.title ? `${conversation.title} - Claude` : 'New Chat - Claude';
+
     setCurrentConversation(conversation);
     try {
       // Fetch full conversation data to get system_prompt

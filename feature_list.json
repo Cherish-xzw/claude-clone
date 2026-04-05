@@ -3147,7 +3147,7 @@
       "Open in new tab",
       "Verify same conversation loads"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
