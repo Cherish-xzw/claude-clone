@@ -1,4 +1,18 @@
-Progress Update - 2026-04-05 (session continued - 22)
+Progress Update - 2026-04-05 (session continued - 23)
+
+Implemented Features:
+
+- Quick switch between recent conversations:
+  * Modified Command Palette to show recent conversations by default when opened
+  * Updated placeholder text to indicate search capabilities
+  * Recent conversations now appear in a dedicated category in the palette
+  * Users can quickly switch conversations using Cmd/Ctrl+K, arrow keys, and Enter
+  * Build verified successfully
+  * Updated feature_list.json: marked "Quick switch between recent conversations" as passing
+
+Status: 226 passing, 36 remaining (was 225 passing, 37 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 22)
 
 Implemented Features:
 
