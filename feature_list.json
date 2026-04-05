@@ -3336,7 +3336,7 @@
       "Complete deletion",
       "Verify account is removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
