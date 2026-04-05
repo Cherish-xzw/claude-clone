@@ -410,7 +410,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en' }) {
+function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en', hasThread = false, threadCount = 0, isThreadExpanded = false, onToggleThread = () => {}, isThreadReply = false }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
   const [reactions, setReactions] = React.useState([]);
@@ -705,6 +705,24 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                 className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          )}
+          {/* Thread toggle button for messages with threads */}
+          {hasThread && !isEditing && (
+            <div className="mt-2">
+              <button
+                onClick={onToggleThread}
+                className={`text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors ${
+                  isThreadExpanded
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
+                    : 'text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isThreadExpanded ? 'rotate-90' : ''}>
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                {isThreadExpanded ? 'Hide' : 'Show'} {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
               </button>
             </div>
           )}
@@ -3083,6 +3101,7 @@ function App() {
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [expandedThreads, setExpandedThreads] = useState([]); // Track which message threads are expanded
   const [input, setInput] = useState('');
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashCommandIndex, setSlashCommandIndex] = useState(0);
@@ -6267,41 +6286,96 @@ function App() {
               </div>
             ) : (
               <>
-                {messages.map(message => {
-                  const messageIndex = messages.indexOf(message);
-                  const hasArtifact = artifacts.some(a => {
-                    // Check if this message's content contains an artifact
-                    // This is a simplified check - in production, you'd track this more precisely
-                    return false; // Artifacts are added after message is created
+                {(() => {
+                  // Separate top-level messages from thread replies
+                  const topLevelMessages = messages.filter(m => !m.parent_message_id);
+                  const getThreadReplies = (parentId) => messages.filter(m => m.parent_message_id === parentId);
+
+                  return topLevelMessages.map(message => {
+                    const messageIndex = messages.indexOf(message);
+                    const threadReplies = getThreadReplies(message.id);
+                    const hasThread = threadReplies.length > 0;
+                    const isThreadExpanded = expandedThreads.includes(message.id);
+
+                    return (
+                      <div key={message.id} className="thread-container">
+                        <Message
+                          message={message}
+                          model={currentConversation?.model || MODELS[0].id}
+                          onRegenerate={() => {}}
+                          onEdit={startEditMessage}
+                          isEditing={editingMessageId === message.id}
+                          editedContent={editingMessageId === message.id ? editedMessageContent : ''}
+                          onEditedContentChange={setEditedMessageContent}
+                          onSaveEdit={saveEditedMessage}
+                          onCancelEdit={cancelEditMessage}
+                          onDelete={deleteMessage}
+                          onBranch={branchConversation}
+                          onImageClick={(imageData) => setLightboxImage(imageData)}
+                          onOpenArtifact={() => {
+                            if (artifacts.length > 0) {
+                              setActiveArtifact(artifacts[artifacts.length - 1]);
+                              setIsArtifactPanelOpen(true);
+                            }
+                          }}
+                          hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
+                          showThinking={thinkingEnabled && message.role === 'assistant'}
+                          highContrast={highContrast}
+                          language={language}
+                          hasThread={hasThread}
+                          threadCount={threadReplies.length}
+                          isThreadExpanded={isThreadExpanded}
+                          onToggleThread={() => {
+                            if (isThreadExpanded) {
+                              setExpandedThreads(prev => prev.filter(id => id !== message.id));
+                            } else {
+                              setExpandedThreads(prev => [...prev, message.id]);
+                            }
+                          }}
+                        />
+                        {/* Thread replies */}
+                        {hasThread && isThreadExpanded && (
+                          <div className="ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700 mt-2 space-y-3">
+                            {threadReplies.map(reply => (
+                              <Message
+                                key={reply.id}
+                                message={reply}
+                                model={currentConversation?.model || MODELS[0].id}
+                                onRegenerate={() => {}}
+                                onEdit={startEditMessage}
+                                isEditing={editingMessageId === reply.id}
+                                editedContent={editingMessageId === reply.id ? editedMessageContent : ''}
+                                onEditedContentChange={setEditedMessageContent}
+                                onSaveEdit={saveEditedMessage}
+                                onCancelEdit={cancelEditMessage}
+                                onDelete={deleteMessage}
+                                onBranch={branchConversation}
+                                onImageClick={(imageData) => setLightboxImage(imageData)}
+                                onOpenArtifact={() => {}}
+                                hasArtifact={false}
+                                showThinking={thinkingEnabled && reply.role === 'assistant'}
+                                highContrast={highContrast}
+                                language={language}
+                                isThreadReply={true}
+                              />
+                            ))}
+                          </div>
+                        )}
+                        {hasThread && !isThreadExpanded && (
+                          <button
+                            onClick={() => setExpandedThreads(prev => [...prev, message.id])}
+                            className="ml-8 pl-4 mt-1 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 flex items-center gap-1"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            {threadReplies.length} {threadReplies.length === 1 ? 'reply' : 'replies'}
+                          </button>
+                        )}
+                      </div>
+                    );
                   });
-                  return (
-                    <Message
-                      key={message.id}
-                      message={message}
-                      model={currentConversation?.model || MODELS[0].id}
-                      onRegenerate={() => {}}
-                      onEdit={startEditMessage}
-                      isEditing={editingMessageId === message.id}
-                      editedContent={editingMessageId === message.id ? editedMessageContent : ''}
-                      onEditedContentChange={setEditedMessageContent}
-                      onSaveEdit={saveEditedMessage}
-                      onCancelEdit={cancelEditMessage}
-                      onDelete={deleteMessage}
-                      onBranch={branchConversation}
-                      onImageClick={(imageData) => setLightboxImage(imageData)}
-                      onOpenArtifact={() => {
-                        if (artifacts.length > 0) {
-                          setActiveArtifact(artifacts[artifacts.length - 1]);
-                          setIsArtifactPanelOpen(true);
-                        }
-                      }}
-                      hasArtifact={artifacts.length > 0 && message.role === 'assistant'}
-                      showThinking={thinkingEnabled && message.role === 'assistant'}
-                      highContrast={highContrast}
-                      language={language}
-                    />
-                  );
-                })}
+                })()}
                 {isStreaming && <TypingIndicator />}
 
                 {/* Response Suggestions */}

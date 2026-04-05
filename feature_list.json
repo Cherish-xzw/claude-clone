@@ -2946,7 +2946,7 @@
       "Collapse thread",
       "Verify thread collapses"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
