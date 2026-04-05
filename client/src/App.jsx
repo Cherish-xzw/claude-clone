@@ -5746,9 +5746,7 @@ function App() {
             }
             return prev.map(msg =>
               msg.isStreaming
-                ? { ...msg, content: (msg.content || '') + '
-
-[Network Error: Connection failed. Please retry when connected.]', isStreaming: false, hasError: true }
+                ? { ...msg, content: (msg.content || '') + '\n[Network Error: Connection failed. Please retry when connected.]', isStreaming: false, hasError: true }
                 : msg
             );
           });
@@ -5763,16 +5761,10 @@ function App() {
             }
             return prev.map(msg =>
               msg.isStreaming
-                ? { ...msg, content: (msg.content || '') + '
-
-[Error: Failed to get response]', hasError: true }
+                ? { ...msg, content: (msg.content || '') + '\n[Error: Failed to get response]', hasError: true }
                 : msg
             );
           });
-        }
-                : msg
-          );
-        });
         }
       }
     } finally {
