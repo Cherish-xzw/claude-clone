@@ -1,4 +1,21 @@
-Progress Update - 2026-04-05 (session continued - 27)
+Progress Update - 2026-04-05 (session continued - 28)
+
+Implemented Features:
+
+- Message threading display:
+  * Added expandedThreads state to track expanded thread visibility
+  * Modified message rendering to separate top-level messages from thread replies
+  * Messages filtered by parent_message_id to identify thread structure
+  * Added thread toggle button to show/hide replies
+  * Thread replies indented with left border in thread container
+  * Collapsed threads show "X replies" button to expand
+  * Expanded threads show inline toggle to collapse
+  * Added hasThread, threadCount, isThreadExpanded, onToggleThread props to Message component
+  * Build verified successfully
+
+Status: 233 passing, 29 remaining (was 232 passing, 30 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 27)
 
 Implemented Features:
 
