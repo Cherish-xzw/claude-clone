@@ -5873,6 +5873,10 @@ function App() {
                   onChange={e => {
                     const newValue = e.target.value;
                     setInput(newValue);
+                    // Auto-resize textarea
+                    e.target.style.height = 'auto';
+                    const newHeight = Math.min(e.target.scrollHeight, 200); // max 200px
+                    e.target.style.height = newHeight + 'px';
                     // Detect slash commands
                     if (newValue.startsWith('/')) {
                       const match = newValue.match(/^\/(\S*)/);
@@ -5890,10 +5894,17 @@ function App() {
                   onPaste={handlePaste}
                   placeholder="Type '/' for commands..."
                   rows={1}
-                  className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-40 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
-                  style={{ minHeight: '48px', direction: (language === 'ar' || language === 'fa' || language === 'he' || language === 'ur') ? 'rtl' : 'ltr' }}
+                  className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 ${highContrast ? 'bg-white border-2 border-black text-black' : 'bg-gray-100 dark:bg-gray-800'} ${language === 'ar' || language === 'fa' || language === 'he' || language === 'ur' ? 'text-right' : ''}`}
+                  style={{ minHeight: '48px', maxHeight: '200px', overflowY: input.length > 2000 ? 'auto' : 'hidden', direction: (language === 'ar' || language === 'fa' || language === 'he' || language === 'ur') ? 'rtl' : 'ltr' }}
                   aria-label="Message input"
                 />
+                {/* Character count and token estimation for long messages */}
+                {input.length > 0 && (
+                  <div className={`flex items-center justify-end gap-4 mt-1 px-1 text-xs ${highContrast ? 'text-gray-600' : 'text-gray-500 dark:text-gray-400'}`}>
+                    <span>{input.length.toLocaleString()} characters</span>
+                    <span>~{Math.ceil(input.length / 4).toLocaleString()} tokens</span>
+                  </div>
+                )}
                 {/* Slash Commands Menu */}
                 {showSlashMenu && filteredSlashCommands.length > 0 && (
                   <div className={`absolute z-50 mt-1 w-72 rounded-xl border shadow-lg overflow-hidden ${highContrast ? 'bg-white border-black' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
