@@ -198,6 +198,13 @@ const Icons = {
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
   ),
+  Merge: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="18" r="3"></circle>
+      <circle cx="6" cy="6" r="3"></circle>
+      <path d="M6 21V9a9 9 0 0 0 9 9"></path>
+    </svg>
+  ),
   Stop: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
       <rect x="6" y="6" width="12" height="12" rx="2"></rect>
@@ -835,7 +842,7 @@ const formatDateHelper = (dateStr, currentLang = 'en') => {
 };
 
 // Conversation item in sidebar
-function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, folders, language }) {
+function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, onArchive, onMoveToFolder, onDuplicate, onExport, onPrint, onShare, onToggleUnread, onToggleFavorite, onMerge, folders, language }) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   // Use language prop if provided, otherwise fallback to localStorage
   const currentLang = language || getSavedLanguage();
@@ -932,6 +939,17 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
           aria-label="Duplicate conversation"
         >
           <Icons.Copy />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMerge(conversation);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 transition-opacity"
+          title="Merge"
+          aria-label="Merge conversation"
+        >
+          <Icons.Merge />
         </button>
         <button
           onClick={(e) => {
@@ -3979,6 +3997,59 @@ function App() {
     }
   };
 
+  // Merge conversations
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [mergeSourceConversation, setMergeSourceConversation] = useState(null);
+  const [mergeTargetConversation, setMergeTargetConversation] = useState(null);
+  const [isMerging, setIsMerging] = useState(false);
+
+  const initiateMerge = (conversation) => {
+    setMergeSourceConversation(conversation);
+    setMergeTargetConversation(null);
+    setShowMergeModal(true);
+  };
+
+  const mergeConversations = async () => {
+    if (!mergeSourceConversation || !mergeTargetConversation) return;
+
+    setIsMerging(true);
+    try {
+      const response = await fetch(`${API_BASE}/conversations/${mergeTargetConversation.id}/merge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_conversation_id: mergeSourceConversation.id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        showToast(`Merged ${data.messages_moved} messages into ${mergeTargetConversation.title || 'conversation'}`, 'success');
+
+        // If we merged the current conversation, refresh it
+        if (currentConversation?.id === mergeSourceConversation.id) {
+          // Switch to the target conversation
+          const targetConv = conversations.find(c => c.id === mergeTargetConversation.id);
+          if (targetConv) {
+            selectConversation(targetConv.id);
+          }
+        }
+
+        // Reload conversations list
+        loadConversations();
+        setShowMergeModal(false);
+        setMergeSourceConversation(null);
+        setMergeTargetConversation(null);
+      } else {
+        const error = await response.json();
+        showToast(error.error || 'Failed to merge conversations', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to merge conversations:', error);
+      showToast('Failed to merge conversations', 'error');
+    } finally {
+      setIsMerging(false);
+    }
+  };
+
   // Export conversation to JSON
   const exportConversation = async (conversation, format = 'json') => {
     try {
@@ -5755,9 +5826,13 @@ function App() {
                               onPin={pinConversation}
                               onArchive={archiveConversation}
                               onMoveToFolder={moveConversationToFolder}
+                              onDuplicate={duplicateConversation}
+                              onExport={exportConversation}
+                              onPrint={printConversation}
+                              onShare={shareConversation}
                               onToggleUnread={toggleConversationUnread}
                               onToggleFavorite={toggleConversationFavorite}
-                              onPrint={printConversation}
+                              onMerge={initiateMerge}
                               folders={folders}
                             />
                           ))}
@@ -5790,6 +5865,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -5814,6 +5890,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -5838,6 +5915,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -5862,6 +5940,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -5886,6 +5965,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -5910,6 +5990,7 @@ function App() {
                       onShare={shareConversation}
                       onToggleUnread={toggleConversationUnread}
                       onToggleFavorite={toggleConversationFavorite}
+                      onMerge={initiateMerge}
                       folders={folders}
                     />
                   ))}
@@ -7381,6 +7462,81 @@ function App() {
                   className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Merge Conversations Modal */}
+        {showMergeModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowMergeModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-2">Merge Conversations</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Merge another conversation into "{mergeSourceConversation?.title || 'Untitled'}". All messages from the source will be moved to the target conversation.
+              </p>
+
+              {/* Source Conversation (Read-only) */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-gray-500">Source (will be deleted)</label>
+                <div className="px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <p className="font-medium">{mergeSourceConversation?.title || 'Untitled'}</p>
+                  <p className="text-xs text-gray-500">{mergeSourceConversation?.message_count || 0} messages</p>
+                </div>
+              </div>
+
+              {/* Target Conversation Selector */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Merge into (target)</label>
+                <select
+                  value={mergeTargetConversation?.id || ''}
+                  onChange={(e) => {
+                    const conv = conversations.find(c => c.id === e.target.value);
+                    setMergeTargetConversation(conv || null);
+                  }}
+                  className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                >
+                  <option value="">Select a conversation...</option>
+                  {conversations
+                    .filter(c => c.id !== mergeSourceConversation?.id && !c.is_archived && !c.is_deleted)
+                    .map(conv => (
+                      <option key={conv.id} value={conv.id}>
+                        {conv.title || 'Untitled'} ({conv.message_count || 0} messages)
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Warning */}
+              {mergeTargetConversation && (
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    <strong>Warning:</strong> The source conversation "{mergeSourceConversation?.title || 'Untitled'}" will be permanently deleted after merging.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowMergeModal(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  disabled={isMerging}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={mergeConversations}
+                  disabled={!mergeTargetConversation || isMerging}
+                  className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isMerging ? 'Merging...' : 'Merge Conversations'}
                 </button>
               </div>
             </div>

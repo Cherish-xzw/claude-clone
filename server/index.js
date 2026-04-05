@@ -281,6 +281,76 @@ app.delete('/api/conversations/:id', (req, res) => {
   }
 });
 
+// POST /api/conversations/:id/merge - Merge another conversation into this one
+app.post('/api/conversations/:id/merge', (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const { source_conversation_id } = req.body;
+
+    if (!source_conversation_id) {
+      return res.status(400).json({ error: 'Source conversation ID is required' });
+    }
+
+    if (targetId === source_conversation_id) {
+      return res.status(400).json({ error: 'Cannot merge a conversation with itself' });
+    }
+
+    // Get source conversation
+    const sourceConv = db.prepare('SELECT * FROM conversations WHERE id = ? AND is_deleted = 0').get(source_conversation_id);
+    if (!sourceConv) {
+      return res.status(404).json({ error: 'Source conversation not found' });
+    }
+
+    // Get target conversation
+    const targetConv = db.prepare('SELECT * FROM conversations WHERE id = ? AND is_deleted = 0').get(targetId);
+    if (!targetConv) {
+      return res.status(404).json({ error: 'Target conversation not found' });
+    }
+
+    // Get messages from both conversations
+    const sourceMessages = db.prepare('SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC').all(source_conversation_id);
+    const targetMessages = db.prepare('SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC').all(targetId);
+
+    // Combine and sort all messages by created_at
+    const allMessages = [...sourceMessages, ...targetMessages].sort((a, b) => {
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
+    // Get the earliest created_at from all messages
+    const earliestMessage = allMessages[0];
+    const latestMessage = allMessages[allMessages.length - 1];
+
+    // Move all messages from source to target
+    db.prepare('UPDATE messages SET conversation_id = ? WHERE conversation_id = ?').run(targetId, source_conversation_id);
+
+    // Also move artifacts from source to target
+    db.prepare('UPDATE artifacts SET conversation_id = ? WHERE conversation_id = ?').run(targetId, source_conversation_id);
+
+    // Update target conversation metadata
+    const totalMessageCount = sourceMessages.length + targetMessages.length;
+    db.prepare(`
+      UPDATE conversations
+      SET message_count = ?,
+          last_message_at = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(totalMessageCount, latestMessage?.created_at || targetConv.last_message_at, targetId);
+
+    // Delete the source conversation
+    db.prepare('UPDATE conversations SET is_deleted = 1 WHERE id = ?').run(source_conversation_id);
+
+    res.json({
+      success: true,
+      merged_conversation_id: targetId,
+      messages_moved: sourceMessages.length,
+      total_messages: totalMessageCount
+    });
+  } catch (error) {
+    console.error('Error merging conversations:', error);
+    res.status(500).json({ error: 'Failed to merge conversations' });
+  }
+});
+
 // ============== MESSAGES ==============
 
 // GET /api/conversations/:id/messages - Get messages for conversation

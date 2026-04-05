@@ -2784,7 +2784,7 @@
       "Verify messages are combined",
       "Verify correct chronological order"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
