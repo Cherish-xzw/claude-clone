@@ -1,4 +1,21 @@
-Progress Update - 2026-04-05 (session continued - 29)
+Progress Update - 2026-04-05 (session continued - 30)
+
+Implemented Features:
+
+- Bulk conversation actions:
+  * Added bulk select mode toggle button in sidebar
+  * Added CheckSquare icon for select multiple button
+  * Added bulkSelectMode and selectedConversations state variables
+  * Implemented ConversationItem with checkbox for bulk selection
+  * Added bulkDeleteConversations, bulkArchiveConversations, bulkPinConversations functions
+  * Added bulk actions toolbar with delete, archive, and pin options
+  * Added selectAllConversations and deselectAllConversations helpers
+  * Updated all ConversationItem usages with new props
+  * Rebuilt frontend with Vite
+
+Status: 235 passing, 27 remaining (was 234 passing, 28 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 29)
 
 Implemented Features:
 
