@@ -3086,7 +3086,7 @@
       "Verify total cost shown",
       "Verify creation date shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

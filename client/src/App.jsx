@@ -5557,10 +5557,28 @@ function App() {
                 selectedModel={selectedModel}
                 onModelChange={setSelectedModel}
               />
-              {totalConversationCost > 0 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" aria-label={`Total cost: ${formatCost(totalConversationCost)}`}>
-                  Total: {formatCost(totalConversationCost)}
-                </span>
+              {/* Conversation Statistics */}
+              {currentConversation && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Message count">
+                    {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+                  </span>
+                  {currentConversation.token_count > 0 && (
+                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Token count">
+                      {currentConversation.token_count.toLocaleString()} tokens
+                    </span>
+                  )}
+                  {totalConversationCost > 0 && (
+                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Total cost">
+                      {formatCost(totalConversationCost)}
+                    </span>
+                  )}
+                  {currentConversation.created_at && (
+                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Created">
+                      {formatDate(currentConversation.created_at)}
+                    </span>
+                  )}
+                </div>
               )}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
