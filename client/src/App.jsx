@@ -1592,6 +1592,26 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
           <p className="text-xs text-gray-500">
             <span className="font-medium">Quota resets:</span> First of next month
           </p>
+          {React.createElement(() => {
+            const [timeUntilReset, setTimeUntilReset] = React.useState('');
+            React.useEffect(() => {
+              const updateCountdown = () => {
+                const now = new Date();
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                const diff = nextMonth - now;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                setTimeUntilReset(`${days}d ${hours}h ${minutes}m`);
+              };
+              updateCountdown();
+              const interval = setInterval(updateCountdown, 60000);
+              return () => clearInterval(interval);
+            }, []);
+            return timeUntilReset ? (
+              <p className="text-xs text-primary-500 mt-1">Resets in: {timeUntilReset}</p>
+            ) : null;
+          })}
         </div>
       </div>
 

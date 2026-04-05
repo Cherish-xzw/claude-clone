@@ -3412,7 +3412,7 @@
       "Verify time until reset is displayed",
       "Verify countdown updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
