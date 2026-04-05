@@ -1,4 +1,24 @@
-Progress Update - 2026-04-05 (session continued - 26)
+Progress Update - 2026-04-05 (session continued - 27)
+
+Implemented Features:
+
+- Conversation merge functionality:
+  * Added backend endpoint POST /api/conversations/:id/merge
+  * Backend merges messages from source to target conversation
+  * Messages are sorted chronologically after merge
+  * Artifacts are moved along with messages
+  * Source conversation is deleted after merge
+  * Conversation metadata (message_count, timestamps) updated
+  * Added frontend mergeConversation function with modal UI
+  * Added Merge button to conversation sidebar items
+  * Added Icons.Merge SVG icon
+  * Users can select target conversation from dropdown
+  * Warning shown before permanent deletion of source
+  * Verified code review - all components in place
+
+Status: 232 passing, 30 remaining (was 231 passing, 31 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 26)
 
 Implemented Features:
 
