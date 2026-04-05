@@ -2883,7 +2883,7 @@
       "Verify correct conversation loads",
       "Verify correct position in conversation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3134,7 +3134,7 @@
       "Press forward button",
       "Verify forward state is restored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3246,7 +3246,7 @@
       "Verify request is retried",
       "Verify successful recovery"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

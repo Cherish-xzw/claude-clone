@@ -5678,12 +5678,19 @@ function App() {
           setShowNetworkBanner(true);
           showToast('Network error - Please check your connection', 'error');
 
-          // Update message with network error indicator
+          // Update message with network error indicator and store for retry
           setMessages(prev => {
             if (!prev || !Array.isArray(prev)) return prev;
+            // Find last user message before error
+            const lastUserMsg = [...prev].reverse().find(m => m.role === 'user');
+            if (lastUserMsg) {
+              setLastFailedMessage(lastUserMsg);
+            }
             return prev.map(msg =>
               msg.isStreaming
-                ? { ...msg, content: (msg.content || '') + '\n\n[Network Error: Connection failed. Please retry when connected.]', isStreaming: false, hasError: true }
+                ? { ...msg, content: (msg.content || '') + '
+
+[Network Error: Connection failed. Please retry when connected.]', isStreaming: false, hasError: true }
                 : msg
             );
           });
@@ -5691,9 +5698,20 @@ function App() {
           // Safe state update with fallback for other errors
           setMessages(prev => {
             if (!prev || !Array.isArray(prev)) return prev;
+            // Find last user message before error
+            const lastUserMsg = [...prev].reverse().find(m => m.role === 'user');
+            if (lastUserMsg) {
+              setLastFailedMessage(lastUserMsg);
+            }
             return prev.map(msg =>
               msg.isStreaming
-                ? { ...msg, content: (msg.content || '') + '\n\n[Error: Failed to get response]' }
+                ? { ...msg, content: (msg.content || '') + '
+
+[Error: Failed to get response]', hasError: true }
+                : msg
+            );
+          });
+        }
                 : msg
           );
         });
@@ -5706,6 +5724,46 @@ function App() {
       // Generate response suggestions when streaming completes
       setResponseSuggestions(generateSuggestions());
     }
+  };
+
+  // Retry last failed message
+  const retryLastMessage = async () => {
+    if (!lastFailedMessage) return;
+
+    // Remove the failed error message from messages
+    setMessages(prev => {
+      if (!prev || !Array.isArray(prev)) return prev;
+      // Remove messages with hasError from the end until we find a user message
+      const newMessages = [...prev];
+      while (newMessages.length > 0) {
+        const lastMsg = newMessages[newMessages.length - 1];
+        if (lastMsg.hasError) {
+          newMessages.pop();
+        } else if (lastMsg.role === 'user') {
+          // Don't remove the user message, just the error after it
+          break;
+        } else {
+          break;
+        }
+      }
+      return newMessages;
+    });
+
+    // Store the message content and retry
+    const contentToRetry = lastFailedMessage.content;
+    const imagesToRetry = lastFailedMessage.images || [];
+    setLastFailedMessage(null);
+    setShowNetworkBanner(false);
+    setNetworkError(null);
+
+    // Set input and call sendMessage
+    setInput(contentToRetry);
+    if (imagesToRetry.length > 0) {
+      setCurrentImages(imagesToRetry);
+    }
+
+    // Use sendMessage logic to resend
+    await sendMessage({ preventDefault: () => {} }, contentToRetry, imagesToRetry);
   };
 
   // Stop generation
@@ -8472,11 +8530,20 @@ function App() {
                     <span>Reconnecting...</span>
                   </div>
                 )}
+                {isOnline && !isRecovering && lastFailedMessage && (
+                  <button
+                    onClick={retryLastMessage}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Retry
+                  </button>
+                )}
                 {isOnline && !isRecovering && (
                   <button
                     onClick={() => {
                       setShowNetworkBanner(false);
                       setNetworkError(null);
+                      setLastFailedMessage(null);
                     }}
                     className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
