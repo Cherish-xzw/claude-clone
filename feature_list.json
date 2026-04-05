@@ -2449,7 +2449,7 @@
       "Save settings",
       "Verify settings are applied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

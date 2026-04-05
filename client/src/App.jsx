@@ -1669,6 +1669,92 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
                   </label>
                 </div>
+                {/* Notification Settings */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                  <h5 className="font-medium text-sm mb-3">Notification Preferences</h5>
+                  <div className="space-y-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm">New message notifications</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Get notified when new messages arrive</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.newMessageNotifications}
+                          onChange={(e) => setNotificationSettings(prev => ({ ...prev, newMessageNotifications: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm">Conversation activity</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Notify about conversation updates</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.conversationActivity}
+                          onChange={(e) => setNotificationSettings(prev => ({ ...prev, conversationActivity: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm">Mention notifications</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Get notified when mentioned in comments</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.mentionNotifications}
+                          onChange={(e) => setNotificationSettings(prev => ({ ...prev, mentionNotifications: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm">Desktop notifications</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Show browser desktop notifications</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.desktopNotifications}
+                          onChange={(e) => {
+                            setNotificationSettings(prev => ({ ...prev, desktopNotifications: e.target.checked }));
+                            if (e.target.checked && 'Notification' in window && Notification.permission === 'default') {
+                              Notification.requestPermission();
+                            }
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm">Email notifications</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Receive notifications via email</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.emailNotifications}
+                          onChange={(e) => setNotificationSettings(prev => ({ ...prev, emailNotifications: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Temperature: {temperature}</label>
                   <input
@@ -2943,6 +3029,17 @@ function App() {
     return { name: 'Demo User', avatar: null };
   });
   const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => loadSetting('soundEffectsEnabled', true));
+  const [notificationSettings, setNotificationSettings] = useState(() => {
+    const saved = localStorage.getItem('notificationSettings');
+    return saved ? JSON.parse(saved) : {
+      newMessageNotifications: true,
+      conversationActivity: true,
+      soundEnabled: true,
+      desktopNotifications: false,
+      emailNotifications: false,
+      mentionNotifications: true
+    };
+  });
   const [folders, setFolders] = useState([]);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -3248,6 +3345,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('globalCustomInstructions', globalCustomInstructions);
   }, [globalCustomInstructions]);
+
+  // Save notification settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+  }, [notificationSettings]);
 
   // Auto-save draft message to localStorage
   useEffect(() => {
