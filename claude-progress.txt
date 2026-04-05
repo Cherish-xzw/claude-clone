@@ -1,4 +1,19 @@
-Progress Update - 2026-04-05 (session continued - 18)
+Progress Update - 2026-04-05 (session continued - 19)
+
+Implemented Features:
+
+- Long message input handling:
+  * Added auto-resize functionality to message textarea
+  * Textarea now grows vertically as user types, up to 200px max height
+  * Added scrollbar when content exceeds max height for messages > 2000 chars
+  * Added character count display below input field
+  * Added rough token estimation (chars / 4) display
+  * Build verified successfully
+  * Updated feature_list.json: marked test "Long message input handling" as passing
+
+Status: 221 passing, 41 remaining (was 220 passing, 42 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 18)
 
 Implemented Features:
 
