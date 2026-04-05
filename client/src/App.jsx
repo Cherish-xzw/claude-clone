@@ -1648,7 +1648,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, notificationSettings, setNotificationSettings, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData, showInstructionsPreview, setShowInstructionsPreview, previewTestPrompt, setPreviewTestPrompt, previewResponse, previewLoading, testInstructionsPreview }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -1923,7 +1923,16 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                     )}
                     {/* Current Custom Instructions */}
                     <div className="mt-3">
-                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-2">Current instructions:</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs text-gray-500 dark:text-gray-400">Current instructions:</label>
+                        <button
+                          onClick={() => setShowInstructionsPreview(!showInstructionsPreview)}
+                          className="px-3 py-1 text-xs bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <span>👁️</span>
+                          <span>{showInstructionsPreview ? 'Hide Preview' : 'Preview'}</span>
+                        </button>
+                      </div>
                       <textarea
                         value={globalCustomInstructions}
                         onChange={(e) => setGlobalCustomInstructions(e.target.value)}
@@ -1931,6 +1940,45 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                         rows={3}
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none"
                       />
+                      {/* Instructions Preview Panel */}
+                      {showInstructionsPreview && (
+                        <div className="mt-4 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <h5 className="font-medium text-sm mb-3 text-gray-700 dark:text-gray-300">Test Your Instructions</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            Enter a test prompt to see how your custom instructions affect Claude's response.
+                          </p>
+                          <textarea
+                            value={previewTestPrompt}
+                            onChange={(e) => setPreviewTestPrompt(e.target.value)}
+                            placeholder="Enter a test prompt (e.g., 'Hello, who are you?')..."
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-black dark:text-white resize-none mb-3"
+                          />
+                          <button
+                            onClick={testInstructionsPreview}
+                            disabled={previewLoading || !previewTestPrompt.trim()}
+                            className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                          >
+                            {previewLoading ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <span className="animate-spin">⏳</span>
+                                Testing...
+                              </span>
+                            ) : (
+                              'Test Instructions'
+                            )}
+                          </button>
+                          {/* Preview Response */}
+                          {previewResponse && (
+                            <div className="mt-4">
+                              <h6 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Preview Response:</h6>
+                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                                {previewResponse}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3242,6 +3290,10 @@ function App() {
   const [globalCustomInstructions, setGlobalCustomInstructions] = useState(() => {
     return localStorage.getItem('globalCustomInstructions') || '';
   }); // Global custom instructions
+  const [showInstructionsPreview, setShowInstructionsPreview] = useState(false); // Instructions preview panel
+  const [previewTestPrompt, setPreviewTestPrompt] = useState(''); // Test prompt for instructions preview
+  const [previewResponse, setPreviewResponse] = useState(''); // Preview response from Claude
+  const [previewLoading, setPreviewLoading] = useState(false); // Preview loading state
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -3345,6 +3397,42 @@ function App() {
     setSelectedInstructionTemplate(template);
     setGlobalCustomInstructions(template.instructions);
     showToast(`Template "${template.name}" applied`, 'success');
+  };
+
+  // Test custom instructions preview
+  const testInstructionsPreview = async () => {
+    if (!previewTestPrompt.trim()) {
+      showToast('Please enter a test prompt', 'error');
+      return;
+    }
+
+    setPreviewLoading(true);
+    setPreviewResponse('');
+
+    try {
+      const response = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: previewTestPrompt,
+          system_prompt: globalCustomInstructions.trim() || undefined,
+          model: selectedModel,
+          max_tokens: 500,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPreviewResponse(data.response || 'No response received');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setPreviewResponse(`Error: ${errorData.error || response.statusText || 'Failed to get response'}`);
+      }
+    } catch (err) {
+      setPreviewResponse(`Error: ${err.message || 'Network error'}`);
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   // Apply theme
@@ -7367,7 +7455,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} onExportAllData={exportAllData} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} soundEffectsEnabled={soundEffectsEnabled} setSoundEffectsEnabled={setSoundEffectsEnabled} notificationSettings={notificationSettings} setNotificationSettings={setNotificationSettings} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} onExportAllData={exportAllData} showInstructionsPreview={showInstructionsPreview} setShowInstructionsPreview={setShowInstructionsPreview} previewTestPrompt={previewTestPrompt} setPreviewTestPrompt={setPreviewTestPrompt} previewResponse={previewResponse} previewLoading={previewLoading} testInstructionsPreview={testInstructionsPreview} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />

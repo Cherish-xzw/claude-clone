@@ -2360,7 +2360,7 @@
       "Close preview",
       "Verify preview helped refine instructions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

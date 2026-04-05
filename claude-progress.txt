@@ -1,4 +1,19 @@
-Progress Update - 2026-04-05 (session continued - 24)
+Progress Update - 2026-04-05 (session continued - 25)
+
+Implemented Features:
+
+- Custom instructions preview feature:
+  * Added preview button in Settings > Custom Instructions section
+  * Users can enter a test prompt and see how custom instructions affect responses
+  * Preview panel shows Claude's response with the custom instructions applied
+  * Added showInstructionsPreview, previewTestPrompt, previewResponse, previewLoading states
+  * Implemented testInstructionsPreview function using /api/chat endpoint
+  * Fixed missing props (notificationSettings, soundEffectsEnabled) in SettingsModal
+  * Verified through browser automation - preview shows Claude responding to test prompt
+
+Status: 228 passing, 34 remaining (was 227 passing, 35 remaining)
+
+Previous Progress Update - 2026-04-05 (session continued - 24)
 
 Implemented Features:
 
