@@ -2684,7 +2684,7 @@
       "Verify no HTML injection possible",
       "Verify characters display properly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2721,7 +2721,7 @@
       "Verify no code execution occurs",
       "Verify text displays as plain text"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

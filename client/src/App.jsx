@@ -5,6 +5,7 @@ import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
+import DOMPurify from 'dompurify';
 
 // Theme Context
 const ThemeContext = createContext();
@@ -565,11 +566,53 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                         return <>{children}</>;
                       },
                       a({ node, href, children, ...props }) {
+                        // Validate and sanitize URL - only allow safe protocols
+                        const safeHref = href && /^https?:\/\//i.test(href) ? href : '#';
                         return (
-                          <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                          <a href={safeHref} target="_blank" rel="noopener noreferrer" {...props}>
                             {children}
                           </a>
                         );
+                      },
+                      div({ node, children, ...props }) {
+                        // Sanitize div content to prevent XSS
+                        if (node.properties?.dangerouslySetInnerHTML) {
+                          const html = node.properties.dangerouslySetInnerHTML.__html || '';
+                          const sanitized = DOMPurify.sanitize(html, {
+                            ALLOWED_TAGS: ['div', 'span', 'p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'img', 'input', 'button'],
+                            ALLOWED_ATTR: ['class', 'id', 'href', 'target', 'rel', 'src', 'alt', 'title', 'type', 'value', 'checked', 'disabled', 'className'],
+                            ALLOW_DATA_ATTR: false,
+                            ADD_ATTR: ['target', 'rel']
+                          });
+                          return <div {...props} dangerouslySetInnerHTML={{ __html: sanitized }}>{children}</div>;
+                        }
+                        return <div {...props}>{children}</div>;
+                      },
+                      span({ node, children, ...props }) {
+                        // Sanitize span content to prevent XSS
+                        if (node.properties?.dangerouslySetInnerHTML) {
+                          const html = node.properties.dangerouslySetInnerHTML.__html || '';
+                          const sanitized = DOMPurify.sanitize(html, {
+                            ALLOWED_TAGS: ['span', 'a', 'code', 'strong', 'em', 'del', 'ins', 'sub', 'sup'],
+                            ALLOWED_ATTR: ['class', 'id', 'href', 'target', 'rel', 'className'],
+                            ALLOW_DATA_ATTR: false
+                          });
+                          return <span {...props} dangerouslySetInnerHTML={{ __html: sanitized }}>{children}</span>;
+                        }
+                        return <span {...props}>{children}</span>;
+                      },
+                      p({ node, children, ...props }) {
+                        // Sanitize paragraph content to prevent XSS
+                        if (node.properties?.dangerouslySetInnerHTML) {
+                          const html = node.properties.dangerouslySetInnerHTML.__html || '';
+                          const sanitized = DOMPurify.sanitize(html, {
+                            ALLOWED_TAGS: ['span', 'a', 'code', 'strong', 'em', 'del', 'ins', 'sub', 'sup', 'br'],
+                            ALLOWED_ATTR: ['class', 'id', 'href', 'target', 'rel', 'className'],
+                            ALLOW_DATA_ATTR: false
+                          });
+                          return <p {...props} dangerouslySetInnerHTML={{ __html: sanitized }}>{children}</p>;
+                        }
+                        return <p {...props}>{children}</p>;
                       }
                     }}
                   >
@@ -2148,9 +2191,13 @@ function ArtifactPanel({
     }
 
     if (artifact.type === 'svg') {
+      // Sanitize SVG content to prevent XSS attacks
+      const sanitizedSvg = DOMPurify.sanitize(artifact.content, {
+        USE_PROFILES: { svg: true, svgFilters: true }
+      });
       return (
         <div className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-300 dark:border-gray-600 overflow-auto">
-          <div dangerouslySetInnerHTML={{ __html: artifact.content }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizedSvg }} />
         </div>
       );
     }
