@@ -966,10 +966,12 @@ function ConversationItem({ conversation, isActive, onClick, onDelete, onPin, on
   );
 }
 
-// Model selector dropdown
+// Model selector dropdown - keyboard accessible
 function ModelSelector({ selectedModel, onModelChange }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const selectedModelInfo = MODELS.find(m => m.id === selectedModel) || MODELS[0];
 
@@ -977,32 +979,91 @@ function ModelSelector({ selectedModel, onModelChange }) {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        setFocusedIndex(-1);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleKeyDown = (e) => {
+    if (!isOpen) {
+      // Open dropdown with Enter or Space
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsOpen(true);
+        setFocusedIndex(MODELS.findIndex(m => m.id === selectedModel));
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev < MODELS.length - 1 ? prev + 1 : 0));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev > 0 ? prev - 1 : MODELS.length - 1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < MODELS.length) {
+          onModelChange(MODELS[focusedIndex].id);
+          setIsOpen(false);
+          setFocusedIndex(-1);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        buttonRef.current?.focus();
+        break;
+      case 'Tab':
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        onKeyDown={handleKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={`Model selector, currently ${selectedModelInfo.name}`}
+        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
       >
         <span>{selectedModelInfo.name}</span>
         <Icons.ChevronDown />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-          {MODELS.map(model => (
+        <div
+          role="listbox"
+          aria-label="Select model"
+          className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+        >
+          {MODELS.map((model, index) => (
             <button
               key={model.id}
+              role="option"
+              aria-selected={model.id === selectedModel}
               onClick={() => {
                 onModelChange(model.id);
                 setIsOpen(false);
+                setFocusedIndex(-1);
               }}
-              className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+              onMouseEnter={() => setFocusedIndex(index)}
+              className={`w-full text-left px-4 py-2 transition-colors focus:outline-none ${
                 model.id === selectedModel ? 'bg-gray-50 dark:bg-gray-750' : ''
+              } ${focusedIndex === index ? 'bg-gray-100 dark:bg-gray-700' : ''} ${
+                focusedIndex === index ? 'ring-1 ring-inset ring-primary-500' : ''
               }`}
             >
               <p className="font-medium text-sm">{model.name}</p>
@@ -2975,6 +3036,7 @@ function App() {
   const [shareExpiration, setShareExpiration] = useState(30); // days, 0 = no expiration
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]); // Base64 encoded images
+  const [isDragging, setIsDragging] = useState(false); // Drag and drop state
   const [lightboxImage, setLightboxImage] = useState(null); // Image for lightbox view
   const [artifacts, setArtifacts] = useState([]); // Artifacts from Claude responses
   const [activeArtifact, setActiveArtifact] = useState(null); // Currently active artifact
@@ -4079,6 +4141,49 @@ function App() {
         break;
       }
     }
+  };
+
+  // Drag and drop handlers for file upload
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if we're leaving the drop zone entirely
+    if (e.target.closest && !e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploadedImages(prev => [...prev, {
+            id: generateId(),
+            data: event.target.result, // Base64 data
+            name: file.name,
+            type: file.type
+          }]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
   };
 
   // Remove uploaded image
@@ -5568,7 +5673,24 @@ function App() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div
+            className={`p-4 border-t border-gray-200 dark:border-gray-700 relative ${isDragging ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {/* Drag and drop overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary-100/80 dark:bg-primary-900/50 border-4 border-dashed border-primary-500 rounded-lg">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📁</div>
+                  <div className="text-lg font-medium text-primary-700 dark:text-primary-300">
+                    Drop image to upload
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Image Upload Preview */}
             {uploadedImages.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3 max-w-4xl mx-auto">

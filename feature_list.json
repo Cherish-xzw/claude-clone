@@ -3111,7 +3111,7 @@
       "Verify dropdown closes",
       "Verify selection is applied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3297,7 +3297,7 @@
       "Send message",
       "Verify file is included"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
