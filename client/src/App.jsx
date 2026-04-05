@@ -4729,6 +4729,183 @@ function App() {
     return titles[language.toLowerCase()] || `${language} Code`;
   };
 
+  // Rich text formatting functions
+  const applyBold = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // If there's selected text, wrap it with **
+    if (selectedText) {
+      const newText = input.substring(0, start) + '**' + selectedText + '**' + input.substring(end);
+      setInput(newText);
+      // Set cursor position after the formatting
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 2, end + 2);
+      }, 0);
+    } else {
+      // No selection, insert ** at cursor and place cursor between them
+      const newText = input.substring(0, start) + '****' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 2, start + 2);
+      }, 0);
+    }
+  };
+
+  const applyItalic = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // If there's selected text, wrap it with *
+    if (selectedText) {
+      const newText = input.substring(0, start) + '*' + selectedText + '*' + input.substring(end);
+      setInput(newText);
+      // Set cursor position after the formatting
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 1, end + 1);
+      }, 0);
+    } else {
+      // No selection, insert * at cursor and place cursor between them
+      const newText = input.substring(0, start) + '**' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 1, start + 1);
+      }, 0);
+    }
+  };
+
+  const applyStrikethrough = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // If there's selected text, wrap it with ~~
+    if (selectedText) {
+      const newText = input.substring(0, start) + '~~' + selectedText + '~~' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 2, end + 2);
+      }, 0);
+    } else {
+      const newText = input.substring(0, start) + '~~~~' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 2, start + 2);
+      }, 0);
+    }
+  };
+
+  const applyCode = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // If there's selected text, wrap it with `
+    if (selectedText) {
+      const newText = input.substring(0, start) + '`' + selectedText + '`' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 1, end + 1);
+      }, 0);
+    } else {
+      const newText = input.substring(0, start) + '``' + input.substring(end);
+      setInput(newText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 1, start + 1);
+      }, 0);
+    }
+  };
+
+  const applyLink = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // Use selected text as link text, or placeholder
+    const linkText = selectedText || 'link text';
+    const newText = input.substring(0, start) + '[' + linkText + '](url)' + input.substring(end);
+    setInput(newText);
+    setTimeout(() => {
+      textarea.focus();
+      // Select "url" so user can replace it easily
+      const urlStart = start + linkText.length + 3;
+      textarea.setSelectionRange(urlStart, urlStart + 3);
+    }, 0);
+  };
+
+  const applyBulletList = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = input.substring(start, end);
+
+    // Add bullet point at the beginning of line
+    const beforeCursor = input.substring(0, start);
+    const afterCursor = input.substring(end);
+
+    // Find the start of the current line
+    let lineStart = beforeCursor.lastIndexOf('\n') + 1;
+    const lineStartText = input.substring(lineStart, start);
+    const indent = lineStartText.match(/^\s*/)[0];
+
+    const newText = input.substring(0, lineStart) + indent + '- ' + input.substring(lineStart);
+    setInput(newText);
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = lineStart + indent.length + 2;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const applyNumberedList = () => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // Find the start of the current line
+    const beforeCursor = input.substring(0, start);
+    let lineStart = beforeCursor.lastIndexOf('\n') + 1;
+    const lineStartText = input.substring(lineStart, start);
+    const indent = lineStartText.match(/^\s*/)[0];
+
+    const newText = input.substring(0, lineStart) + indent + '1. ' + input.substring(lineStart);
+    setInput(newText);
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = lineStart + indent.length + 3;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
   // Send message
   const sendMessage = async () => {
     try {
@@ -5931,6 +6108,105 @@ function App() {
                     </div>
                   </div>
                 )}
+                {/* Rich Text Formatting Toolbar */}
+                <div className={`flex items-center gap-1 mb-2 pb-2 border-b ${highContrast ? 'border-gray-300' : 'border-gray-200 dark:border-gray-700'}`}>
+                  <button
+                    type="button"
+                    onClick={applyBold}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Bold (Ctrl+B)"
+                    aria-label="Bold"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                      <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyItalic}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Italic (Ctrl+I)"
+                    aria-label="Italic"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="19" y1="4" x2="10" y2="4"/>
+                      <line x1="14" y1="20" x2="5" y2="20"/>
+                      <line x1="15" y1="4" x2="9" y2="20"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyStrikethrough}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Strikethrough"
+                    aria-label="Strikethrough"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="4" y1="12" x2="20" y2="12"/>
+                      <path d="M17.5 7.5c-1.5-2-3.5-3-6-3-3.5 0-6 2-6 5 0 2 1.5 3.5 3 4.5"/>
+                      <path d="M8.5 16.5c1 1 2 1.5 4.5 1.5 3 0 5.5-1.5 5.5-4 0-1.5-.5-2.5-2-3.5"/>
+                    </svg>
+                  </button>
+                  <div className={`w-px h-5 mx-1 ${highContrast ? 'bg-gray-300' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  <button
+                    type="button"
+                    onClick={applyCode}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Inline code"
+                    aria-label="Inline code"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="16 18 22 12 16 6"/>
+                      <polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyLink}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Insert link"
+                    aria-label="Insert link"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                  </button>
+                  <div className={`w-px h-5 mx-1 ${highContrast ? 'bg-gray-300' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  <button
+                    type="button"
+                    onClick={applyBulletList}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Bullet list"
+                    aria-label="Bullet list"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="8" y1="6" x2="21" y2="6"/>
+                      <line x1="8" y1="12" x2="21" y2="12"/>
+                      <line x1="8" y1="18" x2="21" y2="18"/>
+                      <line x1="3" y1="6" x2="3.01" y2="6"/>
+                      <line x1="3" y1="12" x2="3.01" y2="12"/>
+                      <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyNumberedList}
+                    className={`p-2 rounded-lg transition-colors ${highContrast ? 'hover:bg-gray-300' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} text-gray-700 dark:text-gray-300`}
+                    title="Numbered list"
+                    aria-label="Numbered list"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="10" y1="6" x2="21" y2="6"/>
+                      <line x1="10" y1="12" x2="21" y2="12"/>
+                      <line x1="10" y1="18" x2="21" y2="18"/>
+                      <path d="M4 6h1v4"/>
+                      <path d="M4 10h2"/>
+                      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
+                    </svg>
+                  </button>
+                </div>
                 <label htmlFor="message-input" className="sr-only">Type your message</label>
                 <textarea
                   id="message-input"

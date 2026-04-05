@@ -3049,7 +3049,7 @@
       "Verify text is italicized",
       "Verify formatting is applied to message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
