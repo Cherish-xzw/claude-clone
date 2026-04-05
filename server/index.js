@@ -747,6 +747,77 @@ app.get('/api/projects/:id/analytics', (req, res) => {
   }
 });
 
+// ============== PROJECT KNOWLEDGE BASE ==============
+
+// GET /api/projects/:id/knowledge - Get knowledge base files for a project
+app.get('/api/projects/:id/knowledge', (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    const files = db.prepare(`
+      SELECT id, project_id, file_name, file_type, file_size, created_at
+      FROM project_knowledge_base
+      WHERE project_id = ?
+      ORDER BY created_at DESC
+    `).all(projectId);
+
+    res.json({ files });
+  } catch (error) {
+    console.error('Error fetching knowledge base files:', error);
+    res.status(500).json({ error: 'Failed to fetch knowledge base files' });
+  }
+});
+
+// POST /api/projects/:id/knowledge - Upload file to knowledge base
+app.post('/api/projects/:id/knowledge', (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const { file_name, file_type, file_data } = req.body;
+
+    if (!file_name || !file_data) {
+      return res.status(400).json({ error: 'file_name and file_data are required' });
+    }
+
+    const id = generateId();
+    const fileSize = Buffer.from(file_data, 'base64').length;
+
+    db.prepare(`
+      INSERT INTO project_knowledge_base (id, project_id, file_name, file_type, file_size, file_data)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, projectId, file_name, file_type || 'text/plain', fileSize, file_data);
+
+    const file = db.prepare(`
+      SELECT id, project_id, file_name, file_type, file_size, created_at
+      FROM project_knowledge_base WHERE id = ?
+    `).get(id);
+
+    res.json({ file });
+  } catch (error) {
+    console.error('Error uploading knowledge base file:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// DELETE /api/projects/:id/knowledge/:fileId - Delete knowledge base file
+app.delete('/api/projects/:id/knowledge/:fileId', (req, res) => {
+  try {
+    const { id: projectId, fileId } = req.params;
+
+    const result = db.prepare(`
+      DELETE FROM project_knowledge_base WHERE id = ? AND project_id = ?
+    `).run(fileId, projectId);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting knowledge base file:', error);
+    res.status(500).json({ error: 'Failed to delete file' });
+  }
+});
+
 // ============== ARTIFACTS ==============
 
 // GET /api/artifacts/:id - Get artifact

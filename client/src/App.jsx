@@ -3049,9 +3049,12 @@ function App() {
   const [editingFolderId, setEditingFolderId] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [folderAnalyticsTab, setFolderAnalyticsTab] = useState(false);
+  const [folderTab, setFolderTab] = useState('details'); // 'details' | 'analytics' | 'knowledge'
   const [folderAnalytics, setFolderAnalytics] = useState(null);
   const [folderAnalyticsLoading, setFolderAnalyticsLoading] = useState(false);
+  const [knowledgeBaseFiles, setKnowledgeBaseFiles] = useState([]);
+  const [knowledgeBaseLoading, setKnowledgeBaseLoading] = useState(false);
+  const [knowledgeBaseUploading, setKnowledgeBaseUploading] = useState(false);
   const [showLoginPage, setShowLoginPage] = useState(() => {
     // Check if user is logged in from localStorage (persistent) or sessionStorage (session-only)
     const savedLoginState = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
@@ -4380,8 +4383,9 @@ function App() {
     setNewFolderColor(folder.color || '#CC785C');
     setSelectedTemplate(null);
     setShowTemplates(false);
-    setFolderAnalyticsTab(false);
+    setFolderTab('details');
     setFolderAnalytics(null);
+    setKnowledgeBaseFiles([]);
     setShowFolderModal(true);
 
     // Fetch project analytics
@@ -4389,6 +4393,14 @@ function App() {
       .then(res => res.json())
       .then(data => setFolderAnalytics(data))
       .catch(err => console.error('Error fetching project analytics:', err));
+
+    // Fetch knowledge base files
+    setKnowledgeBaseLoading(true);
+    fetch(`${API_BASE}/projects/${folder.id}/knowledge`)
+      .then(res => res.json())
+      .then(data => setKnowledgeBaseFiles(data.files || []))
+      .catch(err => console.error('Error fetching knowledge base files:', err))
+      .finally(() => setKnowledgeBaseLoading(false));
   };
 
   // Update folder (edit mode)
@@ -6149,9 +6161,9 @@ function App() {
                 {isEditingFolder && (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setFolderAnalyticsTab(false)}
+                      onClick={() => setFolderTab('details')}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                        !folderAnalyticsTab
+                        folderTab === 'details'
                           ? 'bg-primary-500 text-white'
                           : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
@@ -6159,14 +6171,24 @@ function App() {
                       Details
                     </button>
                     <button
-                      onClick={() => setFolderAnalyticsTab(true)}
+                      onClick={() => setFolderTab('analytics')}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-1 ${
-                        folderAnalyticsTab
+                        folderTab === 'analytics'
                           ? 'bg-primary-500 text-white'
                           : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                     >
                       <span>📊</span> Analytics
+                    </button>
+                    <button
+                      onClick={() => setFolderTab('knowledge')}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+                        folderTab === 'knowledge'
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <span>📚</span> Knowledge Base
                     </button>
                   </div>
                 )}
@@ -6185,7 +6207,7 @@ function App() {
               )}
 
               {/* Analytics Tab Content */}
-              {isEditingFolder && folderAnalyticsTab && (
+              {isEditingFolder && folderTab === 'analytics' && (
                 <div className="flex-1 overflow-y-auto">
                   <div className="space-y-4">
                     {/* Summary Stats */}
@@ -6316,7 +6338,7 @@ function App() {
                     </div>
                   )}
                 </div>
-              ) : !folderAnalyticsTab ? (
+              ) : folderTab === 'details' ? (
                 /* Details Tab - Normal Name Input View */
                 <div className="flex-1 overflow-y-auto">
                   <div className="mb-4">
@@ -6380,6 +6402,133 @@ function App() {
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{selectedTemplate.description}</p>
+                    </div>
+                  )}
+                </div>
+              ) : folderTab === 'knowledge' ? (
+                /* Knowledge Base Tab */
+                <div className="flex-1 overflow-y-auto">
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      Upload documents to create a knowledge base for this project. These files will help Claude understand project-specific context.
+                    </p>
+
+                    {/* Upload Button */}
+                    <label className="flex items-center justify-center gap-2 px-4 py-3 bg-primary-50 dark:bg-primary-900/20 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-lg cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+                      <span className="text-xl">📄</span>
+                      <span className="text-sm font-medium text-primary-600 dark:text-primary-400">Click to upload files</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".txt,.md,.pdf,.doc,.docx,.json,.csv,.xml,.html,.css,.js,.ts,.py"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files);
+                          if (files.length === 0) return;
+
+                          setKnowledgeBaseUploading(true);
+                          for (const file of files) {
+                            try {
+                              const reader = new FileReader();
+                              const fileData = await new Promise((resolve) => {
+                                reader.onload = () => resolve(reader.result);
+                                reader.readAsDataURL(file);
+                              });
+
+                              const response = await fetch(`${API_BASE}/projects/${editingFolderId}/knowledge`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  file_name: file.name,
+                                  file_type: file.type || 'application/octet-stream',
+                                  file_data: fileData
+                                })
+                              });
+
+                              if (response.ok) {
+                                const data = await response.json();
+                                setKnowledgeBaseFiles(prev => [data.file, ...prev]);
+                              }
+                            } catch (error) {
+                              console.error('Error uploading file:', error);
+                            }
+                          }
+                          setKnowledgeBaseUploading(false);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+
+                    {knowledgeBaseUploading && (
+                      <div className="mt-3 flex items-center gap-2 text-sm text-primary-500">
+                        <div className="animate-spin w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+                        Uploading files...
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Files List */}
+                  {knowledgeBaseLoading ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      Loading files...
+                    </div>
+                  ) : knowledgeBaseFiles.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <div className="text-4xl mb-2">📂</div>
+                      <p>No files uploaded yet</p>
+                      <p className="text-sm mt-1">Upload documents to build your knowledge base</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        {knowledgeBaseFiles.length} file{knowledgeBaseFiles.length !== 1 ? 's' : ''} uploaded
+                      </p>
+                      {knowledgeBaseFiles.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-xl flex-shrink-0">{
+                              file.file_name.endsWith('.pdf') ? '📕' :
+                              file.file_name.endsWith('.md') ? '📝' :
+                              file.file_name.endsWith('.txt') ? '📄' :
+                              file.file_name.endsWith('.json') ? '📋' :
+                              file.file_name.endsWith('.csv') ? '📊' :
+                              file.file_name.endsWith('.py') ? '🐍' :
+                              file.file_name.endsWith('.js') || file.file_name.endsWith('.ts') ? '💻' :
+                              '📁'
+                            }</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{file.file_name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {(file.file_size / 1024).toFixed(1)} KB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`${API_BASE}/projects/${editingFolderId}/knowledge/${file.id}`, {
+                                  method: 'DELETE'
+                                });
+                                if (response.ok) {
+                                  setKnowledgeBaseFiles(prev => prev.filter(f => f.id !== file.id));
+                                }
+                              } catch (error) {
+                                console.error('Error deleting file:', error);
+                              }
+                            }}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete file"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
