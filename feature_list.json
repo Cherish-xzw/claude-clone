@@ -2872,7 +2872,7 @@
       "Click notification",
       "Verify app opens correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
