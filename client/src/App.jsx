@@ -3344,6 +3344,7 @@ function App() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState(''); // System prompt override
   const [shareData, setShareData] = useState(null);
@@ -6557,7 +6558,10 @@ function App() {
               {/* Profile Options */}
               {showUserProfile && (
                 <div className="mt-2 ml-3 space-y-1">
-                  <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <button
+                    onClick={() => setShowChangeEmail(true)}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
@@ -8140,6 +8144,82 @@ function App() {
                   className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
                 >
                   Change Password
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Change Email Modal */}
+        {showChangeEmail && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowChangeEmail(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    id="change-name"
+                    defaultValue={userProfile?.name || ''}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <input
+                    type="email"
+                    id="change-email"
+                    defaultValue={userProfile?.email || ''}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                    placeholder="Enter your email"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-3">
+                Note: This is a demo. Profile changes are simulated.
+              </p>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowChangeEmail(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const newName = document.getElementById('change-name').value;
+                    const newEmail = document.getElementById('change-email').value;
+
+                    if (!newName.trim()) {
+                      alert('Please enter your name');
+                      return;
+                    }
+                    if (!newEmail.trim() || !newEmail.includes('@')) {
+                      alert('Please enter a valid email');
+                      return;
+                    }
+
+                    // Update user profile
+                    setUserProfile(prev => ({ ...prev, name: newName, email: newEmail }));
+                    localStorage.setItem('userProfile', JSON.stringify({ name: newName, email: newEmail }));
+
+                    alert('Profile updated successfully! (Demo)');
+                    setShowChangeEmail(false);
+                  }}
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  Save Changes
                 </button>
               </div>
             </div>

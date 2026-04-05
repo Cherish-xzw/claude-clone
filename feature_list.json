@@ -3375,7 +3375,7 @@
       "Verify confirmation sent",
       "Verify email can be updated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
