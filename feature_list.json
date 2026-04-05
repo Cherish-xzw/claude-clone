@@ -2833,7 +2833,7 @@
       "Select conversation",
       "Verify switch occurs"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

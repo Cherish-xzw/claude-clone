@@ -7764,10 +7764,11 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
     conversation: conv,
   }));
 
-  // Filter commands based on query
+  // Filter commands based on query - always include recent conversations
+  const allItems = [...allCommands, ...conversationCommands];
   const filteredCommands = query.trim() === ''
-    ? allCommands
-    : [...allCommands, ...conversationCommands].filter(cmd =>
+    ? allItems  // Show all commands and recent conversations when no query
+    : allItems.filter(cmd =>
         cmd.name.toLowerCase().includes(query.toLowerCase()) ||
         cmd.description.toLowerCase().includes(query.toLowerCase())
       );
@@ -7876,7 +7877,7 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Type a command or search messages..."
+            placeholder="Search commands, conversations, or messages..."
             className="w-full px-4 py-4 bg-transparent focus:outline-none text-base"
           />
           <kbd className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600">ESC</kbd>
