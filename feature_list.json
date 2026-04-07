@@ -2179,7 +2179,7 @@
       "Navigate away and back",
       "Verify performance is maintained"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3197,7 +3197,7 @@
       "Navigate away",
       "Verify memory is released"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -3258,7 +3258,7 @@
       "Verify feature failure doesn't crash app",
       "Verify error is logged"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
