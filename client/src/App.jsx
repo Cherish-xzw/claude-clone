@@ -3568,8 +3568,8 @@ function App() {
 
   // Filter mention suggestions based on input after "@"
   const filteredMentions = mentionSuggestions.filter(m =>
-    m.label.toLowerCase().includes(mentionFilter.toLowerCase()) ||
-    m.description.toLowerCase().includes(mentionFilter.toLowerCase())
+    (m.label || '').toLowerCase().includes((mentionFilter || '').toLowerCase()) ||
+    (m.description || '').toLowerCase().includes((mentionFilter || '').toLowerCase())
   );
 
   // Slash commands configuration
@@ -3590,8 +3590,8 @@ function App() {
 
   // Filter slash commands based on input after "/"
   const filteredSlashCommands = slashCommands.filter(cmd =>
-    cmd.command.includes(slashFilter.toLowerCase()) ||
-    cmd.label.toLowerCase().includes(slashFilter.toLowerCase())
+    (cmd.command || '').includes((slashFilter || '').toLowerCase()) ||
+    (cmd.label || '').toLowerCase().includes((slashFilter || '').toLowerCase())
   );
 
   // Model selection state - must be before totalConversationCost calculation
@@ -6269,10 +6269,11 @@ function App() {
     const mermaidLanguages = ['mermaid'];
     const codeLanguages = ['javascript', 'js', 'typescript', 'ts', 'python', 'py', 'css', 'json', 'bash', 'sh', 'sql', 'java', 'c', 'cpp', 'go', 'rust', 'ruby', 'php'];
 
-    if (htmlLanguages.includes(language.toLowerCase())) return 'html';
-    if (svgLanguages.includes(language.toLowerCase())) return 'svg';
-    if (reactLanguages.includes(language.toLowerCase())) return 'react';
-    if (mermaidLanguages.includes(language.toLowerCase())) return 'mermaid';
+    const lang = (language || 'text').toLowerCase();
+    if (htmlLanguages.includes(lang)) return 'html';
+    if (svgLanguages.includes(lang)) return 'svg';
+    if (reactLanguages.includes(lang)) return 'react';
+    if (mermaidLanguages.includes(lang)) return 'mermaid';
 
     return 'code';
   };
@@ -10599,8 +10600,8 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
   const filteredCommands = query.trim() === ''
     ? allItems  // Show all commands and recent conversations when no query
     : allItems.filter(cmd =>
-        cmd.name.toLowerCase().includes(query.toLowerCase()) ||
-        cmd.description.toLowerCase().includes(query.toLowerCase())
+        (cmd.name || '').toLowerCase().includes((query || '').toLowerCase()) ||
+        (cmd.description || '').toLowerCase().includes((query || '').toLowerCase())
       );
 
   // Group commands by category
