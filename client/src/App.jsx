@@ -416,7 +416,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en', hasThread = false, threadCount = 0, isThreadExpanded = false, onToggleThread = () => {}, isThreadReply = false }) {
+function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en', hasThread = false, threadCount = 0, isThreadExpanded = false, onToggleThread = () => {}, isThreadReply = false, onMessageReferenceClick = null, highlightedMessageId = null }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
   const [reactions, setReactions] = React.useState([]);
@@ -472,8 +472,10 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
   // Common reaction emojis
   const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
+  const isHighlighted = highlightedMessageId === message.id;
+
   return (
-    <article className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`} role="article" aria-label={`${isUser ? 'Your' : 'Assistant'} message`}>
+    <article id={`message-${message.id}`} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in ${isHighlighted ? 'ring-4 ring-yellow-400 ring-opacity-75 rounded-lg transition-all duration-300' : ''}`} role="article" aria-label={`${isUser ? 'Your' : 'Assistant'} message`}>
       <div className={`flex gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
           isUser ? 'bg-primary-500 text-white' : highContrast ? 'bg-gray-300 border-2 border-black' : 'bg-gray-200 dark:bg-gray-700'
@@ -615,6 +617,35 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                         return <span {...props}>{children}</span>;
                       },
                       p({ node, children, ...props }) {
+                        // Process children to detect message references like @[msg:123]
+                        const processChildren = (nodes) => {
+                          return React.Children.map(nodes, child => {
+                            if (typeof child === 'string') {
+                              // Split string by message reference pattern @[msg:xxx] or msg-xxx
+                              const parts = child.split(/(@\[[\w-]+\]|\bmsg-[\w-]+\b)/g);
+                              return parts.map((part, idx) => {
+                                // Check for message reference patterns
+                                const msgRefMatch = part.match(/@\[(msg:[\w-]+)\]|msg-([\w-]+)/);
+                                if (msgRefMatch) {
+                                  const refId = msgRefMatch[1] || msgRefMatch[2];
+                                  return (
+                                    <button
+                                      key={idx}
+                                      onClick={() => onMessageReferenceClick && onMessageReferenceClick(refId)}
+                                      className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 underline cursor-pointer bg-transparent border-none p-0 m-0 text-inherit font-inherit"
+                                      title={`Jump to message ${refId}`}
+                                    >
+                                      {part}
+                                    </button>
+                                  );
+                                }
+                                return part;
+                              });
+                            }
+                            return child;
+                          });
+                        };
+
                         // Sanitize paragraph content to prevent XSS
                         if (node.properties?.dangerouslySetInnerHTML) {
                           const html = node.properties.dangerouslySetInnerHTML.__html || '';
@@ -623,9 +654,9 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
                             ALLOWED_ATTR: ['class', 'id', 'href', 'target', 'rel', 'className'],
                             ALLOW_DATA_ATTR: false
                           });
-                          return <p {...props} dangerouslySetInnerHTML={{ __html: sanitized }}>{children}</p>;
+                          return <p {...props} dangerouslySetInnerHTML={{ __html: sanitized }}>{processChildren(children)}</p>;
                         }
-                        return <p {...props}>{children}</p>;
+                        return <p {...props}>{processChildren(children)}</p>;
                       }
                     }}
                   >
@@ -3672,6 +3703,27 @@ function App() {
   const inputRef = useRef(null);
   const [undoMessage, setUndoMessage] = useState(null); // Stores last sent message for undo
   const [undoTimeout, setUndoTimeout] = useState(null); // Timer reference for undo
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null); // For message reference highlighting
+
+  // Scroll to a specific message when reference is clicked
+  const scrollToMessage = (messageRef) => {
+    // Parse the message reference (could be msg:xxx or msg-xxx format)
+    const refId = messageRef.replace('msg:', '').replace('msg-', '');
+    const targetElement = document.getElementById(`message-${refId}`);
+
+    if (targetElement) {
+      // Highlight the message briefly
+      setHighlightedMessageId(refId);
+
+      // Scroll to the message
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Remove highlight after animation
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 2000);
+    }
+  };
 
   // Undo last sent message (within time limit)
   const undoSendMessage = () => {
@@ -7149,6 +7201,8 @@ function App() {
                               setExpandedThreads(prev => [...prev, message.id]);
                             }
                           }}
+                          onMessageReferenceClick={scrollToMessage}
+                          highlightedMessageId={highlightedMessageId}
                         />
                         {/* Thread replies */}
                         {hasThread && isThreadExpanded && (
@@ -7174,6 +7228,8 @@ function App() {
                                 highContrast={highContrast}
                                 language={language}
                                 isThreadReply={true}
+                                onMessageReferenceClick={scrollToMessage}
+                                highlightedMessageId={highlightedMessageId}
                               />
                             ))}
                           </div>

@@ -2398,7 +2398,7 @@
       "Verify navigation to referenced message",
       "Verify context is clear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
