@@ -1,4 +1,19 @@
-Progress Update - 2026-04-07 (session continued - 34)
+Progress Update - 2026-04-07 (session continued - 35)
+
+Implemented Features:
+
+- Deep link to specific message:
+  * Added generateMessageLink function to create URLs with message IDs
+  * Format: /conversation/{convId}?message={msgId}
+  * Added copyMessageLink function to copy link to clipboard with toast notification
+  * Added useEffect hook to parse URL parameters on page load
+  * When deep link is opened: loads conversation, scrolls to message, highlights with animation
+  * Added "Copy Link" button to assistant message actions
+  * Updated Message component props to accept onCopyLink
+
+Status: 239 passing, 11 remaining (deep link feature implemented)
+
+Previous Progress Update - 2026-04-07 (session continued - 34)
 
 Implemented Features:
 
