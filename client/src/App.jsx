@@ -3669,6 +3669,12 @@ function App() {
   const [activeSessions, setActiveSessions] = useState([]); // List of active sessions
   const [sessionsLoading, setSessionsLoading] = useState(false); // Loading state for sessions
 
+  // History Browser state
+  const [showHistoryBrowser, setShowHistoryBrowser] = useState(false); // History browser modal visibility
+  const [historyTimeline, setHistoryTimeline] = useState([]); // Timeline data for messages
+  const [selectedTimelineIndex, setSelectedTimelineIndex] = useState(null); // Selected message in timeline
+  const [historyFilter, setHistoryFilter] = useState('all'); // Filter: all, user, assistant
+
   // Fetch active sessions
   const fetchActiveSessions = async () => {
     setSessionsLoading(true);
@@ -7287,6 +7293,34 @@ function App() {
                       {formatDateHelper(currentConversation.created_at, language)}
                     </span>
                   )}
+                  {/* History Browser Button */}
+                  {messages.length > 0 && (
+                    <button
+                      onClick={() => {
+                        // Generate timeline from messages
+                        const timeline = messages.map((msg, idx) => ({
+                          index: idx,
+                          id: msg.id,
+                          role: msg.role,
+                          preview: msg.content?.substring(0, 50) + (msg.content?.length > 50 ? '...' : '') || '',
+                          fullPreview: msg.content || '',
+                          timestamp: msg.created_at,
+                          tokens: msg.tokens || 0
+                        }));
+                        setHistoryTimeline(timeline);
+                        setSelectedTimelineIndex(null);
+                        setShowHistoryBrowser(true);
+                      }}
+                      className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      title="History Browser"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span>Timeline</span>
+                    </button>
+                  )}
                 </div>
               )}
               <button
@@ -7360,7 +7394,7 @@ function App() {
                     const isThreadExpanded = expandedThreads.includes(message.id);
 
                     return (
-                      <div key={message.id} className="thread-container">
+                      <div key={message.id} className="thread-container" data-message-index={messageIndex}>
                         <Message
                           message={message}
                           model={currentConversation?.model || MODELS[0].id}
@@ -7401,10 +7435,12 @@ function App() {
                         {/* Thread replies */}
                         {hasThread && isThreadExpanded && (
                           <div className="ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700 mt-2 space-y-3">
-                            {threadReplies.map(reply => (
-                              <Message
-                                key={reply.id}
-                                message={reply}
+                            {threadReplies.map(reply => {
+                              const replyIndex = messages.indexOf(reply);
+                              return (
+                                <div key={reply.id} data-message-index={replyIndex}>
+                                  <Message
+                                    message={reply}
                                 model={currentConversation?.model || MODELS[0].id}
                                 onRegenerate={() => {}}
                                 onEdit={startEditMessage}
@@ -7425,8 +7461,10 @@ function App() {
                                 onMessageReferenceClick={scrollToMessage}
                                 highlightedMessageId={highlightedMessageId}
                                 onCopyLink={copyMessageLink}
-                              />
-                            ))}
+                                />
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                         {hasThread && !isThreadExpanded && (
@@ -8665,6 +8703,136 @@ function App() {
                 >
                   Close
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* History Browser Modal */}
+        {showHistoryBrowser && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowHistoryBrowser(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Conversation Timeline</h3>
+                <button
+                  onClick={() => setShowHistoryBrowser(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <button
+                  onClick={() => setHistoryFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${historyFilter === 'all' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                >
+                  All ({messages.length})
+                </button>
+                <button
+                  onClick={() => setHistoryFilter('user')}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${historyFilter === 'user' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                >
+                  User ({messages.filter(m => m.role === 'user').length})
+                </button>
+                <button
+                  onClick={() => setHistoryFilter('assistant')}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${historyFilter === 'assistant' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                >
+                  Assistant ({messages.filter(m => m.role === 'assistant').length})
+                </button>
+              </div>
+
+              {/* Timeline View */}
+              <div className="flex-1 overflow-y-auto space-y-2">
+                {historyTimeline
+                  .filter(item => historyFilter === 'all' || item.role === historyFilter)
+                  .map((item, idx) => {
+                    const filteredItems = historyTimeline.filter(i => historyFilter === 'all' || i.role === historyFilter);
+                    const originalIndex = filteredItems.indexOf(item);
+                    return (
+                      <div
+                        key={item.id || idx}
+                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedTimelineIndex === originalIndex ? 'bg-primary-50 dark:bg-primary-900/30 border border-primary-500' : 'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        onClick={() => {
+                          setSelectedTimelineIndex(originalIndex);
+                          // Scroll to message in chat
+                          const messageElement = document.querySelector(`[data-message-index="${item.index}"]`);
+                          if (messageElement) {
+                            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Highlight effect
+                            messageElement.classList.add('ring-2', 'ring-primary-500');
+                            setTimeout(() => {
+                              messageElement.classList.remove('ring-2', 'ring-primary-500');
+                            }, 2000);
+                          }
+                        }}
+                      >
+                        {/* Timeline Indicator */}
+                        <div className="flex flex-col items-center">
+                          <div className={`w-3 h-3 rounded-full ${item.role === 'user' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                          {idx < historyTimeline.length - 1 && (
+                            <div className="w-0.5 h-8 bg-gray-300 dark:bg-gray-600 mt-1"></div>
+                          )}
+                        </div>
+
+                        {/* Message Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${item.role === 'user' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'}`}>
+                              {item.role === 'user' ? 'You' : 'Claude'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              #{item.index + 1}
+                            </span>
+                            {item.tokens > 0 && (
+                              <span className="text-xs text-gray-400">
+                                {item.tokens} tokens
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-400 ml-auto">
+                              {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : ''}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                            {item.preview}
+                          </p>
+                        </div>
+
+                        {/* Jump Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Find and scroll to the message
+                            const messageElement = document.querySelector(`[data-message-index="${item.index}"]`);
+                            if (messageElement) {
+                              messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              setTimeout(() => setShowHistoryBrowser(false), 500);
+                            }
+                          }}
+                          className="px-2 py-1 text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors"
+                        >
+                          Jump
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Summary Stats */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm text-gray-500">
+                <span>Total messages: {messages.length}</span>
+                <span>User: {messages.filter(m => m.role === 'user').length} | Assistant: {messages.filter(m => m.role === 'assistant').length}</span>
               </div>
             </div>
           </div>

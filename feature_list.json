@@ -2424,7 +2424,7 @@
       "Navigate to specific point",
       "Verify timeline is accurate"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
