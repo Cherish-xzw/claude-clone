@@ -1,4 +1,20 @@
-Progress Update - 2026-04-07 (session continued - 33)
+Progress Update - 2026-04-07 (session continued - 34)
+
+Implemented Features:
+
+- Message reference/link within conversation:
+  * Added message reference detection in ReactMarkdown component
+  * Supported patterns: @[msg:xxx] and msg-xxx
+  * Added scrollToMessage function with smooth scrolling to referenced message
+  * Added highlightedMessageId state for yellow ring highlight animation
+  * Added message ID attributes to Message component (id="message-{id}")
+  * Added onMessageReferenceClick callback prop
+  * Implemented processChildren function to detect and render clickable references
+  * When reference is clicked: scrolls to message, centers it, highlights with animation
+
+Status: 238 passing, 12 remaining (message reference feature implemented)
+
+Previous Progress Update - 2026-04-07 (session continued - 33)
 
 Implemented Features:
 
