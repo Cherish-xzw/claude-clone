@@ -1856,6 +1856,152 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
   );
 }
 
+// Feature Flags Tab Component
+function FeatureFlagsTab() {
+  const [flags, setFlags] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showInternal, setShowInternal] = useState(false);
+
+  const fetchFlags = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/feature-flags');
+      if (!response.ok) throw new Error('Failed to fetch feature flags');
+      const data = await response.json();
+      setFlags(data.flags || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFlags();
+  }, []);
+
+  const toggleFlag = async (flagName, currentEnabled) => {
+    try {
+      const response = await fetch(`/api/feature-flags/${flagName}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !currentEnabled })
+      });
+      if (!response.ok) throw new Error('Failed to update feature flag');
+      const data = await response.json();
+      setFlags(prev => prev.map(f => f.name === flagName ? data.flag : f));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const visibleFlags = showInternal ? flags : flags.filter(f => f.is_public);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-sm py-4">
+        Error loading feature flags: {error}
+        <button onClick={fetchFlags} className="ml-2 underline">Retry</button>
+      </div>
+    );
+  }
+
+  const enabledCount = flags.filter(f => f.enabled).length;
+  const disabledCount = flags.filter(f => !f.enabled).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-lg">Feature Flags</h4>
+        <button
+          onClick={fetchFlags}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          title="Refresh"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex gap-4 text-sm">
+        <div className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+          Enabled: {enabledCount}
+        </div>
+        <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg">
+          Disabled: {disabledCount}
+        </div>
+        <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg">
+          Total: {flags.length}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInternal}
+            onChange={(e) => setShowInternal(e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+        </label>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Show internal flags</span>
+      </div>
+
+      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+        {visibleFlags.map(flag => (
+          <div
+            key={flag.id}
+            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h5 className="font-medium text-sm">{flag.name}</h5>
+                {flag.is_public === 0 && (
+                  <span className="px-2 py-0.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded">
+                    Internal
+                  </span>
+                )}
+                <span className={`px-2 py-0.5 text-xs rounded ${flag.enabled ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                  {flag.enabled ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              {flag.description && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{flag.description}</p>
+              )}
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
+              <input
+                type="checkbox"
+                checked={flag.enabled === 1}
+                onChange={() => toggleFlag(flag.name, flag.enabled === 1)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-500"></div>
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {visibleFlags.length === 0 && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          No feature flags to display.
+        </p>
+      )}
+    </div>
+  );
+}
+
 // Settings modal
 function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, notificationSettings, setNotificationSettings, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData, showInstructionsPreview, setShowInstructionsPreview, previewTestPrompt, setPreviewTestPrompt, previewResponse, previewLoading, testInstructionsPreview, activeSessions, sessionsLoading, fetchActiveSessions, logoutSession, logoutOtherSessions }) {
   const { theme, setTheme } = useTheme();
@@ -1879,6 +2025,7 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
     { id: 'accessibility', label: 'Accessibility' },
     { id: 'privacy', label: 'Privacy' },
     { id: 'usage', label: 'Usage' },
+    { id: 'feature-flags', label: 'Feature Flags' },
     { id: 'about', label: 'About' },
   ];
 
@@ -2519,6 +2666,9 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                   </button>
                 </div>
               </div>
+            )}
+            {activeTab === 'feature-flags' && (
+              <FeatureFlagsTab />
             )}
           </div>
         </div>

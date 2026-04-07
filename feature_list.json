@@ -3424,6 +3424,6 @@
       "Reset flag",
       "Verify original state"
     ],
-    "passes": false
+    "passes": true
   }
 ]

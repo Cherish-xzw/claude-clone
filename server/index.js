@@ -161,6 +161,49 @@ try {
   console.error('Message reactions migration error:', error);
 }
 
+// Create feature_flags table if it doesn't exist
+try {
+  const featureFlagsTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='feature_flags'").get();
+  if (!featureFlagsTableExists) {
+    db.exec(`
+      CREATE TABLE feature_flags (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT,
+        enabled INTEGER DEFAULT 0,
+        is_public INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Created feature_flags table');
+
+    // Insert default feature flags
+    const insertStmt = db.prepare(`
+      INSERT INTO feature_flags (id, name, description, enabled, is_public)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    const defaultFlags = [
+      { id: generateId(), name: 'new_artifact_preview', description: 'Show preview panel for new artifacts', enabled: 1, is_public: 1 },
+      { id: generateId(), name: 'enhanced_markdown', description: 'Enhanced markdown rendering with more features', enabled: 1, is_public: 1 },
+      { id: generateId(), name: 'voice_input', description: 'Voice input functionality', enabled: 0, is_public: 1 },
+      { id: generateId(), name: 'beta_features', description: 'Enable beta/experimental features', enabled: 0, is_public: 1 },
+      { id: generateId(), name: 'analytics_dashboard', description: 'Show usage analytics dashboard', enabled: 1, is_public: 1 },
+      { id: generateId(), name: 'collaborative_editing', description: 'Real-time collaborative editing (mock)', enabled: 0, is_public: 0 },
+      { id: generateId(), name: 'advanced_search', description: 'Advanced search capabilities', enabled: 1, is_public: 1 },
+      { id: generateId(), name: 'custom_themes', description: 'Custom theme creation and management', enabled: 0, is_public: 1 }
+    ];
+
+    for (const flag of defaultFlags) {
+      insertStmt.run(flag.id, flag.name, flag.description, flag.enabled, flag.is_public);
+    }
+    console.log('Inserted default feature flags');
+  }
+} catch (error) {
+  console.error('Feature flags migration error:', error);
+}
+
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY || '',
@@ -1730,6 +1773,144 @@ app.post('/api/sessions', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ============== FEATURE FLAGS ==============
+
+// GET /api/feature-flags - Get all feature flags
+app.get('/api/feature-flags', (req, res) => {
+  try {
+    const { public_only } = req.query;
+    let query = 'SELECT * FROM feature_flags';
+    let params = [];
+
+    if (public_only === 'true') {
+      query += ' WHERE is_public = 1';
+    }
+
+    query += ' ORDER BY name ASC';
+    const flags = db.prepare(query).all(...params);
+
+    res.json({
+      flags,
+      total: flags.length,
+      enabled: flags.filter(f => f.enabled).length,
+      disabled: flags.filter(f => !f.enabled).length
+    });
+  } catch (error) {
+    console.error('Error fetching feature flags:', error);
+    res.status(500).json({ error: 'Failed to fetch feature flags' });
+  }
+});
+
+// GET /api/feature-flags/:name - Get a specific feature flag
+app.get('/api/feature-flags/:name', (req, res) => {
+  try {
+    const { name } = req.params;
+    const flag = db.prepare('SELECT * FROM feature_flags WHERE name = ?').get(name);
+
+    if (!flag) {
+      return res.status(404).json({ error: 'Feature flag not found' });
+    }
+
+    res.json(flag);
+  } catch (error) {
+    console.error('Error fetching feature flag:', error);
+    res.status(500).json({ error: 'Failed to fetch feature flag' });
+  }
+});
+
+// PUT /api/feature-flags/:name - Toggle a feature flag
+app.put('/api/feature-flags/:name', (req, res) => {
+  try {
+    const { name } = req.params;
+    const { enabled } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ error: 'Enabled must be a boolean value' });
+    }
+
+    const flag = db.prepare('SELECT * FROM feature_flags WHERE name = ?').get(name);
+
+    if (!flag) {
+      return res.status(404).json({ error: 'Feature flag not found' });
+    }
+
+    // Update the flag
+    db.prepare(`
+      UPDATE feature_flags
+      SET enabled = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE name = ?
+    `).run(enabled ? 1 : 0, name);
+
+    // Get updated flag
+    const updatedFlag = db.prepare('SELECT * FROM feature_flags WHERE name = ?').get(name);
+
+    res.json({
+      success: true,
+      flag: updatedFlag,
+      message: `Feature flag '${name}' ${enabled ? 'enabled' : 'disabled'}`
+    });
+  } catch (error) {
+    console.error('Error updating feature flag:', error);
+    res.status(500).json({ error: 'Failed to update feature flag' });
+  }
+});
+
+// POST /api/feature-flags - Create a new feature flag
+app.post('/api/feature-flags', (req, res) => {
+  try {
+    const { name, description, enabled = false, is_public = true } = req.body;
+
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Name is required and must be a string' });
+    }
+
+    // Check if flag already exists
+    const existing = db.prepare('SELECT * FROM feature_flags WHERE name = ?').get(name);
+    if (existing) {
+      return res.status(409).json({ error: 'Feature flag with this name already exists' });
+    }
+
+    const id = generateId();
+    db.prepare(`
+      INSERT INTO feature_flags (id, name, description, enabled, is_public)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, name, description || '', enabled ? 1 : 0, is_public ? 1 : 0);
+
+    const newFlag = db.prepare('SELECT * FROM feature_flags WHERE id = ?').get(id);
+
+    res.status(201).json({
+      success: true,
+      flag: newFlag,
+      message: `Feature flag '${name}' created`
+    });
+  } catch (error) {
+    console.error('Error creating feature flag:', error);
+    res.status(500).json({ error: 'Failed to create feature flag' });
+  }
+});
+
+// DELETE /api/feature-flags/:name - Delete a feature flag
+app.delete('/api/feature-flags/:name', (req, res) => {
+  try {
+    const { name } = req.params;
+
+    const flag = db.prepare('SELECT * FROM feature_flags WHERE name = ?').get(name);
+    if (!flag) {
+      return res.status(404).json({ error: 'Feature flag not found' });
+    }
+
+    db.prepare('DELETE FROM feature_flags WHERE name = ?').run(name);
+
+    res.json({
+      success: true,
+      message: `Feature flag '${name}' deleted`
+    });
+  } catch (error) {
+    console.error('Error deleting feature flag:', error);
+    res.status(500).json({ error: 'Failed to delete feature flag' });
+  }
 });
 
 // Start server

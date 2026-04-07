@@ -1,8 +1,10 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 
 const PORT = 5400;
+const API_PORT = 3001;
 const DIST_DIR = path.join(__dirname, 'client', 'dist');
 
 const mimeTypes = {
@@ -17,7 +19,35 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+
+  // Proxy API requests to backend
+  if (pathname.startsWith('/api/')) {
+    const options = {
+      hostname: 'localhost',
+      port: API_PORT,
+      path: req.url,
+      method: req.method,
+      headers: req.headers
+    };
+
+    const proxyReq = http.request(options, (proxyRes) => {
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(res);
+    });
+
+    proxyReq.on('error', (e) => {
+      console.error('Proxy error:', e.message);
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Backend unavailable' }));
+    });
+
+    req.pipe(proxyReq);
+    return;
+  }
+
+  let filePath = path.join(DIST_DIR, pathname === '/' ? 'index.html' : pathname);
 
   // Handle paths with query strings
   filePath = filePath.split('?')[0];
@@ -42,5 +72,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Static server running on port ${PORT}`);
+  console.log(`Static server running on port ${PORT} with API proxy to ${API_PORT}`);
 });
