@@ -3676,6 +3676,7 @@ function App() {
   const [previewMessages, setPreviewMessages] = useState([]);
   const [hoverPreviewLoading, setHoverPreviewLoading] = useState(false);
   const previewTimeoutRef = useRef(null);
+  const isSyncingRef = useRef(false); // Flag to prevent sync loops in multi-tab updates
   const [folderAnalyticsLoading, setFolderAnalyticsLoading] = useState(false);
   const [knowledgeBaseFiles, setKnowledgeBaseFiles] = useState([]);
   const [knowledgeBaseLoading, setKnowledgeBaseLoading] = useState(false);
@@ -4478,6 +4479,87 @@ function App() {
     };
   }, [networkError, showNetworkBanner]);
 
+  // Multi-tab synchronization using BroadcastChannel API
+  useEffect(() => {
+    // Create BroadcastChannel for cross-tab communication
+    const channel = new BroadcastChannel('conversations-sync');
+
+    // Handle messages from other tabs
+    const handleBroadcast = async (event) => {
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
+
+      try {
+        const { type, data } = event.data;
+
+        if (type === 'conversations-updated') {
+          // Reload conversations from server to ensure consistency
+          const response = await fetch(`${API_BASE}/conversations`);
+          if (response.ok) {
+            const convData = await response.json();
+            setConversations(Array.isArray(convData) ? convData : (convData.conversations || []));
+          }
+        } else if (type === 'messages-updated' && data.conversationId === currentConversation?.id) {
+          // Reload messages if current conversation was updated in another tab
+          const response = await fetch(`${API_BASE}/conversations/${data.conversationId}/messages`);
+          if (response.ok) {
+            const msgData = await response.json();
+            setMessages(msgData.messages || msgData || []);
+          }
+        } else if (type === 'conversation-deleted') {
+          // Handle conversation deletion from another tab
+          setConversations(prev => prev.filter(c => c.id !== data.conversationId));
+          if (currentConversation?.id === data.conversationId) {
+            setCurrentConversation(null);
+            setMessages([]);
+            window.history.pushState({}, '', '/');
+          }
+        }
+      } catch (error) {
+        console.error('Error handling broadcast message:', error);
+      } finally {
+        // Delay reset to avoid immediate re-triggering
+        setTimeout(() => {
+          isSyncingRef.current = false;
+        }, 100);
+      }
+    };
+
+    channel.addEventListener('message', handleBroadcast);
+
+    // Also listen for storage events (fallback for browsers without BroadcastChannel)
+    const handleStorage = (event) => {
+      if (event.key === 'conversations-sync-trigger' && !isSyncingRef.current) {
+        isSyncingRef.current = true;
+        loadConversations();
+        setTimeout(() => {
+          isSyncingRef.current = false;
+        }, 100);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // Cleanup
+    return () => {
+      channel.removeEventListener('message', handleBroadcast);
+      channel.close();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [currentConversation]);
+
+  // Function to broadcast conversation updates to other tabs
+  const broadcastConversationUpdate = () => {
+    try {
+      const channel = new BroadcastChannel('conversations-sync');
+      channel.postMessage({ type: 'conversations-updated' });
+      channel.close();
+      // Also set localStorage for storage event listeners (fallback)
+      localStorage.setItem('conversations-sync-trigger', Date.now().toString());
+    } catch (error) {
+      console.error('Error broadcasting update:', error);
+    }
+  };
+
   // Load conversations on mount
   useEffect(() => {
     loadConversations();
@@ -4694,6 +4776,8 @@ function App() {
         const newUrl = `/conversation/${conv.id}`;
         window.history.pushState({ conversationId: conv.id }, '', newUrl);
         document.title = 'New Chat - Claude';
+        // Broadcast update to other tabs
+        broadcastConversationUpdate();
         return conv;
       } else {
         console.error('createConversation: Failed with status', response.status);
@@ -4721,6 +4805,14 @@ function App() {
         if (currentConversation?.id === deletingConversationId) {
           setCurrentConversation(null);
           setMessages([]);
+        }
+        // Broadcast deletion to other tabs
+        try {
+          const channel = new BroadcastChannel('conversations-sync');
+          channel.postMessage({ type: 'conversation-deleted', data: { conversationId: deletingConversationId } });
+          channel.close();
+        } catch (e) {
+          console.error('Error broadcasting deletion:', e);
         }
       }
     } catch (error) {
@@ -4751,6 +4843,8 @@ function App() {
       // Clear selection
       setSelectedConversations([]);
       setBulkSelectMode(false);
+      // Broadcast update to other tabs
+      broadcastConversationUpdate();
     } catch (error) {
       console.error('Failed to bulk delete conversations:', error);
     }
@@ -4777,6 +4871,8 @@ function App() {
       // Clear selection
       setSelectedConversations([]);
       setBulkSelectMode(false);
+      // Broadcast update to other tabs
+      broadcastConversationUpdate();
     } catch (error) {
       console.error('Failed to bulk archive conversations:', error);
     }
@@ -4803,6 +4899,8 @@ function App() {
       // Clear selection
       setSelectedConversations([]);
       setBulkSelectMode(false);
+      // Broadcast update to other tabs
+      broadcastConversationUpdate();
     } catch (error) {
       console.error('Failed to bulk pin conversations:', error);
     }
@@ -4847,6 +4945,8 @@ function App() {
 
         // Add new conversation to list
         setConversations(prev => [newConv, ...prev]);
+        // Broadcast update to other tabs
+        broadcastConversationUpdate();
       }
     } catch (error) {
       console.error('Failed to duplicate conversation:', error);
@@ -4868,6 +4968,8 @@ function App() {
         setConversations(prev => prev.map(c =>
           c.id === conversation.id ? { ...c, is_unread: newUnreadStatus } : c
         ));
+        // Broadcast update to other tabs
+        broadcastConversationUpdate();
       }
     } catch (error) {
       console.error('Failed to toggle unread status:', error);
@@ -4891,6 +4993,8 @@ function App() {
         ));
         // Show toast feedback
         showToast(newFavoriteStatus ? 'Added to favorites' : 'Removed from favorites', 'success');
+        // Broadcast update to other tabs
+        broadcastConversationUpdate();
       }
     } catch (error) {
       console.error('Failed to toggle favorite status:', error);
@@ -5315,6 +5419,8 @@ function App() {
         if (currentConversation?.id === id) {
           setCurrentConversation(prev => prev ? { ...prev, title: updated.title } : prev);
         }
+        // Broadcast update to other tabs
+        broadcastConversationUpdate();
       }
     } catch (error) {
       console.error('Failed to update conversation:', error);
@@ -5337,6 +5443,8 @@ function App() {
           if (currentConversation?.id === conversation.id) {
             setCurrentConversation(prev => prev ? { ...prev, is_pinned: newPinned } : prev);
           }
+          // Broadcast update to other tabs
+          broadcastConversationUpdate();
         }
       });
     } catch (error) {
@@ -5360,6 +5468,8 @@ function App() {
           if (currentConversation?.id === conversation.id) {
             setCurrentConversation(prev => prev ? { ...prev, is_archived: newArchived } : prev);
           }
+          // Broadcast update to other tabs
+          broadcastConversationUpdate();
         }
       });
     } catch (error) {
@@ -5795,6 +5905,8 @@ function App() {
           if (currentConversation?.id === conversationId) {
             setCurrentConversation(prev => prev ? { ...prev, project_id: folderId } : prev);
           }
+          // Broadcast update to other tabs
+          broadcastConversationUpdate();
         }
       });
     } catch (error) {
@@ -6569,6 +6681,17 @@ function App() {
       // Update conversation title if it's the first message
       if (messages.length === 0) {
         loadConversations();
+      }
+
+      // Broadcast message update to other tabs (for multi-tab sync)
+      if (currentConversation?.id) {
+        try {
+          const channel = new BroadcastChannel('conversations-sync');
+          channel.postMessage({ type: 'messages-updated', data: { conversationId: currentConversation.id } });
+          channel.close();
+        } catch (e) {
+          console.error('Error broadcasting message update:', e);
+        }
       }
 
     } catch (error) {

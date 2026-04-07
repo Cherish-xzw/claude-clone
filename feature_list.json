@@ -2166,7 +2166,7 @@
       "Verify update is reflected",
       "Verify no conflicts or data corruption"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
