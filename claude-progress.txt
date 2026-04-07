@@ -1,4 +1,23 @@
-Progress Update - 2026-04-07 (session continued - 36)
+Progress Update - 2026-04-07 (session continued - 37)
+
+Implemented Features:
+
+- History Browser for conversation (Test 181):
+  * Added History Browser state variables (showHistoryBrowser, historyTimeline, selectedTimelineIndex, historyFilter)
+  * Added Timeline button in conversation header (clock icon next to message count)
+  * Added History Browser modal with:
+    - Filter tabs (All, User, Assistant) to filter timeline by role
+    - Visual timeline view with colored dots and connecting lines
+    - Message preview cards showing role badge, index number, token count, timestamp
+    - Jump button to scroll to specific message in conversation
+    - Summary statistics showing total messages breakdown
+  * Added data-message-index attributes to message containers for smooth navigation
+  * Updated thread replies to also have message index attributes
+  * Build verified successfully
+
+Status: 241 passing, 9 remaining (History Browser implemented)
+
+Previous Progress Update - 2026-04-07 (session continued - 36)
 
 Implemented Features:
 
