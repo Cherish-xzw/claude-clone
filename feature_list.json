@@ -2660,7 +2660,7 @@
       "Wait for rate limit reset",
       "Verify sending works again"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

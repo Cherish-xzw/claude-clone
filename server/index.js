@@ -53,6 +53,24 @@ app.get('/api/health', (req, res) => {
   }
 });
 
+// Rate limiting state
+let rateLimitState = {
+  isLimited: false,
+  retryAfter: null,
+  limitedAt: null,
+  limitType: null
+};
+
+// GET /api/rate-limit-status - Get current rate limit status
+app.get('/api/rate-limit-status', (req, res) => {
+  res.json({
+    isLimited: rateLimitState.isLimited,
+    retryAfter: rateLimitState.retryAfter,
+    limitedAt: rateLimitState.limitedAt,
+    limitType: rateLimitState.limitType
+  });
+});
+
 // Simple non-streaming chat endpoint
 app.post('/api/chat', async (req, res) => {
   console.log('=== CHAT ENDPOINT CALLED ===');
@@ -80,14 +98,49 @@ app.post('/api/chat', async (req, res) => {
       userMessageContent = content;
     }
 
-    const response = await anthropic.messages.create({
-      model: model,
-      max_tokens: parseInt(max_tokens),
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessageContent }],
-      temperature: parseFloat(temperature),
-      top_p: parseFloat(top_p),
-    });
+    let response;
+    try {
+      response = await anthropic.messages.create({
+        model: model,
+        max_tokens: parseInt(max_tokens),
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessageContent }],
+        temperature: parseFloat(temperature),
+        top_p: parseFloat(top_p),
+      });
+    } catch (apiError) {
+      // Check if this is a rate limit error
+      const errorStatus = apiError?.status || apiError?.response?.status;
+      const errorType = apiError?.type || '';
+
+      if (errorStatus === 429 || errorType === 'rate_limit_error' || errorType === 'overloaded_error') {
+        // Extract retry-after from error response if available
+        const retryAfter = apiError?.response?.headers?.['retry-after'] ||
+                          apiError?.response?.headers?.get?.('retry-after') ||
+                          60;
+
+        const retryAfterSeconds = parseInt(retryAfter) || 60;
+
+        // Update rate limit state
+        rateLimitState = {
+          isLimited: true,
+          retryAfter: retryAfterSeconds,
+          limitedAt: new Date().toISOString(),
+          limitType: errorType || 'rate_limit'
+        };
+
+        console.log(`Rate limit hit in non-streaming endpoint. Retry after ${retryAfterSeconds} seconds.`);
+        return res.status(429).json({
+          error: 'API rate limit exceeded. Please wait before sending another message.',
+          retryAfter: retryAfterSeconds,
+          retryAfterDate: new Date(Date.now() + retryAfterSeconds * 1000).toISOString(),
+          isRateLimitError: true
+        });
+      }
+
+      // For other errors, re-throw
+      throw apiError;
+    }
 
     console.log('Claude response:', response.content[0].text.substring(0, 100));
     res.json({
@@ -519,11 +572,51 @@ app.post('/api/messages/stream', async (req, res) => {
     }
 
     // Send message to Claude with streaming
-    const stream = await anthropic.messages.stream(apiRequestOptions, {
-      fetchOptions: {
-        signal: req.signal
+    let stream;
+    try {
+      stream = await anthropic.messages.stream(apiRequestOptions, {
+        fetchOptions: {
+          signal: req.signal
+        }
+      });
+    } catch (streamError) {
+      console.error('Stream error:', streamError);
+
+      // Check if this is a rate limit error
+      const errorStatus = streamError?.status || streamError?.response?.status;
+      const errorType = streamError?.type || '';
+
+      if (errorStatus === 429 || errorType === 'rate_limit_error' || errorType === 'overloaded_error') {
+        // Extract retry-after from error response if available
+        const retryAfter = streamError?.response?.headers?.['retry-after'] ||
+                          streamError?.response?.headers?.get?.('retry-after') ||
+                          60; // Default to 60 seconds
+
+        const retryAfterSeconds = parseInt(retryAfter) || 60;
+
+        // Update rate limit state
+        rateLimitState = {
+          isLimited: true,
+          retryAfter: retryAfterSeconds,
+          limitedAt: new Date().toISOString(),
+          limitType: errorType || 'rate_limit'
+        };
+
+        console.log(`Rate limit hit. Retry after ${retryAfterSeconds} seconds.`);
+
+        // Send rate limit error through SSE
+        res.write(`[RATE_LIMIT_ERROR:${JSON.stringify({
+          message: 'API rate limit exceeded. Please wait before sending another message.',
+          retryAfter: retryAfterSeconds,
+          retryAfterDate: new Date(Date.now() + retryAfterSeconds * 1000).toISOString()
+        })}]`);
+        res.end();
+        return;
       }
-    });
+
+      // For other errors, throw to the outer catch
+      throw streamError;
+    }
 
     console.log('Stream started');
 

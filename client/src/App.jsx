@@ -3791,6 +3791,9 @@ function App() {
   const [offlineDetectedAt, setOfflineDetectedAt] = useState(null); // Timestamp when offline was detected
   const [isRecovering, setIsRecovering] = useState(false); // Recovery in progress
   const [lastFailedMessage, setLastFailedMessage] = useState(null); // Store last failed message for retry
+  const [rateLimitError, setRateLimitError] = useState(null); // Rate limit error message
+  const [rateLimitRetryAfter, setRateLimitRetryAfter] = useState(null); // Seconds until retry
+  const [isRateLimited, setIsRateLimited] = useState(false); // Rate limited state
   const [usageLimits, setUsageLimits] = useState(() => {
     const saved = localStorage.getItem('usageLimits');
     return saved ? JSON.parse(saved) : { enabled: false, monthlyTokenLimit: 1000000, dailyCostLimit: 10, warningThreshold: 80 };
@@ -6239,6 +6242,55 @@ function App() {
 
               let chunk = decoder.decode(value);
 
+              // Check for rate limit error
+              const rateLimitMatch = chunk.match(/\[RATE_LIMIT_ERROR:(\{[^}]+\})\]/);
+              if (rateLimitMatch) {
+                try {
+                  const rateLimitData = JSON.parse(rateLimitMatch[1]);
+                  console.log('Rate limit error detected:', rateLimitData);
+
+                  // Set rate limit state
+                  setIsRateLimited(true);
+                  setRateLimitError(rateLimitData.message);
+                  setRateLimitRetryAfter(rateLimitData.retryAfter);
+
+                  // Show toast notification
+                  showToast(`Rate limit: ${rateLimitData.message} Retrying in ${rateLimitData.retryAfter}s`, 'warning');
+
+                  // Update message with rate limit error
+                  setMessages(prev => {
+                    if (!prev || !Array.isArray(prev)) return prev;
+                    return prev.map(msg =>
+                      msg.id === assistantMessageId
+                        ? { ...msg, content: (msg.content || '') + `\n\n[Rate Limit: ${rateLimitData.message} Please wait ${rateLimitData.retryAfter} seconds.]`, isStreaming: false, hasError: true, isRateLimit: true }
+                        : msg
+                    );
+                  });
+
+                  // Store for retry
+                  setLastFailedMessage(userMessage);
+
+                  // Start countdown
+                  let countdown = rateLimitData.retryAfter;
+                  const countdownInterval = setInterval(() => {
+                    countdown--;
+                    setRateLimitRetryAfter(countdown);
+                    if (countdown <= 0) {
+                      clearInterval(countdownInterval);
+                      setIsRateLimited(false);
+                      setRateLimitError(null);
+                      setRateLimitRetryAfter(null);
+                      // Auto-retry after rate limit resets
+                      showToast('Rate limit cleared. You can now send messages.', 'success');
+                    }
+                  }, 1000);
+
+                  break;
+                } catch (e) {
+                  console.log('Failed to parse rate limit error:', e);
+                }
+              }
+
               // Check for thinking content marker
               const thinkingMatch = chunk.match(/\[TABLET_THINKING:(\{[^}]+\})\]/);
               if (thinkingMatch) {
@@ -6293,6 +6345,47 @@ function App() {
               system_prompt: systemPrompt || undefined,
             }),
           });
+
+          // Check for rate limit error
+          if (chatResponse.status === 429) {
+            const errorData = await chatResponse.json();
+            const retryAfter = errorData.retryAfter || 60;
+            console.log('Rate limit detected in non-streaming fallback:', retryAfter);
+
+            setIsRateLimited(true);
+            setRateLimitError(errorData.message || 'API rate limit exceeded');
+            setRateLimitRetryAfter(retryAfter);
+            showToast(`Rate limit: Please wait ${retryAfter} seconds`, 'warning');
+
+            // Update message with rate limit error
+            setMessages(prev => {
+              if (!prev || !Array.isArray(prev)) return prev;
+              return prev.map(msg =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: (msg.content || '') + `\n\n[Rate Limit: ${errorData.message} Please wait ${retryAfter} seconds.]`, isStreaming: false, hasError: true, isRateLimit: true }
+                  : msg
+              );
+            });
+
+            setLastFailedMessage(userMessage);
+
+            // Start countdown
+            let countdown = retryAfter;
+            const countdownInterval = setInterval(() => {
+              countdown--;
+              setRateLimitRetryAfter(countdown);
+              if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setIsRateLimited(false);
+                setRateLimitError(null);
+                setRateLimitRetryAfter(null);
+                showToast('Rate limit cleared. You can now send messages.', 'success');
+              }
+            }, 1000);
+
+            // Return early since we're handling rate limit
+            return;
+          }
 
           if (chatResponse.ok) {
             const data = await chatResponse.json();
@@ -8089,10 +8182,11 @@ function App() {
               ) : (
                 <button
                   onClick={sendMessage}
-                  disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
+                  disabled={(!input.trim() && uploadedImages.length === 0) || isLoading || isRateLimited}
                   className="p-3 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
                   aria-label="Send message"
-                  aria-disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
+                  aria-disabled={(!input.trim() && uploadedImages.length === 0) || isLoading || isRateLimited}
+                  title={isRateLimited ? `Rate limited - retry in ${rateLimitRetryAfter}s` : 'Send message'}
                 >
                   <Icons.Send />
                 </button>
@@ -9783,6 +9877,47 @@ function App() {
                     Dismiss
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rate Limit Banner */}
+        {isRateLimited && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 text-white px-4 py-3 shadow-lg">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="font-semibold">API Rate Limit</p>
+                  <p className="text-sm">
+                    {rateLimitError || 'Too many requests. Please wait.'}
+                    {rateLimitRetryAfter && (
+                      <span className="ml-2 font-mono bg-orange-600 px-2 py-0.5 rounded text-xs">
+                        Retry in: {rateLimitRetryAfter}s
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {rateLimitRetryAfter && (
+                  <div className="text-sm text-white/80">
+                    Auto-retry when ready
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setIsRateLimited(false);
+                    setRateLimitError(null);
+                    setRateLimitRetryAfter(null);
+                  }}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Dismiss
+                </button>
               </div>
             </div>
           </div>
