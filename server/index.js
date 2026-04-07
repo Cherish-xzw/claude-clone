@@ -1715,9 +1715,42 @@ app.get('/api/usage/today', (req, res) => {
 // ============== SESSION MANAGEMENT ==============
 
 // In-memory session storage for demo purposes
-// Each session has: id, device, browser, ip, location, lastActive, createdAt
+// Each session has: id, device, browser, ip, location, lastActive, createdAt, expiresAt
 const sessions = new Map();
 let currentSessionId = null;
+
+// Session timeout configuration (in milliseconds)
+// Default: 30 minutes of inactivity
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+// Session expiration warning threshold (in milliseconds)
+// Warning shown 5 minutes before expiration
+const SESSION_WARNING_MS = 5 * 60 * 1000;
+
+// Check if a session has expired
+function isSessionExpired(session) {
+  if (!session.expiresAt) {
+    // If no expiresAt, calculate from lastActive
+    const expiryTime = new Date(session.lastActive).getTime() + SESSION_TIMEOUT_MS;
+    return Date.now() > expiryTime;
+  }
+  return new Date(session.expiresAt) < new Date();
+}
+
+// Get remaining time until session expires (in milliseconds)
+function getSessionTimeRemaining(session) {
+  if (!session.expiresAt) {
+    const expiryTime = new Date(session.lastActive).getTime() + SESSION_TIMEOUT_MS;
+    return Math.max(0, expiryTime - Date.now());
+  }
+  return Math.max(0, new Date(session.expiresAt).getTime() - Date.now());
+}
+
+// Extend session expiration
+function extendSession(session) {
+  session.lastActive = new Date().toISOString();
+  session.expiresAt = new Date(Date.now() + SESSION_TIMEOUT_MS).toISOString();
+}
 
 // Generate a session ID
 function generateSessionId() {
@@ -1731,6 +1764,7 @@ function getOrCreateSession(req) {
 
   if (!sessionId || !sessions.has(sessionId)) {
     sessionId = generateSessionId();
+    const expiresAt = new Date(Date.now() + SESSION_TIMEOUT_MS).toISOString();
     sessions.set(sessionId, {
       id: sessionId,
       device: req.headers['user-agent']?.includes('Mobile') ? 'Mobile' : 'Desktop',
@@ -1739,17 +1773,30 @@ function getOrCreateSession(req) {
       location: 'Current Location',
       lastActive: new Date().toISOString(),
       createdAt: new Date().toISOString(),
+      expiresAt: expiresAt,
       isCurrent: true
     });
   } else {
-    // Update last active
+    // Update last active and extend expiration
     const session = sessions.get(sessionId);
-    session.lastActive = new Date().toISOString();
+    extendSession(session);
   }
 
   currentSessionId = sessionId;
   return sessionId;
 }
+
+// Check and invalidate expired sessions periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (session.expiresAt && new Date(session.expiresAt) < new Date()) {
+      // Session has expired, remove it
+      sessions.delete(id);
+      console.log(`Session ${id} expired and removed`);
+    }
+  }
+}, 60000); // Check every minute
 
 // Extract browser info from user agent
 function getBrowserInfo(userAgent) {
@@ -1847,6 +1894,7 @@ app.post('/api/sessions', (req, res) => {
       location: 'Another Location',
       lastActive: new Date().toISOString(),
       createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + SESSION_TIMEOUT_MS).toISOString(),
       isCurrent: false
     };
 
@@ -1859,6 +1907,91 @@ app.post('/api/sessions', (req, res) => {
   } catch (error) {
     console.error('Error creating session:', error);
     res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
+// GET /api/session-status - Get current session status and time remaining
+app.get('/api/session-status', (req, res) => {
+  try {
+    let sessionId = req.headers['x-session-id'] || req.headers.cookie?.split(';')
+      .find(c => c.trim().startsWith('session_id='))?.split('=')[1];
+
+    if (!sessionId || !sessions.has(sessionId)) {
+      return res.status(401).json({
+        error: 'No active session',
+        expired: true,
+        timeRemaining: 0
+      });
+    }
+
+    const session = sessions.get(sessionId);
+
+    // Check if session is expired
+    if (isSessionExpired(session)) {
+      sessions.delete(sessionId);
+      return res.status(401).json({
+        error: 'Session expired',
+        expired: true,
+        timeRemaining: 0
+      });
+    }
+
+    const timeRemaining = getSessionTimeRemaining(session);
+    const needsWarning = timeRemaining <= SESSION_WARNING_MS && timeRemaining > 0;
+
+    res.json({
+      sessionId: sessionId,
+      isValid: true,
+      expired: false,
+      timeRemaining: timeRemaining,
+      timeRemainingSeconds: Math.floor(timeRemaining / 1000),
+      expiresAt: session.expiresAt,
+      lastActive: session.lastActive,
+      needsWarning: needsWarning,
+      warningThreshold: SESSION_WARNING_MS
+    });
+  } catch (error) {
+    console.error('Error checking session status:', error);
+    res.status(500).json({ error: 'Failed to check session status' });
+  }
+});
+
+// POST /api/session-heartbeat - Keep session alive / extend expiration
+app.post('/api/session-heartbeat', (req, res) => {
+  try {
+    let sessionId = req.headers['x-session-id'] || req.headers.cookie?.split(';')
+      .find(c => c.trim().startsWith('session_id='))?.split('=')[1];
+
+    if (!sessionId || !sessions.has(sessionId)) {
+      return res.status(401).json({
+        error: 'No active session',
+        expired: true
+      });
+    }
+
+    const session = sessions.get(sessionId);
+
+    // Check if session is expired
+    if (isSessionExpired(session)) {
+      sessions.delete(sessionId);
+      return res.status(401).json({
+        error: 'Session expired',
+        expired: true
+      });
+    }
+
+    // Extend session
+    extendSession(session);
+
+    res.json({
+      success: true,
+      sessionId: sessionId,
+      expiresAt: session.expiresAt,
+      timeRemaining: SESSION_TIMEOUT_MS
+    });
+  } catch (error) {
+    console.error('Error extending session:', error);
+    res.status(500).json({ error: 'Failed to extend session' });
   }
 });
 

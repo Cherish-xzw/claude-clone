@@ -2908,7 +2908,7 @@
       "Log in again",
       "Verify state is restored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

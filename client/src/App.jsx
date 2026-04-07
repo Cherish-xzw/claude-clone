@@ -3830,6 +3830,128 @@ function App() {
   const [selectedTimelineIndex, setSelectedTimelineIndex] = useState(null); // Selected message in timeline
   const [historyFilter, setHistoryFilter] = useState('all'); // Filter: all, user, assistant
 
+  // Session Timeout state
+  const [sessionExpired, setSessionExpired] = useState(false); // Session expired flag
+  const [sessionTimeRemaining, setSessionTimeRemaining] = useState(null); // Time remaining in ms
+  const [showSessionWarning, setShowSessionWarning] = useState(false); // Show warning modal
+  const [savedAppState, setSavedAppState] = useState(null); // Saved state for session restoration
+
+  // Session timeout check - poll every 30 seconds
+  const checkSessionStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/session-status`);
+      if (response.status === 401) {
+        // Session expired
+        setSessionExpired(true);
+        setShowSessionWarning(false);
+        // Save current state before redirecting
+        try {
+          const stateToSave = {
+            conversations: conversations,
+            currentConversationId: currentConversationId,
+            messages: currentMessages,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem('savedAppState', JSON.stringify(stateToSave));
+          setSavedAppState(stateToSave);
+        } catch (e) {
+          console.error('Failed to save app state:', e);
+        }
+        showToast('Session expired. Please log in again.', 'error');
+        return;
+      }
+      const data = await response.json();
+      setSessionTimeRemaining(data.timeRemaining);
+      // Show warning when 5 minutes or less remaining
+      if (data.needsWarning && !showSessionWarning) {
+        setShowSessionWarning(true);
+      }
+      // Hide warning if more than 5 minutes remaining
+      if (!data.needsWarning && showSessionWarning) {
+        setShowSessionWarning(false);
+      }
+    } catch (error) {
+      console.error('Failed to check session status:', error);
+    }
+  };
+
+  // Extend session heartbeat - called periodically and on user activity
+  const extendSession = async () => {
+    try {
+      await fetch(`${API_BASE}/session-heartbeat`, { method: 'POST' });
+    } catch (error) {
+      console.error('Failed to extend session:', error);
+    }
+  };
+
+  // Session timeout polling
+  useEffect(() => {
+    // Only poll if user is logged in
+    if (isLoggedIn) {
+      // Initial check
+      checkSessionStatus();
+      // Poll every 30 seconds
+      const interval = setInterval(checkSessionStatus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]);
+
+  // Extend session on user activity
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    // Extend session on any user interaction
+    const handleUserActivity = () => {
+      extendSession();
+    };
+    // Debounce the activity handler
+    let timeout;
+    const debouncedHandler = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(handleUserActivity, 60000); // Extend max once per minute
+    };
+    window.addEventListener('click', debouncedHandler);
+    window.addEventListener('keydown', debouncedHandler);
+    return () => {
+      window.removeEventListener('click', debouncedHandler);
+      window.removeEventListener('keydown', debouncedHandler);
+      clearTimeout(timeout);
+    };
+  }, [isLoggedIn]);
+
+  // Restore saved state after re-login
+  const restoreSavedState = () => {
+    try {
+      const saved = localStorage.getItem('savedAppState');
+      if (saved) {
+        const state = JSON.parse(saved);
+        // Only restore if state is recent (within 1 hour)
+        const savedTime = new Date(state.timestamp).getTime();
+        const now = Date.now();
+        if (now - savedTime < 3600000) {
+          if (state.conversations) {
+            setConversations(state.conversations);
+          }
+          if (state.currentConversationId) {
+            setCurrentConversationId(state.currentConversationId);
+          }
+          if (state.messages) {
+            setCurrentMessages(state.messages);
+          }
+          showToast('Your previous session has been restored', 'success');
+        }
+        localStorage.removeItem('savedAppState');
+      }
+    } catch (e) {
+      console.error('Failed to restore saved state:', e);
+    }
+  };
+
+  // Handle session expired modal login
+  const handleSessionExpiredLogin = () => {
+    setSessionExpired(false);
+    restoreSavedState();
+  };
+
   // Fetch active sessions
   const fetchActiveSessions = async () => {
     setSessionsLoading(true);
@@ -8951,6 +9073,116 @@ function App() {
                   className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Session Expired Modal */}
+        {sessionExpired && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Session Expired</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Your session has expired due to inactivity. Please log in again to continue.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setSessionExpired(false);
+                    setIsLoginOpen(true);
+                    setShowSessionWarning(false);
+                    handleSessionExpiredLogin();
+                  }}
+                  className="w-full py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Log In Again
+                </button>
+                <button
+                  onClick={() => {
+                    // Clear all saved state
+                    localStorage.removeItem('savedAppState');
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('userEmail');
+                    sessionStorage.removeItem('isLoggedIn');
+                    setConversations([]);
+                    setCurrentConversationId(null);
+                    setCurrentMessages([]);
+                    setSessionExpired(false);
+                    setIsLoggedIn(false);
+                    setIsLoginOpen(true);
+                    setShowSessionWarning(false);
+                  }}
+                  className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  Clear Session & Log In
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Session Warning Modal */}
+        {showSessionWarning && !sessionExpired && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Session Expiring Soon</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Your session will expire in <span className="font-semibold text-orange-500">{Math.ceil((sessionTimeRemaining || 300000) / 60000)}</span> minutes due to inactivity.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    extendSession();
+                    setShowSessionWarning(false);
+                    showToast('Session extended', 'success');
+                  }}
+                  className="w-full py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Stay Logged In
+                </button>
+                <button
+                  onClick={() => {
+                    // Save state and log out
+                    try {
+                      const stateToSave = {
+                        conversations: conversations,
+                        currentConversationId: currentConversationId,
+                        messages: currentMessages,
+                        timestamp: new Date().toISOString()
+                      };
+                      localStorage.setItem('savedAppState', JSON.stringify(stateToSave));
+                    } catch (e) {
+                      console.error('Failed to save state:', e);
+                    }
+                    localStorage.removeItem('isLoggedIn');
+                    sessionStorage.removeItem('isLoggedIn');
+                    setIsLoggedIn(false);
+                    setShowSessionWarning(false);
+                    setIsLoginOpen(true);
+                    showToast('Session expired. Your state has been saved.', 'info');
+                  }}
+                  className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  Log Out Now
                 </button>
               </div>
             </div>
