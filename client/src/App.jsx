@@ -3686,11 +3686,136 @@ function App() {
     const savedLoginState = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
     return savedLoginState !== 'true';
   });
+  // Derived isLoggedIn state for convenience
+  const isLoggedIn = !showLoginPage;
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // WebSocket connection state
+  const [wsConnected, setWsConnected] = useState(false);
+  const [wsClientId, setWsClientId] = useState(null);
+  const wsRef = useRef(null);
+  const wsReconnectTimeoutRef = useRef(null);
+  const wsReconnectAttempts = useRef(0);
+
+  // WebSocket connection URL
+  const WS_URL = 'ws://localhost:4001';
+
+  // Ref to track current conversation ID for WebSocket callbacks
+  // Ref to track current conversation ID for WebSocket callbacks
+  const currentConversationIdRef = useRef(null);
+
+  // Update the ref when currentConversation changes
+  useEffect(() => {
+    currentConversationIdRef.current = currentConversation?.id;
+  }, [currentConversation]);
+
+  // WebSocket connection management
+  const connectWebSocket = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    try {
+      const ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        setWsConnected(true);
+        wsReconnectAttempts.current = 0;
+
+        // Subscribe to conversation updates channel
+        ws.send(JSON.stringify({ type: 'subscribe', channel: 'conversations' }));
+        ws.send(JSON.stringify({ type: 'subscribe', channel: 'messages' }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+
+          switch (message.type) {
+            case 'connected':
+              setWsClientId(message.clientId);
+              break;
+            case 'broadcast':
+              // Handle real-time updates from other clients
+              if (message.channel === 'conversations' && message.payload) {
+                // Refresh conversations list
+                if (!isSyncingRef.current) {
+                  isSyncingRef.current = true;
+                  fetchConversations();
+                  setTimeout(() => {
+                    isSyncingRef.current = false;
+                  }, 1000);
+                }
+              }
+              if (message.channel === 'messages' && message.payload) {
+                // Message update received - conversations list will be updated via conversations channel
+                console.log('Message update received via WebSocket:', message.payload);
+              }
+              break;
+            case 'pong':
+              // Heartbeat response
+              break;
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        setWsConnected(false);
+        setWsClientId(null);
+
+        // Attempt to reconnect with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts.current), 30000);
+        wsReconnectAttempts.current++;
+
+        wsReconnectTimeoutRef.current = setTimeout(() => {
+          if (isLoggedIn) {
+            connectWebSocket();
+          }
+        }, delay);
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      wsRef.current = ws;
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+    }
+  }, [isLoggedIn]);
+
+  // Disconnect WebSocket
+  const disconnectWebSocket = useCallback(() => {
+    if (wsReconnectTimeoutRef.current) {
+      clearTimeout(wsReconnectTimeoutRef.current);
+    }
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setWsConnected(false);
+  }, []);
+
+  // Manage WebSocket connection based on login state
+  useEffect(() => {
+    if (isLoggedIn) {
+      connectWebSocket();
+    } else {
+      disconnectWebSocket();
+    }
+
+    return () => {
+      disconnectWebSocket();
+    };
+  }, [isLoggedIn, connectWebSocket, disconnectWebSocket]);
 
   // Project color options
   const folderColors = [
@@ -4547,14 +4672,27 @@ function App() {
     };
   }, [currentConversation]);
 
-  // Function to broadcast conversation updates to other tabs
+  // Function to broadcast conversation updates to other tabs and WebSocket clients
   const broadcastConversationUpdate = () => {
     try {
+      // Broadcast to other tabs via BroadcastChannel
       const channel = new BroadcastChannel('conversations-sync');
       channel.postMessage({ type: 'conversations-updated' });
       channel.close();
       // Also set localStorage for storage event listeners (fallback)
       localStorage.setItem('conversations-sync-trigger', Date.now().toString());
+
+      // Broadcast via WebSocket for server-side relay
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          type: 'broadcast',
+          channel: 'conversations',
+          payload: {
+            action: 'update',
+            timestamp: new Date().toISOString()
+          }
+        }));
+      }
     } catch (error) {
       console.error('Error broadcasting update:', error);
     }

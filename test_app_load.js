@@ -9,7 +9,7 @@ const puppeteer = require('puppeteer');
     hasErrors = true;
   });
 
-  await page.goto('http://localhost:5174', {waitUntil: 'networkidle0'});
+  await page.goto('http://localhost:5400', {waitUntil: 'networkidle0'});
 
   // Set isLoggedIn to bypass login
   await page.evaluate(() => {

@@ -3209,7 +3209,7 @@
       "Verify update appears in real-time",
       "Verify reconnection on disconnect"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

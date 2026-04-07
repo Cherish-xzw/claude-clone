@@ -2139,6 +2139,190 @@ app.delete('/api/feature-flags/:name', (req, res) => {
   }
 });
 
+// ============================================
+// WebSocket Server for Real-time Updates
+// ============================================
+import { WebSocketServer } from 'ws';
+
+// Create WebSocket server on a separate port (PORT + 1) or same port
+const WS_PORT = parseInt(PORT) + 1000; // WebSocket on 13001
+
+// Store connected clients and their subscriptions
+const wsClients = new Map(); // Map<ws, Set<channel>>
+const channelClients = new Map(); // Map<channel, Set<ws>>
+
+// Create WebSocket server
+const wss = new WebSocketServer({ port: WS_PORT });
+
+console.log(`WebSocket server running on port ${WS_PORT}`);
+
+// Broadcast message to all clients subscribed to a channel
+function broadcastToChannel(channel, message) {
+  const clients = channelClients.get(channel);
+  if (clients) {
+    const messageStr = JSON.stringify(message);
+    clients.forEach(client => {
+      if (client.readyState === 1) { // WebSocket.OPEN
+        client.send(messageStr);
+      }
+    });
+  }
+}
+
+// Broadcast message to all connected clients
+function broadcastToAll(message) {
+  const messageStr = JSON.stringify(message);
+  wss.clients.forEach(client => {
+    if (client.readyState === 1) {
+      client.send(messageStr);
+    }
+  });
+}
+
+// Handle new WebSocket connections
+wss.on('connection', (ws, req) => {
+  const clientId = generateId();
+  const subscribedChannels = new Set();
+  wsClients.set(ws, subscribedChannels);
+
+  console.log(`WebSocket client connected: ${clientId}`);
+
+  // Send welcome message
+  ws.send(JSON.stringify({
+    type: 'connected',
+    clientId,
+    message: 'Connected to real-time updates server'
+  }));
+
+  // Handle incoming messages
+  ws.on('message', (data) => {
+    try {
+      const message = JSON.parse(data.toString());
+
+      switch (message.type) {
+        case 'subscribe':
+          // Subscribe to a channel
+          const channel = message.channel;
+          if (!channelClients.has(channel)) {
+            channelClients.set(channel, new Set());
+          }
+          channelClients.get(channel).add(ws);
+          subscribedChannels.add(channel);
+          ws.send(JSON.stringify({
+            type: 'subscribed',
+            channel
+          }));
+          console.log(`Client ${clientId} subscribed to ${channel}`);
+          break;
+
+        case 'unsubscribe':
+          // Unsubscribe from a channel
+          const unsubChannel = message.channel;
+          if (channelClients.has(unsubChannel)) {
+            channelClients.get(unsubChannel).delete(ws);
+          }
+          subscribedChannels.delete(unsubChannel);
+          ws.send(JSON.stringify({
+            type: 'unsubscribed',
+            channel: unsubChannel
+          }));
+          break;
+
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong' }));
+          break;
+
+        case 'broadcast':
+          // Client wants to broadcast to a channel
+          const { targetChannel, payload } = message;
+          broadcastToChannel(targetChannel, {
+            type: 'broadcast',
+            channel: targetChannel,
+            payload,
+            fromClient: clientId
+          });
+          break;
+
+        default:
+          console.log(`Unknown message type: ${message.type}`);
+      }
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  });
+
+  // Handle client disconnect
+  ws.on('close', () => {
+    // Clean up subscriptions
+    subscribedChannels.forEach(channel => {
+      if (channelClients.has(channel)) {
+        channelClients.get(channel).delete(ws);
+        if (channelClients.get(channel).size === 0) {
+          channelClients.delete(channel);
+        }
+      }
+    });
+    wsClients.delete(ws);
+    console.log(`WebSocket client disconnected: ${clientId}`);
+  });
+
+  // Handle errors
+  ws.on('error', (error) => {
+    console.error(`WebSocket error for client ${clientId}:`, error);
+  });
+});
+
+// Heartbeat to keep connections alive
+setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if (ws.readyState === 1) { // WebSocket.OPEN
+      ws.ping();
+    }
+  });
+}, 30000); // Ping every 30 seconds
+
+// ============================================
+// REST API endpoint to trigger WebSocket broadcasts
+// ============================================
+
+// POST /api/ws-broadcast - Broadcast a message to WebSocket clients
+app.post('/api/ws-broadcast', (req, res) => {
+  const { channel, payload } = req.body;
+
+  if (!channel) {
+    return res.status(400).json({ error: 'Channel is required' });
+  }
+
+  broadcastToChannel(channel, {
+    type: 'broadcast',
+    channel,
+    payload: payload || {},
+    timestamp: new Date().toISOString()
+  });
+
+  res.json({ success: true, channel, clientCount: channelClients.get(channel)?.size || 0 });
+});
+
+// GET /api/ws-status - Get WebSocket server status
+app.get('/api/ws-status', (req, res) => {
+  const channels = Array.from(channelClients.keys());
+  res.json({
+    serverRunning: true,
+    wsPort: WS_PORT,
+    connectedClients: wss.clients.size,
+    channels,
+    channelCounts: channels.reduce((acc, ch) => {
+      acc[ch] = channelClients.get(ch)?.size || 0;
+      return acc;
+    }, {})
+  });
+});
+
+// ============================================
+// Export for use in other endpoints
+// ============================================
+export { broadcastToChannel, broadcastToAll, wss };
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
