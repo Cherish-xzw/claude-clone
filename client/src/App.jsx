@@ -3974,8 +3974,8 @@ function App() {
         try {
           const stateToSave = {
             conversations: conversations,
-            currentConversationId: currentConversationId,
-            messages: currentMessages,
+            currentConversationId: currentConversation?.id,
+            messages: messages,
             timestamp: new Date().toISOString()
           };
           localStorage.setItem('savedAppState', JSON.stringify(stateToSave));
@@ -6308,7 +6308,8 @@ function App() {
       text: 'Text Document'
     };
 
-    return titles[language.toLowerCase()] || `${language} Code`;
+    const lang = (language || 'text').toLowerCase();
+    return titles[lang] || `${language || 'Text'} Code`;
   };
 
   // Rich text formatting functions
@@ -9427,8 +9428,8 @@ function App() {
                     try {
                       const stateToSave = {
                         conversations: conversations,
-                        currentConversationId: currentConversationId,
-                        messages: currentMessages,
+                        currentConversationId: currentConversation?.id,
+                        messages: messages,
                         timestamp: new Date().toISOString()
                       };
                       localStorage.setItem('savedAppState', JSON.stringify(stateToSave));
@@ -10566,11 +10567,11 @@ function CommandPalette({ isOpen, onClose, onNewChat, onOpenSettings, onToggleSi
   const getMessageSnippet = (content, searchTerm, maxLength = 100) => {
     if (!content) return '';
     const lowerContent = content.toLowerCase();
-    const lowerSearch = searchTerm.toLowerCase();
-    const index = lowerContent.indexOf(lowerSearch);
+    const lowerSearch = (searchTerm || '').toLowerCase();
+    const index = lowerSearch ? lowerContent.indexOf(lowerSearch) : -1;
     if (index === -1) return content.substring(0, maxLength) + (content.length > maxLength ? '...' : '');
     const start = Math.max(0, index - 30);
-    const end = Math.min(content.length, index + searchTerm.length + 50);
+    const end = Math.min(content.length, index + (searchTerm || '').length + 50);
     let snippet = (start > 0 ? '...' : '') + content.substring(start, end) + (end < content.length ? '...' : '');
     return snippet;
   };
