@@ -1,4 +1,23 @@
-Progress Update - 2026-04-07 (session continued - 35)
+Progress Update - 2026-04-07 (session continued - 36)
+
+Implemented Features:
+
+- PWA installation prompt:
+  * Added manifest.json with app metadata (name, short_name, icons, shortcuts)
+  * Added service worker (sw.js) for offline caching and installability
+  * Added PWA install prompt banner component in UI
+  * Added beforeinstallprompt event handling to capture and show install prompt
+  * Added Install icon for the UI
+  * Added iOS meta tags (apple-mobile-web-app-capable, apple-mobile-web-app-title)
+  * Fixed duplicate Download icon key issue
+  * Verified with browser automation:
+    - Manifest loads correctly with 2 icons
+    - Service Worker registered successfully
+    - Meta tags present for PWA support
+
+Status: 240 passing, 10 remaining (PWA installation prompt implemented)
+
+Previous Progress Update - 2026-04-07 (session continued - 35)
 
 Implemented Features:
 
