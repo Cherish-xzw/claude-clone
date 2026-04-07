@@ -2859,7 +2859,7 @@
       "Verify offline page or cached content",
       "Verify appropriate offline message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

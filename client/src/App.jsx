@@ -3637,6 +3637,8 @@ function App() {
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true); // Network status
   const [networkError, setNetworkError] = useState(null); // Network error message
   const [showNetworkBanner, setShowNetworkBanner] = useState(false); // Show network error banner
+  const [showOfflineModal, setShowOfflineModal] = useState(false); // Show offline modal
+  const [offlineDetectedAt, setOfflineDetectedAt] = useState(null); // Timestamp when offline was detected
   const [isRecovering, setIsRecovering] = useState(false); // Recovery in progress
   const [lastFailedMessage, setLastFailedMessage] = useState(null); // Store last failed message for retry
   const [usageLimits, setUsageLimits] = useState(() => {
@@ -4164,6 +4166,7 @@ function App() {
     const handleOnline = () => {
       console.log('Network: Online');
       setIsOnline(true);
+      setShowOfflineModal(false);
       // If there was a network error and we're back online, trigger recovery
       if (networkError || showNetworkBanner) {
         setIsRecovering(true);
@@ -4183,6 +4186,8 @@ function App() {
       setIsOnline(false);
       setNetworkError('Network connection lost. Please check your internet connection.');
       setShowNetworkBanner(true);
+      setShowOfflineModal(true);
+      setOfflineDetectedAt(Date.now());
       showToast('Network connection lost', 'error');
     };
 
@@ -9629,6 +9634,57 @@ function App() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Offline Modal */}
+        {showOfflineModal && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]"
+            onClick={() => setShowOfflineModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl text-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                  <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                  <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                  <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                  <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-white">You're Offline</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                It looks like you've lost your internet connection. Don't worry - you can still view your cached conversations!
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                  Try Again
+                </button>
+                <button
+                  onClick={() => setShowOfflineModal(false)}
+                  className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors"
+                >
+                  Continue Offline
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-4">
+                {offlineDetectedAt && `Offline since: ${new Date(offlineDetectedAt).toLocaleTimeString()}`}
+              </p>
             </div>
           </div>
         )}

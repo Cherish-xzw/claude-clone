@@ -1,9 +1,10 @@
 // Service Worker for Claude Clone PWA
-const CACHE_NAME = 'claude-clone-v1';
+const CACHE_NAME = 'claude-clone-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/offline.html'
 ];
 
 // Install event - cache static assets
@@ -69,9 +70,9 @@ self.addEventListener('fetch', (event) => {
           .catch(() => {
             // If both cache and network fail, return offline page
             if (event.request.mode === 'navigate') {
-              return caches.match('/');
+              return caches.match('/offline.html');
             }
-            return new Response('Offline', { status: 503 });
+            return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
           });
       })
   );
