@@ -17,8 +17,8 @@ const puppeteer = require('puppeteer');
     console.log('PAGE ERROR:', error.message);
   });
 
-  console.log('1. Navigating to port 5173...');
-  await page.goto('http://localhost:5173', {waitUntil: 'load', timeout: 30000});
+  console.log('1. Navigating to port 5174...');
+  await page.goto('http://localhost:5174', {waitUntil: 'load', timeout: 30000});
 
   console.log('\n2. Waiting for app to load...');
   await new Promise(r => setTimeout(r, 5000));

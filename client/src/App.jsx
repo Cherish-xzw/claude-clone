@@ -7056,7 +7056,7 @@ function App() {
   // Filter conversations by search and archived status
   let filteredConversations = conversations.filter(c =>
     (showFavorites ? c.is_favorited : (showArchived ? c.is_archived : !c.is_archived)) &&
-    c.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    c.title?.toLowerCase().includes((searchQuery || '').toLowerCase()) &&
     (!filterProject || c.project_id === filterProject || (c.project_id === null && filterProject === 'none')) &&
     (!filterModel || c.model === filterModel)
   );
