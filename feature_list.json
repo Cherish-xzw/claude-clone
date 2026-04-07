@@ -2895,7 +2895,7 @@
       "Verify view scrolls to specific message",
       "Verify message is highlighted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

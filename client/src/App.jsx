@@ -416,7 +416,7 @@ function CodeBlock({ language, code }) {
 }
 
 // Message component
-function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en', hasThread = false, threadCount = 0, isThreadExpanded = false, onToggleThread = () => {}, isThreadReply = false, onMessageReferenceClick = null, highlightedMessageId = null }) {
+function Message({ message, model, onRegenerate, onEdit, isEditing, editedContent, onEditedContentChange, onSaveEdit, onCancelEdit, onImageClick, onOpenArtifact, hasArtifact, onDelete, onBranch, showThinking = false, highContrast = false, language = 'en', hasThread = false, threadCount = 0, isThreadExpanded = false, onToggleThread = () => {}, isThreadReply = false, onMessageReferenceClick = null, highlightedMessageId = null, onCopyLink = null }) {
   const isUser = message.role === 'user';
   const [thinkingExpanded, setThinkingExpanded] = React.useState(true);
   const [reactions, setReactions] = React.useState([]);
@@ -701,6 +701,19 @@ function Message({ message, model, onRegenerate, onEdit, isEditing, editedConten
               >
                 <Icons.Copy /> Copy
               </button>
+              {onCopyLink && (
+                <button
+                  onClick={() => onCopyLink(message.id)}
+                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+                  title="Copy link to this message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                  Copy Link
+                </button>
+              )}
               <button
                 onClick={() => onRegenerate && onRegenerate(message.id)}
                 className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -3704,6 +3717,31 @@ function App() {
   const [undoMessage, setUndoMessage] = useState(null); // Stores last sent message for undo
   const [undoTimeout, setUndoTimeout] = useState(null); // Timer reference for undo
   const [highlightedMessageId, setHighlightedMessageId] = useState(null); // For message reference highlighting
+  const [deepLinkedMessageId, setDeepLinkedMessageId] = useState(null); // For deep linking to specific messages
+
+  // Generate deep link URL for a specific message
+  const generateMessageLink = (messageId) => {
+    const baseUrl = window.location.origin;
+    const conversationId = currentConversation?.id;
+    if (conversationId && messageId) {
+      return `${baseUrl}/conversation/${conversationId}?message=${messageId}`;
+    }
+    return '';
+  };
+
+  // Copy deep link to clipboard
+  const copyMessageLink = async (messageId) => {
+    const link = generateMessageLink(messageId);
+    if (link) {
+      try {
+        await navigator.clipboard.writeText(link);
+        showToast('Link copied to clipboard', 'success');
+      } catch (error) {
+        console.error('Failed to copy link:', error);
+        showToast('Failed to copy link', 'error');
+      }
+    }
+  };
 
   // Scroll to a specific message when reference is clicked
   const scrollToMessage = (messageRef) => {
@@ -3724,6 +3762,31 @@ function App() {
       }, 2000);
     }
   };
+
+  // Handle deep linking - check for message parameter in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const messageId = params.get('message');
+    if (messageId && currentConversation && messages.length > 0) {
+      // Check if the message exists
+      const messageExists = messages.some(m => m.id === messageId);
+      if (messageExists) {
+        setDeepLinkedMessageId(messageId);
+        // Scroll to the message after a short delay to ensure rendering
+        setTimeout(() => {
+          const targetElement = document.getElementById(`message-${messageId}`);
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setHighlightedMessageId(messageId);
+            // Remove highlight after animation
+            setTimeout(() => {
+              setHighlightedMessageId(null);
+            }, 2000);
+          }
+        }, 300);
+      }
+    }
+  }, [currentConversation, messages]);
 
   // Undo last sent message (within time limit)
   const undoSendMessage = () => {
@@ -7203,6 +7266,7 @@ function App() {
                           }}
                           onMessageReferenceClick={scrollToMessage}
                           highlightedMessageId={highlightedMessageId}
+                          onCopyLink={copyMessageLink}
                         />
                         {/* Thread replies */}
                         {hasThread && isThreadExpanded && (
@@ -7230,6 +7294,7 @@ function App() {
                                 isThreadReply={true}
                                 onMessageReferenceClick={scrollToMessage}
                                 highlightedMessageId={highlightedMessageId}
+                                onCopyLink={copyMessageLink}
                               />
                             ))}
                           </div>
