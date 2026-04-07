@@ -3401,7 +3401,7 @@
       "Click logout other sessions",
       "Verify other sessions are ended"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

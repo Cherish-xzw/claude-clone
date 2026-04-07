@@ -1807,7 +1807,7 @@ function UsageDashboard({ usageLimits, setUsageLimits, showToast }) {
 }
 
 // Settings modal
-function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, notificationSettings, setNotificationSettings, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData, showInstructionsPreview, setShowInstructionsPreview, previewTestPrompt, setPreviewTestPrompt, previewResponse, previewLoading, testInstructionsPreview }) {
+function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, setTopP, maxTokens, setMaxTokens, thinkingEnabled, setThinkingEnabled, onOpenKeyboardShortcuts, highContrast, setHighContrast, reducedMotion, setReducedMotion, systemPrompt, onSystemPromptChange, language, setLanguage, usageLimits, setUsageLimits, soundEffectsEnabled, setSoundEffectsEnabled, notificationSettings, setNotificationSettings, customInstructionTemplates, openCustomInstructionModal, selectInstructionTemplate, selectedInstructionTemplate, globalCustomInstructions, setGlobalCustomInstructions, onExportAllData, showInstructionsPreview, setShowInstructionsPreview, previewTestPrompt, setPreviewTestPrompt, previewResponse, previewLoading, testInstructionsPreview, activeSessions, sessionsLoading, fetchActiveSessions, logoutSession, logoutOtherSessions }) {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -2352,6 +2352,97 @@ function SettingsModal({ isOpen, onClose, temperature, setTemperature, topP, set
                       Delete All Conversations
                     </button>
                   </div>
+                </div>
+                {/* Active Sessions Section */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="font-medium text-sm">Active Sessions</h5>
+                    <button
+                      onClick={fetchActiveSessions}
+                      className="text-xs text-primary-500 hover:text-primary-600"
+                      disabled={sessionsLoading}
+                    >
+                      {sessionsLoading ? 'Loading...' : 'Refresh'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    View and manage devices that are logged into your account.
+                  </p>
+                  {sessionsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+                    </div>
+                  ) : activeSessions.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {activeSessions.map(session => (
+                        <div
+                          key={session.id}
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            session.isCurrent
+                              ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800'
+                              : 'bg-white dark:bg-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              session.device === 'Mobile'
+                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                            }`}>
+                              {session.device === 'Mobile' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                </svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{session.browser}</span>
+                                {session.isCurrent && (
+                                  <span className="text-xs px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {session.device} - {session.location}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500">
+                                Last active: {new Date(session.lastActive).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          {!session.isCurrent && (
+                            <button
+                              onClick={() => logoutSession(session.id)}
+                              className="text-xs px-3 py-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded transition-colors"
+                            >
+                              Logout
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                      No sessions found. Click refresh to load sessions.
+                    </p>
+                  )}
+                  {activeSessions.filter(s => !s.isCurrent).length > 0 && (
+                    <button
+                      onClick={logoutOtherSessions}
+                      className="mt-3 w-full px-3 py-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg text-sm transition-colors"
+                    >
+                      Logout All Other Sessions ({activeSessions.filter(s => !s.isCurrent).length})
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -3523,6 +3614,59 @@ function App() {
   const [previewTestPrompt, setPreviewTestPrompt] = useState(''); // Test prompt for instructions preview
   const [previewResponse, setPreviewResponse] = useState(''); // Preview response from Claude
   const [previewLoading, setPreviewLoading] = useState(false); // Preview loading state
+
+  // Active Sessions state
+  const [activeSessions, setActiveSessions] = useState([]); // List of active sessions
+  const [sessionsLoading, setSessionsLoading] = useState(false); // Loading state for sessions
+
+  // Fetch active sessions
+  const fetchActiveSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/sessions`);
+      if (response.ok) {
+        const data = await response.json();
+        setActiveSessions(data.sessions || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sessions:', error);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  // Logout a specific session
+  const logoutSession = async (sessionId) => {
+    try {
+      const response = await fetch(`${API_BASE}/sessions/${sessionId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setActiveSessions(prev => prev.filter(s => s.id !== sessionId));
+        showToast('Session logged out successfully', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to logout session:', error);
+      showToast('Failed to logout session', 'error');
+    }
+  };
+
+  // Logout all other sessions
+  const logoutOtherSessions = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/sessions/other`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setActiveSessions(prev => prev.filter(s => s.isCurrent));
+        showToast(data.message || 'All other sessions logged out', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to logout other sessions:', error);
+      showToast('Failed to logout other sessions', 'error');
+    }
+  };
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -8734,7 +8878,7 @@ function App() {
         )}
 
         {/* Settings Modal */}
-        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} soundEffectsEnabled={soundEffectsEnabled} setSoundEffectsEnabled={setSoundEffectsEnabled} notificationSettings={notificationSettings} setNotificationSettings={setNotificationSettings} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} onExportAllData={exportAllData} showInstructionsPreview={showInstructionsPreview} setShowInstructionsPreview={setShowInstructionsPreview} previewTestPrompt={previewTestPrompt} setPreviewTestPrompt={setPreviewTestPrompt} previewResponse={previewResponse} previewLoading={previewLoading} testInstructionsPreview={testInstructionsPreview} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} temperature={temperature} setTemperature={setTemperature} topP={topP} setTopP={setTopP} maxTokens={maxTokens} setMaxTokens={setMaxTokens} thinkingEnabled={thinkingEnabled} setThinkingEnabled={setThinkingEnabled} onOpenKeyboardShortcuts={() => { setShowSettings(false); setShowKeyboardShortcuts(true); }} highContrast={highContrast} setHighContrast={setHighContrast} reducedMotion={reducedMotion} setReducedMotion={setReducedMotion} systemPrompt={systemPrompt} onSystemPromptChange={handleSystemPromptChange} language={language} setLanguage={setLanguage} usageLimits={usageLimits} setUsageLimits={setUsageLimits} soundEffectsEnabled={soundEffectsEnabled} setSoundEffectsEnabled={setSoundEffectsEnabled} notificationSettings={notificationSettings} setNotificationSettings={setNotificationSettings} customInstructionTemplates={customInstructionTemplates} openCustomInstructionModal={openCustomInstructionModal} selectInstructionTemplate={selectInstructionTemplate} selectedInstructionTemplate={selectedInstructionTemplate} globalCustomInstructions={globalCustomInstructions} setGlobalCustomInstructions={setGlobalCustomInstructions} onExportAllData={exportAllData} showInstructionsPreview={showInstructionsPreview} setShowInstructionsPreview={setShowInstructionsPreview} previewTestPrompt={previewTestPrompt} setPreviewTestPrompt={setPreviewTestPrompt} previewResponse={previewResponse} previewLoading={previewLoading} testInstructionsPreview={testInstructionsPreview} activeSessions={activeSessions} sessionsLoading={sessionsLoading} fetchActiveSessions={fetchActiveSessions} logoutSession={logoutSession} logoutOtherSessions={logoutOtherSessions} />
 
         {/* Keyboard Shortcuts Modal */}
         <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />

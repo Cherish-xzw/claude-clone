@@ -1576,6 +1576,156 @@ app.get('/api/usage/today', (req, res) => {
   }
 });
 
+// ============== SESSION MANAGEMENT ==============
+
+// In-memory session storage for demo purposes
+// Each session has: id, device, browser, ip, location, lastActive, createdAt
+const sessions = new Map();
+let currentSessionId = null;
+
+// Generate a session ID
+function generateSessionId() {
+  return 'sess_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+// Get or create session for current request
+function getOrCreateSession(req) {
+  let sessionId = req.headers['x-session-id'] || req.headers.cookie?.split(';')
+    .find(c => c.trim().startsWith('session_id='))?.split('=')[1];
+
+  if (!sessionId || !sessions.has(sessionId)) {
+    sessionId = generateSessionId();
+    sessions.set(sessionId, {
+      id: sessionId,
+      device: req.headers['user-agent']?.includes('Mobile') ? 'Mobile' : 'Desktop',
+      browser: getBrowserInfo(req.headers['user-agent']),
+      ip: req.ip || req.connection?.remoteAddress || '127.0.0.1',
+      location: 'Current Location',
+      lastActive: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      isCurrent: true
+    });
+  } else {
+    // Update last active
+    const session = sessions.get(sessionId);
+    session.lastActive = new Date().toISOString();
+  }
+
+  currentSessionId = sessionId;
+  return sessionId;
+}
+
+// Extract browser info from user agent
+function getBrowserInfo(userAgent) {
+  if (!userAgent) return 'Unknown Browser';
+  if (userAgent.includes('Chrome')) return 'Chrome';
+  if (userAgent.includes('Firefox')) return 'Firefox';
+  if (userAgent.includes('Safari')) return 'Safari';
+  if (userAgent.includes('Edge')) return 'Edge';
+  return 'Unknown Browser';
+}
+
+// GET /api/sessions - Get all active sessions
+app.get('/api/sessions', (req, res) => {
+  try {
+    const sessionId = getOrCreateSession(req);
+    const allSessions = Array.from(sessions.values()).map(s => ({
+      ...s,
+      isCurrent: s.id === sessionId
+    }));
+
+    // Sort: current session first, then by lastActive
+    allSessions.sort((a, b) => {
+      if (a.isCurrent) return -1;
+      if (b.isCurrent) return 1;
+      return new Date(b.lastActive) - new Date(a.lastActive);
+    });
+
+    res.json({
+      sessions: allSessions,
+      currentSessionId: sessionId
+    });
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+// DELETE /api/sessions/:id - Logout a specific session
+app.delete('/api/sessions/:id', (req, res) => {
+  try {
+    const sessionId = getOrCreateSession(req);
+    const { id } = req.params;
+
+    if (id === sessionId) {
+      return res.status(400).json({ error: 'Cannot logout current session. Use logout endpoint instead.' });
+    }
+
+    if (!sessions.has(id)) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    sessions.delete(id);
+    res.json({ success: true, message: 'Session logged out' });
+  } catch (error) {
+    console.error('Error logging out session:', error);
+    res.status(500).json({ error: 'Failed to logout session' });
+  }
+});
+
+// DELETE /api/sessions/other - Logout all other sessions
+app.delete('/api/sessions/other', (req, res) => {
+  try {
+    const sessionId = getOrCreateSession(req);
+    const otherSessionsCount = sessions.size - 1;
+
+    // Delete all sessions except current
+    for (const [id] of sessions) {
+      if (id !== sessionId) {
+        sessions.delete(id);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Logged out ${otherSessionsCount} other session(s)`,
+      loggedOutCount: otherSessionsCount
+    });
+  } catch (error) {
+    console.error('Error logging out other sessions:', error);
+    res.status(500).json({ error: 'Failed to logout other sessions' });
+  }
+});
+
+// POST /api/sessions - Create a new session (simulates login from another device)
+app.post('/api/sessions', (req, res) => {
+  try {
+    const newSessionId = generateSessionId();
+    const { device = 'Desktop', browser = 'Unknown Browser' } = req.body;
+
+    const session = {
+      id: newSessionId,
+      device,
+      browser,
+      ip: '192.168.1.' + Math.floor(Math.random() * 255),
+      location: 'Another Location',
+      lastActive: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      isCurrent: false
+    };
+
+    sessions.set(newSessionId, session);
+
+    res.json({
+      session,
+      message: 'New session created (simulating login from another device)'
+    });
+  } catch (error) {
+    console.error('Error creating session:', error);
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
 // ============== HEALTH CHECK ==============
 
 app.get('/api/health', (req, res) => {
