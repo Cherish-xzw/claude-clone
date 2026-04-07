@@ -1,4 +1,33 @@
-Progress Update - 2026-04-08 (session continued - 41)
+Progress Update - 2026-04-08 (session continued - 42)
+
+Implemented Features:
+
+- WebSocket connection for real-time updates (Test 321):
+  * Backend changes:
+    - Added ws package for WebSocket support
+    - Implemented WebSocket server on port 4001
+    - Channel subscription system (conversations, messages)
+    - Heartbeat and auto-reconnect for clients
+    - REST API endpoints: /api/ws-broadcast, /api/ws-status
+  * Frontend changes:
+    - Added WebSocket connection management
+    - connectWebSocket with auto-reconnect and exponential backoff
+    - Subscribe to conversations and messages channels
+    - Broadcast updates via WebSocket when conversations change
+    - Ref-based conversation ID tracking to avoid stale closures
+  * Verified with browser automation:
+    - WebSocket connects successfully
+    - Client subscribes to channels
+    - Server shows connected clients
+    - Console logs "WebSocket connected"
+
+- Fixed isLoggedIn bug:
+  * Added derived isLoggedIn state from showLoginPage
+  * App now loads without JavaScript errors
+
+Status: 259 passing, 3 remaining (WebSocket implemented)
+
+Previous Progress Update - 2026-04-08 (session continued - 41)
 
 Implemented Features:
 
