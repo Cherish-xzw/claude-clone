@@ -2847,7 +2847,7 @@
       "Launch from home screen",
       "Verify full functionality"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -385,6 +385,12 @@ const Icons = {
       <rect x="6" y="14" width="12" height="8"></rect>
     </svg>
   ),
+  Install: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+      <line x1="12" y1="18" x2="12" y2="18"></line>
+    </svg>
+  ),
 };
 
 // Code block component with copy functionality
@@ -3712,6 +3718,94 @@ function App() {
     }
   };
 
+  // PWA Install state
+  const [deferredPrompt, setDeferredPrompt] = useState(null); // Stores the install prompt
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false); // Show install banner/button
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false); // Track if app is running as PWA
+
+  // Check if app is running as installed PWA
+  useEffect(() => {
+    // Check if running in standalone mode (PWA)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone === true ||
+                          document.referrer.includes('android-app://');
+    setIsPWAInstalled(isStandalone);
+  }, []);
+
+  // Listen for the beforeinstallprompt event
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent the default mini-infobar
+      e.preventDefault();
+      // Store the event for later use
+      setDeferredPrompt(e);
+      // Show our custom install prompt
+      setShowInstallPrompt(true);
+      console.log('PWA install prompt captured');
+    };
+
+    // Listen for app installed event
+    const handleAppInstalled = () => {
+      // Hide install prompt and reset
+      setShowInstallPrompt(false);
+      setDeferredPrompt(null);
+      setIsPWAInstalled(true);
+      showToast('App installed successfully!', 'success');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  // Handle PWA install
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) {
+      showToast('Install prompt not available', 'error');
+      return;
+    }
+
+    // Show the install prompt
+    deferredPrompt.prompt();
+
+    // Wait for the user's choice
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('Install prompt outcome:', outcome);
+
+    // Clear the deferred prompt
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
+
+    if (outcome === 'accepted') {
+      showToast('Installing app...', 'success');
+    } else {
+      showToast('Install cancelled', 'info');
+    }
+  };
+
+  // Dismiss install prompt (user explicitly dismissed)
+  const handleDismissInstall = () => {
+    setShowInstallPrompt(false);
+    // Store dismissal in localStorage so we don't show again for a while
+    localStorage.setItem('pwaInstallDismissed', Date.now().toString());
+  };
+
+  // Check if we should show install prompt (not dismissed recently)
+  useEffect(() => {
+    const dismissed = localStorage.getItem('pwaInstallDismissed');
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed, 10);
+      const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
+      if (Date.now() < dismissedTime + weekAgo) {
+        setShowInstallPrompt(false);
+      }
+    }
+  }, []);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const [undoMessage, setUndoMessage] = useState(null); // Stores last sent message for undo
@@ -6476,6 +6570,42 @@ function App() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
+
+      {/* PWA Install Banner */}
+      {showInstallPrompt && !isPWAInstalled && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-slide-in">
+          <div className="flex items-center gap-4 px-4 py-3 bg-gray-900 dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
+                <Icons.Install />
+              </div>
+              <div className="text-white">
+                <p className="font-medium">Install Claude</p>
+                <p className="text-xs text-gray-400">Add to your home screen for quick access</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleInstallPWA}
+                className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium text-sm transition-colors"
+              >
+                Install
+              </button>
+              <button
+                onClick={handleDismissInstall}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+                aria-label="Dismiss install prompt"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         className={`h-screen flex ${highContrast ? 'bg-white text-black' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'}`}
         style={reducedMotion ? { '--tw-transition-duration': '0ms', transitionDuration: '0ms' } : {}}
